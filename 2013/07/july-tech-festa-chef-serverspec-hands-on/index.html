@@ -1,0 +1,662 @@
+<!doctype html><html lang=ja dir=ltr class=scroll-smooth data-default-appearance=light data-auto-appearance=true><head>
+<meta charset=utf-8>
+<meta http-equiv=content-language content="ja">
+<meta name=viewport content="width=device-width,initial-scale=1">
+<meta http-equiv=x-ua-compatible content="ie=edge">
+<title>July Tech Festa の Chef / serverspec ハンズオンを家で試した #techfesta &#183; 1Q77</title>
+<meta name=title content="July Tech Festa の Chef / serverspec ハンズオンを家で試した #techfesta &#183; 1Q77">
+<link rel=canonical href=https://preview-blog.1q77.com/2013/07/july-tech-festa-chef-serverspec-hands-on/>
+<link type=text/css rel=stylesheet href=/css/main.bundle.min.a9d40529d239a91ecb75447e67ee6c80c1f1c28593904b4052651b12220121e13ec42904268b0193a6858f039cf8bfdd2b1331529ed341ddc7488cec3bdcbc2e.css integrity="sha512-qdQFKdI5qR7LdUR+Z+5sgMHxwoWTkEtAUmUbEiIBIeE+xCkEJosBk6aFjwOc+L/dKxMxUp7TQd3HSIzsO9y8Lg==">
+<script type=text/javascript src=/js/main.min.cf83e1357eefb8bdf1542850d66d8007d620e4050b5715dc83f4a921d36ce9ce47d0d13c5d85f2b0ff8318d2877eec2f63b931bd47417a81a538327af927da3e.js integrity="sha512-z4PhNX7vuL3xVChQ1m2AB9Yg5AULVxXcg/SpIdNs6c5H0NE8XYXysP+DGNKHfuwvY7kxvUdBeoGlODJ6+SfaPg=="></script>
+<script type=text/javascript src=/js/appearance.min.49025a779c36ad37a5bf9f1cc6bffd35ccb69ce15560ef1b10057ddf31576265b19f8bcc1733207336c9144926f7b18aea2e5895f29e858b24271332a2fa5cd5.js integrity="sha512-SQJad5w2rTelv58cxr/9Ncy2nOFVYO8bEAV93zFXYmWxn4vMFzMgczbJFEkm97GK6i5YlfKehYskJxMyovpc1Q=="></script>
+<script defer type=text/javascript id=script-bundle src=/js/main.bundle.min.34ee8372ff77835535e486c6ed01ff6993374a1cec8108898cad793fc6ae7520778e24db68e085c762d25af6fa7d00b57d7a791438dc68b676581f8c8344f6e0.js integrity="sha512-NO6Dcv93g1U15IbG7QH/aZM3ShzsgQiJjK15P8audSB3jiTbaOCFx2LSWvb6fQC1fXp5FDjcaLZ2WB+Mg0T24A==" data-copy data-copied></script>
+<script src=/js/zoom.min.js></script>
+<link rel=apple-touch-icon sizes=180x180 href=/apple-touch-icon.png>
+<link rel=icon type=image/png sizes=32x32 href=/favicon-32x32.png>
+<link rel=icon type=image/png sizes=16x16 href=/favicon-16x16.png>
+<link rel=manifest href=/site.webmanifest>
+<meta property="og:title" content="July Tech Festa の Chef / serverspec ハンズオンを家で試した #techfesta">
+<meta property="og:description" content="July Tech Festa の Chef ハンズオン資料が公開されていたので家で試してみた。公開ありがとうございます。 Vagrant でテスト用環境を立ち上げる $ mkdir chef $ cd chef $ vagrant init centos6 http://developer.nrel.gov/downloads/vagrant-boxes/CentOS-6.4-x86_64-v20130427.box $ vagrant">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://preview-blog.1q77.com/2013/07/july-tech-festa-chef-serverspec-hands-on/"><meta property="article:section" content="posts">
+<meta property="article:published_time" content="2013-07-19T14:21:33+00:00">
+<meta property="article:modified_time" content="2013-07-19T14:21:33+00:00">
+<meta name=twitter:card content="summary">
+<meta name=twitter:title content="July Tech Festa の Chef / serverspec ハンズオンを家で試した #techfesta">
+<meta name=twitter:description content="July Tech Festa の Chef ハンズオン資料が公開されていたので家で試してみた。公開ありがとうございます。 Vagrant でテスト用環境を立ち上げる $ mkdir chef $ cd chef $ vagrant init centos6 http://developer.nrel.gov/downloads/vagrant-boxes/CentOS-6.4-x86_64-v20130427.box $ vagrant">
+<script type=application/ld+json>[{"@context":"https://schema.org","@type":"Article","articleSection":"Posts","name":"July Tech Festa の Chef \/ serverspec ハンズオンを家で試した #techfesta","headline":"July Tech Festa の Chef \/ serverspec ハンズオンを家で試した #techfesta","abstract":"July Tech Festa の Chef ハンズオン資料が公開されていたので家で試してみた。公開ありがとうございます。 Vagrant でテスト用環境を立ち上げる $ mkdir chef $ cd chef $ vagrant init centos6 http:\/\/developer.nrel.gov\/downloads\/vagrant-boxes\/CentOS-6.4-x86_64-v20130427.box $ vagrant","inLanguage":"ja","url":"https:\/\/preview-blog.1q77.com\/2013\/07\/july-tech-festa-chef-serverspec-hands-on\/","author":{"@type":"Person","name":"Yoshinori Teraoka"},"copyrightYear":"2013","dateCreated":"2013-07-19T14:21:33\u002b00:00","datePublished":"2013-07-19T14:21:33\u002b00:00","dateModified":"2013-07-19T14:21:33\u002b00:00","keywords":["chef","vagrant","ハンズオン"],"mainEntityOfPage":"true","wordCount":"1477"}]</script>
+<meta name=author content="Yoshinori Teraoka">
+<link href=https://twitter.com/yteraoka rel=me>
+<link href=https://github.com/yteraoka rel=me>
+<link href=https://linkedin.com/in/fa5b66b7-9c77-4e1b-8b97-40ba4a5a2c13/ rel=me>
+<link href=https://medium.com/@yteraoka rel=me>
+<link rel=stylesheet href=https://rsms.me/inter/inter.css>
+</head><body class="flex flex-col h-screen px-6 m-auto text-lg leading-7 max-w-7xl bg-neutral text-neutral-900 dark:bg-neutral-800 dark:text-neutral sm:px-14 md:px-24 lg:px-32">
+<div id=the-top class="absolute flex self-center">
+<a class="px-3 py-1 text-sm -translate-y-8 rounded-b-lg bg-primary-200 focus:translate-y-0 dark:bg-neutral-600" href=#main-content><span class="font-bold text-primary-600 ltr:pr-2 rtl:pl-2 dark:text-primary-400">&darr;</span>メインコンテンツへスキップ</a>
+</div>
+<div style=padding-left:0;padding-right:0 class="flex items-center justify-between px-4 py-6 sm:px-6 md:justify-start space-x-3">
+<div class="flex flex-1 items-center justify-between">
+<nav class="flex space-x-3">
+<a href=/ class="text-base font-medium text-gray-500 hover:text-gray-900">1Q77</a>
+</nav>
+<div class="hidden md:flex items-center space-x-5 md:ml-12">
+<a href=/posts/ class="text-base font-medium text-gray-500 hover:text-gray-900" title=Posts>
+Blog
+</a>
+<a href=/tags/ class="text-base font-medium text-gray-500 hover:text-gray-900" title=Tags>
+Tags
+</a>
+<a href=https://github.com/yteraoka class="text-base font-medium text-gray-500 hover:text-gray-900" title>
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><path fill="currentcolor" d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6.0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6.0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3.0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1.0-6.2-.3-40.4-.3-61.4.0.0-70 15-84.7-29.8.0.0-11.4-29.1-27.8-36.6.0.0-22.9-15.7 1.6-15.4.0.0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5.0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9.0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4.0 33.7-.3 75.4-.3 83.6.0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6.0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9.0-6.2-1.4-2.3-4-3.3-5.6-2z"/></svg>
+</span>
+&nbsp;
+GitHub
+</a>
+<a href=https://twitter.com/yteraoka class="text-base font-medium text-gray-500 hover:text-gray-900" title>
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentcolor" d="M459.37 151.716c.325 4.548.325 9.097.325 13.645.0 138.72-105.583 298.558-298.558 298.558-59.452.0-114.68-17.219-161.137-47.106 8.447.974 16.568 1.299 25.34 1.299 49.055.0 94.213-16.568 130.274-44.832-46.132-.975-84.792-31.188-98.112-72.772 6.498.974 12.995 1.624 19.818 1.624 9.421.0 18.843-1.3 27.614-3.573-48.081-9.747-84.143-51.98-84.143-102.985v-1.299c13.969 7.797 30.214 12.67 47.431 13.319-28.264-18.843-46.781-51.005-46.781-87.391.0-19.492 5.197-37.36 14.294-52.954 51.655 63.675 129.3 105.258 216.365 109.807-1.624-7.797-2.599-15.918-2.599-24.04.0-57.828 46.782-104.934 104.934-104.934 30.213.0 57.502 12.67 76.67 33.137 23.715-4.548 46.456-13.32 66.599-25.34-7.798 24.366-24.366 44.833-46.132 57.827 21.117-2.273 41.584-8.122 60.426-16.243-14.292 20.791-32.161 39.308-52.628 54.253z"/></svg>
+</span>
+&nbsp;
+Twitter
+</a>
+<a href=https://qiita.com/yteraoka class="text-base font-medium text-gray-500 hover:text-gray-900" title>
+Qiita
+</a>
+<button id=search-button class="text-base hover:text-primary-600 dark:hover:text-primary-400" title>
+<span class="relative inline-block align-text-bottom icon"><svg aria-hidden="true" focusable="false" data-prefix="fas" data-icon="search" class="svg-inline--fa fa-search fa-w-16" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentcolor" d="M505 442.7 405.3 343c-4.5-4.5-10.6-7-17-7H372c27.6-35.3 44-79.7 44-128C416 93.1 322.9.0 208 0S0 93.1.0 208s93.1 208 208 208c48.3.0 92.7-16.4 128-44v16.3c0 6.4 2.5 12.5 7 17l99.7 99.7c9.4 9.4 24.6 9.4 33.9.0l28.3-28.3c9.4-9.4 9.4-24.6.1-34zM208 336c-70.7.0-128-57.2-128-128 0-70.7 57.2-128 128-128 70.7.0 128 57.2 128 128 0 70.7-57.2 128-128 128z"/></svg>
+</span>
+</button>
+<div class="ltr:mr-14 rtl:ml-14 cursor-pointer text-sm text-neutral-700 hover:text-primary-600 dark:text-neutral dark:hover:text-primary-400">
+<button id=appearance-switcher type=button>
+<div class="flex items-center justify-center h-12 dark:hidden">
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentcolor" d="M32 256C32 132.2 132.3 32 255.8 32c11.36.0 29.7 1.668 40.9 3.746 9.616 1.777 11.75 14.63 3.279 19.44C245 86.5 211.2 144.6 211.2 207.8c0 109.7 99.71 193 208.3 172.3 9.561-1.805 16.28 9.324 10.11 16.95C387.9 448.6 324.8 480 255.8 480 132.1 480 32 379.6 32 256z"/></svg>
+</span>
+</div>
+<div class="items-center justify-center hidden h-12 dark:flex">
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentcolor" d="M256 159.1c-53.02.0-95.1 42.98-95.1 95.1s41.2 96.9 95.1 96.9 95.1-42.98 95.1-95.1S309 159.1 256 159.1zM509.3 347l-63.2-91.9 63.15-91.01c6.332-9.125 1.104-21.74-9.826-23.72l-109-19.7-19.7-109c-1.975-10.93-14.59-16.16-23.72-9.824L256 65.89 164.1 2.736c-9.125-6.332-21.74-1.107-23.72 9.824L121.6 121.6 12.56 141.3C1.633 143.2-3.596 155.9 2.736 164.1L65.89 256 2.74 347.01c-6.332 9.125-1.105 21.74 9.824 23.72l109 19.7 19.7 109c1.975 10.93 14.59 16.16 23.72 9.824L256 446.1l91.01 63.15c9.127 6.334 21.75 1.107 23.72-9.822l19.7-109 109-19.7C510.4 368.8 515.6 356.1 509.3 347zM256 383.1c-70.69.0-127.1-57.31-127.1-127.1.0-70.69 57.31-127.1 127.1-127.1S383.1 186.2 383.1 256c0 70.7-56.4 127.1-127.1 127.1z"/></svg>
+</span>
+</div>
+</button>
+</div>
+</div>
+<div class="flex md:hidden items-center space-x-5 md:ml-12">
+<span></span>
+<button id=search-button-mobile class="text-base hover:text-primary-600 dark:hover:text-primary-400" title>
+<span class="relative inline-block align-text-bottom icon"><svg aria-hidden="true" focusable="false" data-prefix="fas" data-icon="search" class="svg-inline--fa fa-search fa-w-16" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentcolor" d="M505 442.7 405.3 343c-4.5-4.5-10.6-7-17-7H372c27.6-35.3 44-79.7 44-128C416 93.1 322.9.0 208 0S0 93.1.0 208s93.1 208 208 208c48.3.0 92.7-16.4 128-44v16.3c0 6.4 2.5 12.5 7 17l99.7 99.7c9.4 9.4 24.6 9.4 33.9.0l28.3-28.3c9.4-9.4 9.4-24.6.1-34zM208 336c-70.7.0-128-57.2-128-128 0-70.7 57.2-128 128-128 70.7.0 128 57.2 128 128 0 70.7-57.2 128-128 128z"/></svg>
+</span>
+</button>
+<button id=appearance-switcher-mobile type=button style=margin-right:5px>
+<div class="flex items-center justify-center h-12 dark:hidden">
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentcolor" d="M32 256C32 132.2 132.3 32 255.8 32c11.36.0 29.7 1.668 40.9 3.746 9.616 1.777 11.75 14.63 3.279 19.44C245 86.5 211.2 144.6 211.2 207.8c0 109.7 99.71 193 208.3 172.3 9.561-1.805 16.28 9.324 10.11 16.95C387.9 448.6 324.8 480 255.8 480 132.1 480 32 379.6 32 256z"/></svg>
+</span>
+</div>
+<div class="items-center justify-center hidden h-12 dark:flex">
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentcolor" d="M256 159.1c-53.02.0-95.1 42.98-95.1 95.1s41.2 96.9 95.1 96.9 95.1-42.98 95.1-95.1S309 159.1 256 159.1zM509.3 347l-63.2-91.9 63.15-91.01c6.332-9.125 1.104-21.74-9.826-23.72l-109-19.7-19.7-109c-1.975-10.93-14.59-16.16-23.72-9.824L256 65.89 164.1 2.736c-9.125-6.332-21.74-1.107-23.72 9.824L121.6 121.6 12.56 141.3C1.633 143.2-3.596 155.9 2.736 164.1L65.89 256 2.74 347.01c-6.332 9.125-1.105 21.74 9.824 23.72l109 19.7 19.7 109c1.975 10.93 14.59 16.16 23.72 9.824L256 446.1l91.01 63.15c9.127 6.334 21.75 1.107 23.72-9.822l19.7-109 109-19.7C510.4 368.8 515.6 356.1 509.3 347zM256 383.1c-70.69.0-127.1-57.31-127.1-127.1.0-70.69 57.31-127.1 127.1-127.1S383.1 186.2 383.1 256c0 70.7-56.4 127.1-127.1 127.1z"/></svg>
+</span>
+</div>
+</button>
+</div>
+</div>
+<div class="-my-2 -mr-2 md:hidden">
+<label id=menu-button for=menu-controller class=block>
+<input type=checkbox id=menu-controller class=hidden>
+<div class="cursor-pointer hover:text-primary-600 dark:hover:text-primary-400">
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path fill="currentcolor" d="M0 96C0 78.33 14.33 64 32 64H416c17.7.0 32 14.33 32 32 0 17.7-14.3 32-32 32H32C14.33 128 0 113.7.0 96zM0 256c0-17.7 14.33-32 32-32H416c17.7.0 32 14.3 32 32s-14.3 32-32 32H32c-17.67.0-32-14.3-32-32zM416 448H32c-17.67.0-32-14.3-32-32s14.33-32 32-32H416c17.7.0 32 14.3 32 32s-14.3 32-32 32z"/></svg>
+</span>
+</div>
+<div id=menu-wrapper style=padding-top:25px class="fixed inset-0 z-30 invisible w-screen h-screen m-auto overflow-auto transition-opacity opacity-0 cursor-default bg-neutral-100/50 backdrop-blur-sm dark:bg-neutral-900/50">
+<ul class="flex movedown flex-col w-full px-6 py-6 mx-auto overflow-visible list-none ltr:text-right rtl:text-left max-w-7xl sm:px-14 md:px-24 lg:px-32 sm:py-10 sm:pt-10">
+<li class=mb-1>
+<span class="cursor-pointer hover:text-primary-600 dark:hover:text-primary-400">
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><path fill="currentcolor" d="M310.6 361.4c12.5 12.5 12.5 32.75.0 45.25C304.4 412.9 296.2 416 288 416s-16.38-3.125-22.62-9.375L160 301.3 54.63 406.6C48.38 412.9 40.19 416 32 416S15.63 412.9 9.375 406.6c-12.5-12.5-12.5-32.75.0-45.25l105.4-105.4L9.375 150.6c-12.5-12.5-12.5-32.75.0-45.25s32.75-12.5 45.25.0L160 210.8l105.4-105.4c12.5-12.5 32.75-12.5 45.25.0s12.5 32.75.0 45.25l-105.4 105.4L310.6 361.4z"/></svg>
+</span>
+</span>
+</li>
+<li class=mb-1>
+<a class="decoration-primary-500 hover:underline hover:decoration-2 hover:underline-offset-2" href=/posts/ title=Posts>
+Blog
+</a>
+</li>
+<li class=mb-1>
+<a class="decoration-primary-500 hover:underline hover:decoration-2 hover:underline-offset-2" href=/tags/ title=Tags>
+Tags
+</a>
+</li>
+<li class=mb-1>
+<a class="decoration-primary-500 hover:underline hover:decoration-2 hover:underline-offset-2" href=https://github.com/yteraoka title>
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><path fill="currentcolor" d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6.0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6.0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3.0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1.0-6.2-.3-40.4-.3-61.4.0.0-70 15-84.7-29.8.0.0-11.4-29.1-27.8-36.6.0.0-22.9-15.7 1.6-15.4.0.0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5.0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9.0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4.0 33.7-.3 75.4-.3 83.6.0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6.0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9.0-6.2-1.4-2.3-4-3.3-5.6-2z"/></svg>
+</span>
+&nbsp;
+GitHub
+</a>
+</li>
+<li class=mb-1>
+<a class="decoration-primary-500 hover:underline hover:decoration-2 hover:underline-offset-2" href=https://twitter.com/yteraoka title>
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentcolor" d="M459.37 151.716c.325 4.548.325 9.097.325 13.645.0 138.72-105.583 298.558-298.558 298.558-59.452.0-114.68-17.219-161.137-47.106 8.447.974 16.568 1.299 25.34 1.299 49.055.0 94.213-16.568 130.274-44.832-46.132-.975-84.792-31.188-98.112-72.772 6.498.974 12.995 1.624 19.818 1.624 9.421.0 18.843-1.3 27.614-3.573-48.081-9.747-84.143-51.98-84.143-102.985v-1.299c13.969 7.797 30.214 12.67 47.431 13.319-28.264-18.843-46.781-51.005-46.781-87.391.0-19.492 5.197-37.36 14.294-52.954 51.655 63.675 129.3 105.258 216.365 109.807-1.624-7.797-2.599-15.918-2.599-24.04.0-57.828 46.782-104.934 104.934-104.934 30.213.0 57.502 12.67 76.67 33.137 23.715-4.548 46.456-13.32 66.599-25.34-7.798 24.366-24.366 44.833-46.132 57.827 21.117-2.273 41.584-8.122 60.426-16.243-14.292 20.791-32.161 39.308-52.628 54.253z"/></svg>
+</span>
+&nbsp;
+Twitter
+</a>
+</li>
+<li class=mb-1>
+<a class="decoration-primary-500 hover:underline hover:decoration-2 hover:underline-offset-2" href=https://qiita.com/yteraoka title>
+Qiita
+</a>
+</li>
+</ul>
+</div>
+</label>
+</div>
+</div>
+<div id=mobile-menu class="fixed inset-0 z-30 invisible w-screen h-screen m-auto overflow-auto transition-opacity opacity-0 cursor-default bg-neutral-100/50 backdrop-blur-sm dark:bg-neutral-900/50">
+<ul class="flex movedown flex-col w-full px-6 py-6 mx-auto overflow-visible list-none ltr:text-right rtl:text-left max-w-7xl sm:px-14 md:px-24 lg:px-32 sm:py-10 sm:pt-10">
+<li class=mb-1>
+<span class="cursor-pointer hover:text-primary-600 dark:hover:text-primary-400">
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><path fill="currentcolor" d="M310.6 361.4c12.5 12.5 12.5 32.75.0 45.25C304.4 412.9 296.2 416 288 416s-16.38-3.125-22.62-9.375L160 301.3 54.63 406.6C48.38 412.9 40.19 416 32 416S15.63 412.9 9.375 406.6c-12.5-12.5-12.5-32.75.0-45.25l105.4-105.4L9.375 150.6c-12.5-12.5-12.5-32.75.0-45.25s32.75-12.5 45.25.0L160 210.8l105.4-105.4c12.5-12.5 32.75-12.5 45.25.0s12.5 32.75.0 45.25l-105.4 105.4L310.6 361.4z"/></svg>
+</span>
+</span>
+</li>
+<li class=mb-1>
+<a class="decoration-primary-500 hover:underline hover:decoration-2 hover:underline-offset-2" href=/posts/ title=Posts>Blog</a>
+</li>
+<li class=mb-1>
+<a class="decoration-primary-500 hover:underline hover:decoration-2 hover:underline-offset-2" href=/tags/ title=Tags>Tags</a>
+</li>
+<li class=mb-1>
+<a class="decoration-primary-500 hover:underline hover:decoration-2 hover:underline-offset-2" href=https://github.com/yteraoka title>GitHub</a>
+</li>
+<li class=mb-1>
+<a class="decoration-primary-500 hover:underline hover:decoration-2 hover:underline-offset-2" href=https://twitter.com/yteraoka title>Twitter</a>
+</li>
+<li class=mb-1>
+<a class="decoration-primary-500 hover:underline hover:decoration-2 hover:underline-offset-2" href=https://qiita.com/yteraoka title>Qiita</a>
+</li>
+<li>
+<button id=search-button-mobile class="text-base hover:text-primary-600 dark:hover:text-primary-400">
+<span class="relative inline-block align-text-bottom icon"><svg aria-hidden="true" focusable="false" data-prefix="fas" data-icon="search" class="svg-inline--fa fa-search fa-w-16" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentcolor" d="M505 442.7 405.3 343c-4.5-4.5-10.6-7-17-7H372c27.6-35.3 44-79.7 44-128C416 93.1 322.9.0 208 0S0 93.1.0 208s93.1 208 208 208c48.3.0 92.7-16.4 128-44v16.3c0 6.4 2.5 12.5 7 17l99.7 99.7c9.4 9.4 24.6 9.4 33.9.0l28.3-28.3c9.4-9.4 9.4-24.6.1-34zM208 336c-70.7.0-128-57.2-128-128 0-70.7 57.2-128 128-128 70.7.0 128 57.2 128 128 0 70.7-57.2 128-128 128z"/></svg>
+</span>
+</button>
+</li>
+</ul>
+</div>
+<div class="relative flex flex-col grow">
+<main id=main-content class=grow>
+<article>
+<header class=max-w-prose>
+<ol class="text-sm text-neutral-500 dark:text-neutral-400 print:hidden">
+<li class="inline hidden">
+<a class="hover:underline decoration-neutral-300 dark:underline-neutral-600" href=/>1Q77</a><span class="px-1 text-primary-500">/</span>
+</li>
+<li class=inline>
+<a class="hover:underline decoration-neutral-300 dark:underline-neutral-600" href=/posts/>Posts</a><span class="px-1 text-primary-500">/</span>
+</li>
+<li class="inline hidden">
+<a class="hover:underline decoration-neutral-300 dark:underline-neutral-600" href=/2013/07/july-tech-festa-chef-serverspec-hands-on/>July Tech Festa の Chef / serverspec ハンズオンを家で試した #techfesta</a><span class="px-1 text-primary-500">/</span>
+</li>
+</ol>
+<h1 class="mt-0 text-4xl font-extrabold text-neutral-900 dark:text-neutral">
+July Tech Festa の Chef / serverspec ハンズオンを家で試した #techfesta
+</h1>
+<div class="mt-8 mb-12 text-base text-neutral-500 dark:text-neutral-400 print:hidden">
+<div class="flex flex-row flex-wrap items-center">
+<time datetime="2013-07-19 14:21:33 +0000 UTC">2013年7月19日</time>
+</div>
+<div class="flex flex-row flex-wrap items-center">
+<span style=margin-top:.5rem class=mr-2 onclick='window.open("/tags/chef/")'>
+<span class=flex>
+<span class="rounded-md border border-primary-400 px-1 py-[1px] text-xs font-normal text-primary-700 dark:border-primary-600 dark:text-primary-400">
+chef
+</span>
+</span>
+</span>
+<span style=margin-top:.5rem class=mr-2 onclick='window.open("/tags/vagrant/")'>
+<span class=flex>
+<span class="rounded-md border border-primary-400 px-1 py-[1px] text-xs font-normal text-primary-700 dark:border-primary-600 dark:text-primary-400">
+vagrant
+</span>
+</span>
+</span>
+<span style=margin-top:.5rem class=mr-2 onclick='window.open("/tags/%E3%83%8F%E3%83%B3%E3%82%BA%E3%82%AA%E3%83%B3/")'>
+<span class=flex>
+<span class="rounded-md border border-primary-400 px-1 py-[1px] text-xs font-normal text-primary-700 dark:border-primary-600 dark:text-primary-400">
+ハンズオン
+</span>
+</span>
+</span>
+</div>
+</div>
+</header>
+<section class="flex flex-col max-w-full mt-0 prose dark:prose-invert lg:flex-row">
+<div class="order-first px-0 lg:order-last lg:max-w-xs ltr:lg:pl-8 rtl:lg:pr-8">
+<div class="toc ltr:pl-5 rtl:pr-5 print:hidden lg:sticky lg:top-10">
+<details open class="mt-0 overflow-hidden rounded-lg ltr:-ml-5 ltr:pl-5 rtl:-mr-5 rtl:pr-5 hidden lg:block">
+<summary class="block py-1 text-lg font-semibold cursor-pointer bg-neutral-100 text-neutral-800 ltr:-ml-5 ltr:pl-5 rtl:-mr-5 rtl:pr-5 dark:bg-neutral-700 dark:text-neutral-100 lg:hidden">
+目次
+</summary>
+<div class="py-2 border-dotted border-neutral-300 ltr:-ml-5 ltr:border-l ltr:pl-5 rtl:-mr-5 rtl:border-r rtl:pr-5 dark:border-neutral-600">
+<nav id=TableOfContents>
+<ul>
+<li>
+<ul>
+<li><a href=#12-chef-solo-のインストール>1.2. Chef Solo のインストール</a></li>
+<li><a href=#2-chef-apply-を試す>2. Chef Apply を試す</a></li>
+<li><a href=#22-レシピの作成と実行>2.2. レシピの作成と実行</a></li>
+<li><a href=#23-べき等性の確認>2.3. べき等性の確認</a></li>
+<li><a href=#3-chef-solo-で-wordpress-レシピ開発>3. Chef Solo で WordPress レシピ開発</a></li>
+<li><a href=#31-chef-solo-用の設定ファイル配置>3.1. Chef Solo 用の設定ファイル配置</a></li>
+<li><a href=#32-wordpress-レシピのダウンロード>3.2. WordPress レシピのダウンロード</a></li>
+<li><a href=#33-レシピ実行>3.3. レシピ実行</a></li>
+<li><a href=#4-レシピのテストを書く>4. レシピのテストを書く</a></li>
+<li><a href=#41-serverspec-のインストール>4.1. serverspec のインストール</a></li>
+<li><a href=#42-httpd-のテストを修正>4.2. httpd のテストを修正</a></li>
+<li><a href=#43-mysqld-のテストを作成>4.3. mysqld のテストを作成</a></li>
+<li><a href=#5-cloudautomation-β-で自動化>5. CloudAutomation β で自動化！</a></li>
+</ul>
+</li>
+</ul>
+</nav>
+</div>
+</details>
+<details class="mt-0 overflow-hidden rounded-lg ltr:-ml-5 ltr:pl-5 rtl:-mr-5 rtl:pr-5 lg:hidden">
+<summary class="py-1 text-lg font-semibold cursor-pointer bg-neutral-100 text-neutral-800 ltr:-ml-5 ltr:pl-5 rtl:-mr-5 rtl:pr-5 dark:bg-neutral-700 dark:text-neutral-100 lg:hidden">
+目次
+</summary>
+<div class="py-2 border-dotted border-neutral-300 ltr:-ml-5 ltr:border-l ltr:pl-5 rtl:-mr-5 rtl:border-r rtl:pr-5 dark:border-neutral-600">
+<nav id=TableOfContents>
+<ul>
+<li>
+<ul>
+<li><a href=#12-chef-solo-のインストール>1.2. Chef Solo のインストール</a></li>
+<li><a href=#2-chef-apply-を試す>2. Chef Apply を試す</a></li>
+<li><a href=#22-レシピの作成と実行>2.2. レシピの作成と実行</a></li>
+<li><a href=#23-べき等性の確認>2.3. べき等性の確認</a></li>
+<li><a href=#3-chef-solo-で-wordpress-レシピ開発>3. Chef Solo で WordPress レシピ開発</a></li>
+<li><a href=#31-chef-solo-用の設定ファイル配置>3.1. Chef Solo 用の設定ファイル配置</a></li>
+<li><a href=#32-wordpress-レシピのダウンロード>3.2. WordPress レシピのダウンロード</a></li>
+<li><a href=#33-レシピ実行>3.3. レシピ実行</a></li>
+<li><a href=#4-レシピのテストを書く>4. レシピのテストを書く</a></li>
+<li><a href=#41-serverspec-のインストール>4.1. serverspec のインストール</a></li>
+<li><a href=#42-httpd-のテストを修正>4.2. httpd のテストを修正</a></li>
+<li><a href=#43-mysqld-のテストを作成>4.3. mysqld のテストを作成</a></li>
+<li><a href=#5-cloudautomation-β-で自動化>5. CloudAutomation β で自動化！</a></li>
+</ul>
+</li>
+</ul>
+</nav>
+</div>
+</details>
+</div>
+</div>
+<div class="min-w-0 min-h-0 max-w-prose">
+<p><a href=http://www.techfesta.jp/>July Tech Festa</a> の Chef ハンズオン資料が<a href=http://tily.github.io/jtf2013/>公開</a>されていたので家で試してみた。公開ありがとうございます。 Vagrant でテスト用環境を立ち上げる</p>
+<pre tabindex=0><code>$ mkdir chef
+$ cd chef
+$ vagrant init centos6 http://developer.nrel.gov/downloads/vagrant-boxes/CentOS-6.4-x86_64-v20130427.box
+$ vagrant up
+$ vagrant ssh
+</code></pre><h3 id=12-chef-solo-のインストール class="relative group">1.2. Chef Solo のインストール <span class="absolute top-0 w-6 transition-opacity opacity-0 ltr:-left-6 rtl:-right-6 not-prose group-hover:opacity-100"><a class="group-hover:text-primary-300 dark:group-hover:text-neutral-700" style=text-decoration-line:none!important href=#12-chef-solo-%e3%81%ae%e3%82%a4%e3%83%b3%e3%82%b9%e3%83%88%e3%83%bc%e3%83%ab aria-label=アンカー>#</a></span></h3>
+<p>インストール</p>
+<pre tabindex=0><code>$ curl -L https://www.opscode.com/chef/install.sh | sudo bash
+</code></pre><p>試しに実行してみる</p>
+<pre tabindex=0><code>$ sudo chef-solo
+[2013-07-19T12:54:08+00:00] WARN: *****************************************
+[2013-07-19T12:54:08+00:00] WARN: Did not find config file: /etc/chef/solo.rb, using command line options.
+[2013-07-19T12:54:08+00:00] WARN: *****************************************
+Starting Chef Client, version 11.4.4
+Compiling Cookbooks...
+[2013-07-19T12:54:08+00:00] FATAL: No cookbook found in [&quot;/var/chef/cookbooks&quot;, &quot;/var/chef/site-cookbooks&quot;], make sure cookbook_path is set correctly.
+[2013-07-19T12:54:08+00:00] FATAL: No cookbook found in [&quot;/var/chef/cookbooks&quot;, &quot;/var/chef/site-cookbooks&quot;], make sure cookbook_path is set correctly.
+[2013-07-19T12:54:08+00:00] ERROR: Running exception handlers
+[2013-07-19T12:54:08+00:00] ERROR: Exception handlers complete
+Chef Client failed. 0 resources updated
+[2013-07-19T12:54:08+00:00] FATAL: Stacktrace dumped to /var/chef/cache/chef-stacktrace.out
+[2013-07-19T12:54:08+00:00] FATAL: Chef::Exceptions::CookbookNotFound: No cookbook found in [&quot;/var/chef/cookbooks&quot;, &quot;/var/chef/site-cookbooks&quot;], make sure cookbook_path is set correctly.
+</code></pre><h3 id=2-chef-apply-を試す class="relative group">2. Chef Apply を試す <span class="absolute top-0 w-6 transition-opacity opacity-0 ltr:-left-6 rtl:-right-6 not-prose group-hover:opacity-100"><a class="group-hover:text-primary-300 dark:group-hover:text-neutral-700" style=text-decoration-line:none!important href=#2-chef-apply-%e3%82%92%e8%a9%a6%e3%81%99 aria-label=アンカー>#</a></span></h3>
+<h3 id=22-レシピの作成と実行 class="relative group">2.2. レシピの作成と実行 <span class="absolute top-0 w-6 transition-opacity opacity-0 ltr:-left-6 rtl:-right-6 not-prose group-hover:opacity-100"><a class="group-hover:text-primary-300 dark:group-hover:text-neutral-700" style=text-decoration-line:none!important href=#22-%e3%83%ac%e3%82%b7%e3%83%94%e3%81%ae%e4%bd%9c%e6%88%90%e3%81%a8%e5%ae%9f%e8%a1%8c aria-label=アンカー>#</a></span></h3>
+<p>1つファイルを作るだけの簡単なレシピを書いてみる</p>
+<pre tabindex=0><code>$ cat &lt;&lt;_EOD_ &gt; recipe.rb
+file '/var/tmp/test.txt' do
+  content &quot;hello, world\n&quot;
+end
+_EOD_
+</code></pre><p>実行</p>
+<pre tabindex=0><code>$ sudo chef-apply recipe.rb
+Recipe: (chef-apply cookbook)::(chef-apply recipe)
+  * file[/var/tmp/test.txt] action create
+    - create new file /var/tmp/test.txt with content checksum 853ff9
+        --- /tmp/chef-tempfile20130719-1884-npeegm	2013-07-19 13:01:09.688309813 +0000
+        +++ /tmp/chef-diff20130719-1884-uxn8m3	2013-07-19 13:01:09.688309813 +0000
+        @@ -0,0 +1 @@
+        +hello, world
+</code></pre><p>作成されたファイルを確認</p>
+<pre tabindex=0><code>$ ls -l /var/tmp/test.txt 
+-rw-r--r-- 1 root root 13 Jul 19 13:01 /var/tmp/test.txt
+$ cat /var/tmp/test.txt 
+hello, world
+</code></pre><h3 id=23-べき等性の確認 class="relative group">2.3. べき等性の確認 <span class="absolute top-0 w-6 transition-opacity opacity-0 ltr:-left-6 rtl:-right-6 not-prose group-hover:opacity-100"><a class="group-hover:text-primary-300 dark:group-hover:text-neutral-700" style=text-decoration-line:none!important href=#23-%e3%81%b9%e3%81%8d%e7%ad%89%e6%80%a7%e3%81%ae%e7%a2%ba%e8%aa%8d aria-label=アンカー>#</a></span></h3>
+<p>再実行してみる</p>
+<pre tabindex=0><code>$ sudo chef-apply recipe.rb
+Recipe: (chef-apply cookbook)::(chef-apply recipe)
+  * file[/var/tmp/test.txt] action create (up to date)
+</code></pre><p>ファイルに変化なし</p>
+<pre tabindex=0><code>$ ls -l /var/tmp/test.txt 
+-rw-r--r-- 1 root root 13 Jul 19 13:01 /var/tmp/test.txt
+</code></pre><p>ファイルの内容を書き換えてから再実行してみる</p>
+<pre tabindex=0><code>$ sudo bash -c &quot;echo hello nifty cloud &gt; /var/tmp/test.txt&quot;
+$ cat /var/tmp/test.txt hello nifty cloud
+$ sudo chef-apply recipe.rb
+Recipe: (chef-apply cookbook)::(chef-apply recipe)
+  * file[/var/tmp/test.txt] action create
+    - update content in file /var/tmp/test.txt from bac308 to 853ff9
+        --- /var/tmp/test.txt	2013-07-19 13:07:41.971353051 +0000
+        +++ /tmp/chef-diff20130719-2119-b2zqpu	2013-07-19 13:09:10.647668845 +0000
+        @@ -1 +1 @@
+        -hello nifty cloud
+        +hello, world
+$ cat /var/tmp/test.txt 
+hello, world
+</code></pre><p>レシピを書き換えてみる</p>
+<pre tabindex=0><code>$ cat recipe.rb 
+file '/var/tmp/test.txt' do
+  content &quot;hello, world\n&quot;
+end
+$ sed -i -e 's/world/chef/' recipe.rb 
+$ cat recipe.rb 
+file '/var/tmp/test.txt' do
+  content &quot;hello, chef\n&quot;
+end
+$ sudo chef-apply recipe.rb
+Recipe: (chef-apply cookbook)::(chef-apply recipe)
+  * file[/var/tmp/test.txt] action create
+    - update content in file /var/tmp/test.txt from 853ff9 to 5b8079
+        --- /var/tmp/test.txt	2013-07-19 13:14:11.097818719 +0000
+        +++ /tmp/chef-diff20130719-2251-ptr0j5	2013-07-19 13:16:06.729605440 +0000
+        @@ -1 +1 @@
+        -hello, world
+        +hello, chef
+</code></pre><h3 id=3-chef-solo-で-wordpress-レシピ開発 class="relative group">3. Chef Solo で WordPress レシピ開発 <span class="absolute top-0 w-6 transition-opacity opacity-0 ltr:-left-6 rtl:-right-6 not-prose group-hover:opacity-100"><a class="group-hover:text-primary-300 dark:group-hover:text-neutral-700" style=text-decoration-line:none!important href=#3-chef-solo-%e3%81%a7-wordpress-%e3%83%ac%e3%82%b7%e3%83%94%e9%96%8b%e7%99%ba aria-label=アンカー>#</a></span></h3>
+<h3 id=31-chef-solo-用の設定ファイル配置 class="relative group">3.1. Chef Solo 用の設定ファイル配置 <span class="absolute top-0 w-6 transition-opacity opacity-0 ltr:-left-6 rtl:-right-6 not-prose group-hover:opacity-100"><a class="group-hover:text-primary-300 dark:group-hover:text-neutral-700" style=text-decoration-line:none!important href=#31-chef-solo-%e7%94%a8%e3%81%ae%e8%a8%ad%e5%ae%9a%e3%83%95%e3%82%a1%e3%82%a4%e3%83%ab%e9%85%8d%e7%bd%ae aria-label=アンカー>#</a></span></h3>
+<pre tabindex=0><code>$ sudo mkdir -p /var/chef/cookbooks
+</code></pre><p>後で <code>knife cookbook site install</code> を実行するために git 管理にしておく</p>
+<pre tabindex=0><code>$ sudo yum -y install git
+$ cd /var/chef/cookbooks
+$ sudo git init .
+$ sudo touch README
+$ sudo git add README
+$ sudo git commit -m &quot;add readme.&quot;
+</code></pre><h3 id=32-wordpress-レシピのダウンロード class="relative group">3.2. WordPress レシピのダウンロード <span class="absolute top-0 w-6 transition-opacity opacity-0 ltr:-left-6 rtl:-right-6 not-prose group-hover:opacity-100"><a class="group-hover:text-primary-300 dark:group-hover:text-neutral-700" style=text-decoration-line:none!important href=#32-wordpress-%e3%83%ac%e3%82%b7%e3%83%94%e3%81%ae%e3%83%80%e3%82%a6%e3%83%b3%e3%83%ad%e3%83%bc%e3%83%89 aria-label=アンカー>#</a></span></h3>
+<p>Opscode のコミュニティサイトから knife で wordpress cookbook をダウンロード</p>
+<pre tabindex=0><code>$ sudo knife cookbook site install wordpress
+</code></pre><p>なにやら沢山ダウンロードされました。</p>
+<pre tabindex=0><code>$ ls /var/chef/cookbooks/
+apache2  build-essential  mysql  openssl  php  README  wordpress  xml
+</code></pre><p>ブランチが切られている</p>
+<pre tabindex=0><code>$ cd /var/chef/cookbooks/
+$ git branch
+  chef-vendor-apache2
+  chef-vendor-build-essential
+  chef-vendor-mysql
+  chef-vendor-openssl
+  chef-vendor-php
+  chef-vendor-wordpress
+  chef-vendor-xml
+* master
+</code></pre><h3 id=33-レシピ実行 class="relative group">3.3. レシピ実行 <span class="absolute top-0 w-6 transition-opacity opacity-0 ltr:-left-6 rtl:-right-6 not-prose group-hover:opacity-100"><a class="group-hover:text-primary-300 dark:group-hover:text-neutral-700" style=text-decoration-line:none!important href=#33-%e3%83%ac%e3%82%b7%e3%83%94%e5%ae%9f%e8%a1%8c aria-label=アンカー>#</a></span></h3>
+<pre tabindex=0><code>$ cat &lt;&lt;_EOD_ &gt; dna.json
+{
+  &quot;run_list&quot;: [&quot;recipe[wordpress]&quot;],
+  &quot;mysql&quot;: {
+    &quot;server_root_password&quot;: &quot;password&quot;,
+    &quot;server_debian_password&quot;: &quot;password&quot;,
+    &quot;server_repl_password&quot;: &quot;password&quot;
+  }
+}
+_EOD_
+</code></pre><pre tabindex=0><code>$ sudo chef-solo -j dna.json
+{snip}
+Chef Client finished, 106 resources updated
+</code></pre><p>確認</p>
+<pre tabindex=0><code>$ curl -s -v http://localhost/
+* About to connect() to localhost port 80 (#0)
+*   Trying ::1... connected
+* Connected to localhost (::1) port 80 (#0)
+&gt; GET / HTTP/1.1
+&gt; User-Agent: curl/7.19.7 (x86_64-redhat-linux-gnu) libcurl/7.19.7 NSS/3.13.6.0 zlib/1.2.3 libidn/1.18 libssh2/1.4.2
+&gt; Host: localhost
+&gt; Accept: */*
+&gt; 
+&lt; HTTP/1.1 302 Found
+&lt; Date: Fri, 19 Jul 2013 13:35:54 GMT
+&lt; Server: Apache
+&lt; X-Powered-By: PHP/5.3.3
+&lt; Location: http://localhost/wp-admin/install.php
+&lt; Vary: Accept-Encoding
+&lt; Content-Length: 0
+&lt; Content-Type: text/html
+&lt; 
+* Connection #0 to host localhost left intact
+* Closing connection #0
+</code></pre><p>ふむふむ、インストールできているようだ</p>
+<h3 id=4-レシピのテストを書く class="relative group">4. レシピのテストを書く <span class="absolute top-0 w-6 transition-opacity opacity-0 ltr:-left-6 rtl:-right-6 not-prose group-hover:opacity-100"><a class="group-hover:text-primary-300 dark:group-hover:text-neutral-700" style=text-decoration-line:none!important href=#4-%e3%83%ac%e3%82%b7%e3%83%94%e3%81%ae%e3%83%86%e3%82%b9%e3%83%88%e3%82%92%e6%9b%b8%e3%81%8f aria-label=アンカー>#</a></span></h3>
+<h3 id=41-serverspec-のインストール class="relative group">4.1. serverspec のインストール <span class="absolute top-0 w-6 transition-opacity opacity-0 ltr:-left-6 rtl:-right-6 not-prose group-hover:opacity-100"><a class="group-hover:text-primary-300 dark:group-hover:text-neutral-700" style=text-decoration-line:none!important href=#41-serverspec-%e3%81%ae%e3%82%a4%e3%83%b3%e3%82%b9%e3%83%88%e3%83%bc%e3%83%ab aria-label=アンカー>#</a></span></h3>
+<pre tabindex=0><code>$ sudo /opt/chef/embedded/bin/gem install serverspec
+Fetching: rspec-core-2.13.1.gem (100%)
+Fetching: diff-lcs-1.2.4.gem (100%)
+Fetching: rspec-expectations-2.13.0.gem (100%)
+Fetching: rspec-mocks-2.13.1.gem (100%)
+Fetching: rspec-2.13.0.gem (100%)
+Fetching: serverspec-0.7.0.gem (100%)
+Successfully installed rspec-core-2.13.1
+Successfully installed diff-lcs-1.2.4
+Successfully installed rspec-expectations-2.13.0
+Successfully installed rspec-mocks-2.13.1
+Successfully installed rspec-2.13.0
+Successfully installed serverspec-0.7.0
+6 gems installed
+Installing ri documentation for rspec-core-2.13.1...
+Installing ri documentation for diff-lcs-1.2.4...
+Installing ri documentation for rspec-expectations-2.13.0...
+Installing ri documentation for rspec-mocks-2.13.1...
+Installing ri documentation for rspec-2.13.0...
+Installing ri documentation for serverspec-0.7.0...
+Installing RDoc documentation for rspec-core-2.13.1...
+Installing RDoc documentation for diff-lcs-1.2.4...
+Installing RDoc documentation for rspec-expectations-2.13.0...
+Installing RDoc documentation for rspec-mocks-2.13.1...
+Installing RDoc documentation for rspec-2.13.0...
+Installing RDoc documentation for serverspec-0.7.0...
+</code></pre><pre tabindex=0><code>$ ls /opt/chef/embedded/bin/serverspec-init 
+/opt/chef/embedded/bin/serverspec-init
+</code></pre><pre tabindex=0><code>$ /opt/chef/embedded/bin/serverspec-init
+Select a backend type:
+
+  1) SSH
+  2) Exec (local)
+
+Select number: 2
+
+ + spec/
+ + spec/localhost/
+ + spec/localhost/httpd_spec.rb
+ + spec/spec_helper.rb
+ + Rakefile
+</code></pre><h3 id=42-httpd-のテストを修正 class="relative group">4.2. httpd のテストを修正 <span class="absolute top-0 w-6 transition-opacity opacity-0 ltr:-left-6 rtl:-right-6 not-prose group-hover:opacity-100"><a class="group-hover:text-primary-300 dark:group-hover:text-neutral-700" style=text-decoration-line:none!important href=#42-httpd-%e3%81%ae%e3%83%86%e3%82%b9%e3%83%88%e3%82%92%e4%bf%ae%e6%ad%a3 aria-label=アンカー>#</a></span></h3>
+<p>そのままでは <code>rake spec</code> に失敗する</p>
+<pre tabindex=0><code>$ /opt/chef/embedded/bin/rake spec
+/opt/chef/embedded/bin/ruby -S rspec spec/localhost/httpd_spec.rb
+..F..F
+
+Failures:
+
+  1) Service &quot;httpd&quot; 
+     Failure/Error: it { should be_running   }
+       service httpd status
+       httpd dead but subsys locked
+       expected Service &quot;httpd&quot; to be running
+     # ./spec/localhost/httpd_spec.rb:9:in `block (2 levels) in '
+
+  2) File &quot;/etc/httpd/conf/httpd.conf&quot; 
+     Failure/Error: it { should contain &quot;ServerName localhost&quot; }
+       grep -q -- ServerName\ localhost /etc/httpd/conf/httpd.conf
+       expected File &quot;/etc/httpd/conf/httpd.conf&quot; to contain &quot;ServerName localhost&quot;
+     # ./spec/localhost/httpd_spec.rb:18:in `block (2 levels) in '
+
+Finished in 0.10016 seconds
+6 examples, 2 failures
+
+Failed examples:
+
+rspec ./spec/localhost/httpd_spec.rb:9 # Service &quot;httpd&quot; 
+rspec ./spec/localhost/httpd_spec.rb:18 # File &quot;/etc/httpd/conf/httpd.conf&quot; 
+rake aborted!
+/opt/chef/embedded/bin/ruby -S rspec spec/localhost/httpd_spec.rb failed
+
+Tasks: TOP =&gt; spec
+(See full trace by running task with --trace) 
+</code></pre><p>ので、とりあえずエラーにならないようにテストの方を書き換える 1つ目のエラーは service コマンドは root で実行する必要があったため。</p>
+<pre tabindex=0><code>$ sed -i -e '/ServerName localhost/d' spec/localhost/httpd_spec.rb 
+</code></pre><pre tabindex=0><code>$ sudo /opt/chef/embedded/bin/rake spec
+/opt/chef/embedded/bin/ruby -S rspec spec/localhost/httpd_spec.rb
+.....
+
+Finished in 0.08218 seconds
+5 examples, 0 failures
+</code></pre><h3 id=43-mysqld-のテストを作成 class="relative group">4.3. mysqld のテストを作成 <span class="absolute top-0 w-6 transition-opacity opacity-0 ltr:-left-6 rtl:-right-6 not-prose group-hover:opacity-100"><a class="group-hover:text-primary-300 dark:group-hover:text-neutral-700" style=text-decoration-line:none!important href=#43-mysqld-%e3%81%ae%e3%83%86%e3%82%b9%e3%83%88%e3%82%92%e4%bd%9c%e6%88%90 aria-label=アンカー>#</a></span></h3>
+<ul>
+<li>mysql-server パッケージがインストールされていること</li>
+<li>mysqld デーモンが有効化されていること (chkconfig mysqld on されていること)</li>
+<li>mysqld デーモンが起動していること</li>
+<li>3306 ポートが LISTEN していること</li>
+</ul>
+<p>httpd_spec.rb をコピーしてちょっと書き換えればできた。</p>
+<pre tabindex=0><code>cp spec/localhost/{httpd,mysqld}_spec.rb
+vi spec/localhost/mysqld_spec.rb
+</code></pre><p>次は serverspec のドキュメント を参照しながら</p>
+<ul>
+<li>http://localhost/wp-admin/install.php にアクセスすると &ldquo;Welcome to the famous five minute WordPress installation process!&rdquo; という文字列が表示されること</li>
+</ul>
+<p>を確認するテストを書きます</p>
+<pre tabindex=0><code>$ vi spec/localhost/wordpress_spec.rb
+</code></pre><pre tabindex=0><code>$ sudo /opt/chef/embedded/bin/rake spec
+/opt/chef/embedded/bin/ruby -S rspec spec/localhost/httpd_spec.rb spec/localhost/mysqld_spec.rb spec/localhost/wordpress_spec.rb
+..........
+
+Finished in 0.47343 seconds
+10 examples, 0 failures
+</code></pre><p>でけた。</p>
+<h3 id=5-cloudautomation-β-で自動化 class="relative group">5. CloudAutomation β で自動化！ <span class="absolute top-0 w-6 transition-opacity opacity-0 ltr:-left-6 rtl:-right-6 not-prose group-hover:opacity-100"><a class="group-hover:text-primary-300 dark:group-hover:text-neutral-700" style=text-decoration-line:none!important href=#5-cloudautomation-%ce%b2-%e3%81%a7%e8%87%aa%e5%8b%95%e5%8c%96 aria-label=アンカー>#</a></span></h3>
+<p>これは省略。 さて次はこれと同じ事を Ansible で行うハンズオン資料を書いてみよう。</p>
+</div>
+<script>var liked_article=!1,oid,id,viewed,oid_likes,id_likes,liked;typeof auth!='undefined'&&(oid="views_posts/july-tech-festa-chef-serverspec-hands-on.md",id=oid&&oid.replaceAll("/","-"),viewed=localStorage.getItem(id),viewed||auth.signInAnonymously().then(()=>{var a=db.collection('views').doc(id);localStorage.setItem(id,!0),a.get().then(a=>{a.exists?db.collection('views').doc(id).update({views:firebase.firestore.FieldValue.increment(1)}):db.collection('views').doc(id).set({views:1})}).catch(a=>{console.log("Error getting document:",a)})}).catch(a=>{var b=a.code,c=a.message;console.error(b,c)}),oid_likes="likes_posts/july-tech-festa-chef-serverspec-hands-on.md",id_likes=oid_likes&&oid_likes.replaceAll("/","-"),liked=localStorage.getItem(id_likes),liked&&(liked_article=!0,document.querySelectorAll("button[id='likes_button']")[0].innerText="Remove Like"));function like_article(a){console.log("add"),liked_article=!0,localStorage.setItem(a,!0),document.querySelectorAll("button[id='likes_button']")[0].innerText="Remove Like",auth.signInAnonymously().then(()=>{var b=db.collection('likes').doc(a);b.get().then(b=>{b.exists?db.collection('likes').doc(a).update({likes:firebase.firestore.FieldValue.increment(1)}):db.collection('likes').doc(a).set({likes:1})}).catch(a=>{console.log("Error getting document:",a)})}).catch(a=>{var b=a.code,c=a.message;console.error(b,c)})}function remove_like_article(a){console.log("remove"),liked_article=!1,localStorage.setItem(a,!1),document.querySelectorAll("button[id='likes_button']")[0].innerText="Like",auth.signInAnonymously().then(()=>{var b=db.collection('likes').doc(a);b.get().then(b=>{b.exists?db.collection('likes').doc(a).update({likes:firebase.firestore.FieldValue.increment(-1)}):db.collection('likes').doc(a).set({likes:0})}).catch(a=>{console.log("Error getting document:",a)})}).catch(a=>{var b=a.code,c=a.message;console.error(b,c)})}function process_article(){var a="likes_posts/july-tech-festa-chef-serverspec-hands-on.md",b=a&&a.replaceAll("/","-");liked_article?remove_like_article(b):like_article(b)}</script>
+</section>
+<footer class="pt-8 max-w-prose print:hidden">
+<div class=flex>
+<div class=place-self-center>
+<div class="text-[0.6rem] uppercase leading-3 text-neutral-500 dark:text-neutral-400">
+著者
+</div>
+<div class="font-semibold leading-6 text-neutral-800 dark:text-neutral-300">
+Yoshinori Teraoka
+</div>
+<div class="text-2xl sm:text-lg">
+<div class="flex flex-wrap text-neutral-400 dark:text-neutral-500">
+<a class="px-1 hover:text-primary-700 dark:hover:text-primary-400" href=https://twitter.com/yteraoka target=_blank aria-label=Twitter rel="me noopener noreferrer">
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentcolor" d="M459.37 151.716c.325 4.548.325 9.097.325 13.645.0 138.72-105.583 298.558-298.558 298.558-59.452.0-114.68-17.219-161.137-47.106 8.447.974 16.568 1.299 25.34 1.299 49.055.0 94.213-16.568 130.274-44.832-46.132-.975-84.792-31.188-98.112-72.772 6.498.974 12.995 1.624 19.818 1.624 9.421.0 18.843-1.3 27.614-3.573-48.081-9.747-84.143-51.98-84.143-102.985v-1.299c13.969 7.797 30.214 12.67 47.431 13.319-28.264-18.843-46.781-51.005-46.781-87.391.0-19.492 5.197-37.36 14.294-52.954 51.655 63.675 129.3 105.258 216.365 109.807-1.624-7.797-2.599-15.918-2.599-24.04.0-57.828 46.782-104.934 104.934-104.934 30.213.0 57.502 12.67 76.67 33.137 23.715-4.548 46.456-13.32 66.599-25.34-7.798 24.366-24.366 44.833-46.132 57.827 21.117-2.273 41.584-8.122 60.426-16.243-14.292 20.791-32.161 39.308-52.628 54.253z"/></svg>
+</span>
+</a>
+<a class="px-1 hover:text-primary-700 dark:hover:text-primary-400" href=https://github.com/yteraoka target=_blank aria-label=Github rel="me noopener noreferrer">
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><path fill="currentcolor" d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6.0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6.0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3.0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1.0-6.2-.3-40.4-.3-61.4.0.0-70 15-84.7-29.8.0.0-11.4-29.1-27.8-36.6.0.0-22.9-15.7 1.6-15.4.0.0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5.0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9.0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4.0 33.7-.3 75.4-.3 83.6.0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6.0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9.0-6.2-1.4-2.3-4-3.3-5.6-2z"/></svg>
+</span>
+</a>
+<a class="px-1 hover:text-primary-700 dark:hover:text-primary-400" href=https://linkedin.com/in/fa5b66b7-9c77-4e1b-8b97-40ba4a5a2c13/ target=_blank aria-label=Linkedin rel="me noopener noreferrer">
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path fill="currentcolor" d="M416 32H31.9C14.3 32 0 46.5.0 64.3v383.4C0 465.5 14.3 480 31.9 480H416c17.6.0 32-14.5 32-32.3V64.3c0-17.8-14.4-32.3-32-32.3zM135.4 416H69V202.2h66.5V416zm-33.2-243c-21.3.0-38.5-17.3-38.5-38.5S80.9 96 102.2 96c21.2.0 38.5 17.3 38.5 38.5.0 21.3-17.2 38.5-38.5 38.5zm282.1 243h-66.4V312c0-24.8-.5-56.7-34.5-56.7-34.6.0-39.9 27-39.9 54.9V416h-66.4V202.2h63.7v29.2h.9c8.9-16.8 30.6-34.5 62.9-34.5 67.2.0 79.7 44.3 79.7 101.9V416z"/></svg>
+</span>
+</a>
+<a class="px-1 hover:text-primary-700 dark:hover:text-primary-400" href=https://medium.com/@yteraoka target=_blank aria-label=Medium rel="me noopener noreferrer">
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512"><path fill="currentcolor" d="M180.5 74.262C80.813 74.262.0 155.633.0 256S80.819 437.738 180.5 437.738 361 356.373 361 256 280.191 74.262 180.5 74.262zm288.25 10.646c-49.845.0-90.245 76.619-90.245 171.095s40.406 171.1 90.251 171.1 90.251-76.619 90.251-171.1H559C559 161.5 518.6 84.908 468.752 84.908zm139.506 17.821c-17.526.0-31.735 68.628-31.735 153.274s14.2 153.274 31.735 153.274S640 340.631 640 256c0-84.649-14.215-153.271-31.742-153.271z"/></svg>
+</span>
+</a>
+</div>
+</div>
+</div>
+</div>
+<section class="flex flex-row flex-wrap justify-center pt-4 text-xl">
+<a class="m-1 inline-block min-w-[2.4rem] rounded bg-neutral-300 p-1 text-center text-neutral-700 hover:bg-primary-500 hover:text-neutral dark:bg-neutral-700 dark:text-neutral-300 dark:hover:bg-primary-400 dark:hover:text-neutral-800" href="https://www.linkedin.com/shareArticle?mini=true&url=https://preview-blog.1q77.com/2013/07/july-tech-festa-chef-serverspec-hands-on/&title=July%20Tech%20Festa%20%e3%81%ae%20Chef%20/%20serverspec%20%e3%83%8f%e3%83%b3%e3%82%ba%e3%82%aa%e3%83%b3%e3%82%92%e5%ae%b6%e3%81%a7%e8%a9%a6%e3%81%97%e3%81%9f%20#techfesta" title=LinkedInでシェアする aria-label=LinkedInでシェアする>
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path fill="currentcolor" d="M416 32H31.9C14.3 32 0 46.5.0 64.3v383.4C0 465.5 14.3 480 31.9 480H416c17.6.0 32-14.5 32-32.3V64.3c0-17.8-14.4-32.3-32-32.3zM135.4 416H69V202.2h66.5V416zm-33.2-243c-21.3.0-38.5-17.3-38.5-38.5S80.9 96 102.2 96c21.2.0 38.5 17.3 38.5 38.5.0 21.3-17.2 38.5-38.5 38.5zm282.1 243h-66.4V312c0-24.8-.5-56.7-34.5-56.7-34.6.0-39.9 27-39.9 54.9V416h-66.4V202.2h63.7v29.2h.9c8.9-16.8 30.6-34.5 62.9-34.5 67.2.0 79.7 44.3 79.7 101.9V416z"/></svg>
+</span>
+</a>
+<a class="m-1 inline-block min-w-[2.4rem] rounded bg-neutral-300 p-1 text-center text-neutral-700 hover:bg-primary-500 hover:text-neutral dark:bg-neutral-700 dark:text-neutral-300 dark:hover:bg-primary-400 dark:hover:text-neutral-800" href="https://twitter.com/intent/tweet/?url=https://preview-blog.1q77.com/2013/07/july-tech-festa-chef-serverspec-hands-on/&text=July%20Tech%20Festa%20%e3%81%ae%20Chef%20/%20serverspec%20%e3%83%8f%e3%83%b3%e3%82%ba%e3%82%aa%e3%83%b3%e3%82%92%e5%ae%b6%e3%81%a7%e8%a9%a6%e3%81%97%e3%81%9f%20#techfesta" title=Twitterに投稿する aria-label=Twitterに投稿する>
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentcolor" d="M459.37 151.716c.325 4.548.325 9.097.325 13.645.0 138.72-105.583 298.558-298.558 298.558-59.452.0-114.68-17.219-161.137-47.106 8.447.974 16.568 1.299 25.34 1.299 49.055.0 94.213-16.568 130.274-44.832-46.132-.975-84.792-31.188-98.112-72.772 6.498.974 12.995 1.624 19.818 1.624 9.421.0 18.843-1.3 27.614-3.573-48.081-9.747-84.143-51.98-84.143-102.985v-1.299c13.969 7.797 30.214 12.67 47.431 13.319-28.264-18.843-46.781-51.005-46.781-87.391.0-19.492 5.197-37.36 14.294-52.954 51.655 63.675 129.3 105.258 216.365 109.807-1.624-7.797-2.599-15.918-2.599-24.04.0-57.828 46.782-104.934 104.934-104.934 30.213.0 57.502 12.67 76.67 33.137 23.715-4.548 46.456-13.32 66.599-25.34-7.798 24.366-24.366 44.833-46.132 57.827 21.117-2.273 41.584-8.122 60.426-16.243-14.292 20.791-32.161 39.308-52.628 54.253z"/></svg>
+</span>
+</a>
+</section>
+<div class=pt-8>
+<hr class="border-dotted border-neutral-300 dark:border-neutral-600">
+<div class="flex justify-between pt-3">
+<span>
+<a class="flex group" href=/2013/07/rdbms-in-the-cloud-postgresql-on-aws/>
+<span class="mr-3 text-neutral-700 group-hover:text-primary-600 ltr:inline rtl:hidden dark:text-neutral dark:group-hover:text-primary-400">&larr;</span>
+<span class="ml-3 text-neutral-700 group-hover:text-primary-600 ltr:hidden rtl:inline dark:text-neutral dark:group-hover:text-primary-400">&rarr;</span>
+<span class="flex flex-col">
+<span class="mt-[0.1rem] leading-6 group-hover:underline group-hover:decoration-primary-500">RDBMS in the Cloud: PostgreSQL on AWS を読んで</span>
+<span class="mt-[0.1rem] text-xs text-neutral-500 dark:text-neutral-400">
+<time datetime="2013-07-12 15:13:58 +0000 UTC">2013年7月12日</time>
+</span>
+</span>
+</a>
+</span>
+<span>
+<a class="flex text-right group" href=/2013/07/firefox-security-exception/>
+<span class="flex flex-col">
+<span class="mt-[0.1rem] leading-6 group-hover:underline group-hover:decoration-primary-500">Firefox でセキュリティ例外の承認ができない場合の対応方法</span>
+<span class="mt-[0.1rem] text-xs text-neutral-500 dark:text-neutral-400">
+<time datetime="2013-07-23 10:39:22 +0000 UTC">2013年7月23日</time>
+</span>
+</span>
+<span class="ml-3 text-neutral-700 group-hover:text-primary-600 ltr:inline rtl:hidden dark:text-neutral dark:group-hover:text-primary-400">&rarr;</span>
+<span class="mr-3 text-neutral-700 group-hover:text-primary-600 ltr:hidden rtl:inline dark:text-neutral dark:group-hover:text-primary-400">&larr;</span>
+</a>
+</span>
+</div>
+</div>
+</footer>
+</article>
+<div class="pointer-events-none absolute top-[100vh] bottom-0 w-12 ltr:right-0 rtl:left-0">
+<a href=#the-top class="pointer-events-auto sticky top-[calc(100vh-5.5rem)] flex h-12 w-12 items-center justify-center rounded-full bg-neutral/50 text-xl text-neutral-700 backdrop-blur hover:text-primary-600 dark:bg-neutral-800/50 dark:text-neutral dark:hover:text-primary-400" aria-label=TOPへスクロール title=TOPへスクロール>
+&uarr;
+</a>
+</div>
+</main><footer class="py-10 print:hidden">
+<div class="flex items-center justify-between">
+<p class="text-sm text-neutral-500 dark:text-neutral-400">
+&copy;
+2022
+Yoshinori Teraoka
+</p>
+</div>
+<script>mediumZoom(document.querySelectorAll("img:not(.nozoom)"),{margin:24,background:'rgba(0,0,0,0.5)',scrollOffset:0})</script>
+<script type=text/javascript src=/js/process.min.48d08339b8a087b59c7b8cb42b6717aeeed3e07bfc68b1654cac27f00583284dac59cae47fb686dd7c0e9ff1d2745689dc2071230dff432ca6d7fc24b9f2e036.js integrity="sha512-SNCDObigh7Wce4y0K2cXru7T4Hv8aLFlTKwn8AWDKE2sWcrkf7aG3XwOn/HSdFaJ3CBxIw3/Qyym1/wkufLgNg=="></script>
+</footer><div id=search-wrapper class="invisible fixed inset-0 z-50 flex h-screen w-screen cursor-default flex-col bg-neutral-500/50 p-4 backdrop-blur-sm dark:bg-neutral-900/50 sm:p-6 md:p-[10vh] lg:p-[12vh]" data-url=https://preview-blog.1q77.com/>
+<div id=search-modal class="flex flex-col w-full max-w-3xl min-h-0 mx-auto border rounded-md shadow-lg top-20 border-neutral-200 bg-neutral dark:border-neutral-700 dark:bg-neutral-800">
+<header class="relative z-10 flex items-center justify-between flex-none px-2">
+<form class="flex items-center flex-auto min-w-0">
+<div class="flex items-center justify-center w-8 h-8 text-neutral-400">
+<span class="relative inline-block align-text-bottom icon"><svg aria-hidden="true" focusable="false" data-prefix="fas" data-icon="search" class="svg-inline--fa fa-search fa-w-16" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentcolor" d="M505 442.7 405.3 343c-4.5-4.5-10.6-7-17-7H372c27.6-35.3 44-79.7 44-128C416 93.1 322.9.0 208 0S0 93.1.0 208s93.1 208 208 208c48.3.0 92.7-16.4 128-44v16.3c0 6.4 2.5 12.5 7 17l99.7 99.7c9.4 9.4 24.6 9.4 33.9.0l28.3-28.3c9.4-9.4 9.4-24.6.1-34zM208 336c-70.7.0-128-57.2-128-128 0-70.7 57.2-128 128-128 70.7.0 128 57.2 128 128 0 70.7-57.2 128-128 128z"/></svg>
+</span>
+</div>
+<input type=search id=search-query class="flex flex-auto h-12 mx-1 bg-transparent appearance-none focus:outline-dotted focus:outline-2 focus:outline-transparent" placeholder=Search tabindex=0>
+</form>
+<button id=close-search-button class="flex items-center justify-center w-8 h-8 text-neutral-700 hover:text-primary-600 dark:text-neutral dark:hover:text-primary-400" title="閉じる (Esc)">
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><path fill="currentcolor" d="M310.6 361.4c12.5 12.5 12.5 32.75.0 45.25C304.4 412.9 296.2 416 288 416s-16.38-3.125-22.62-9.375L160 301.3 54.63 406.6C48.38 412.9 40.19 416 32 416S15.63 412.9 9.375 406.6c-12.5-12.5-12.5-32.75.0-45.25l105.4-105.4L9.375 150.6c-12.5-12.5-12.5-32.75.0-45.25s32.75-12.5 45.25.0L160 210.8l105.4-105.4c12.5-12.5 32.75-12.5 45.25.0s12.5 32.75.0 45.25l-105.4 105.4L310.6 361.4z"/></svg>
+</span>
+</button>
+</header>
+<section class="flex-auto px-2 overflow-auto">
+<ul id=search-results>
+</ul>
+</section>
+</div>
+</div>
+</div>
+</body>
+</html>

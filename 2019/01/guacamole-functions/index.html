@@ -1,0 +1,744 @@
+<!doctype html><html lang=ja dir=ltr class=scroll-smooth data-default-appearance=light data-auto-appearance=true><head>
+<meta charset=utf-8>
+<meta http-equiv=content-language content="ja">
+<meta name=viewport content="width=device-width,initial-scale=1">
+<meta http-equiv=x-ua-compatible content="ie=edge">
+<title>Guacamole の機能紹介 &#183; 1Q77</title>
+<meta name=title content="Guacamole の機能紹介 &#183; 1Q77">
+<link rel=canonical href=https://preview-blog.1q77.com/2019/01/guacamole-functions/>
+<link type=text/css rel=stylesheet href=/css/main.bundle.min.a9d40529d239a91ecb75447e67ee6c80c1f1c28593904b4052651b12220121e13ec42904268b0193a6858f039cf8bfdd2b1331529ed341ddc7488cec3bdcbc2e.css integrity="sha512-qdQFKdI5qR7LdUR+Z+5sgMHxwoWTkEtAUmUbEiIBIeE+xCkEJosBk6aFjwOc+L/dKxMxUp7TQd3HSIzsO9y8Lg==">
+<script type=text/javascript src=/js/main.min.cf83e1357eefb8bdf1542850d66d8007d620e4050b5715dc83f4a921d36ce9ce47d0d13c5d85f2b0ff8318d2877eec2f63b931bd47417a81a538327af927da3e.js integrity="sha512-z4PhNX7vuL3xVChQ1m2AB9Yg5AULVxXcg/SpIdNs6c5H0NE8XYXysP+DGNKHfuwvY7kxvUdBeoGlODJ6+SfaPg=="></script>
+<script type=text/javascript src=/js/appearance.min.49025a779c36ad37a5bf9f1cc6bffd35ccb69ce15560ef1b10057ddf31576265b19f8bcc1733207336c9144926f7b18aea2e5895f29e858b24271332a2fa5cd5.js integrity="sha512-SQJad5w2rTelv58cxr/9Ncy2nOFVYO8bEAV93zFXYmWxn4vMFzMgczbJFEkm97GK6i5YlfKehYskJxMyovpc1Q=="></script>
+<script defer type=text/javascript id=script-bundle src=/js/main.bundle.min.34ee8372ff77835535e486c6ed01ff6993374a1cec8108898cad793fc6ae7520778e24db68e085c762d25af6fa7d00b57d7a791438dc68b676581f8c8344f6e0.js integrity="sha512-NO6Dcv93g1U15IbG7QH/aZM3ShzsgQiJjK15P8audSB3jiTbaOCFx2LSWvb6fQC1fXp5FDjcaLZ2WB+Mg0T24A==" data-copy data-copied></script>
+<script src=/js/zoom.min.js></script>
+<link rel=apple-touch-icon sizes=180x180 href=/apple-touch-icon.png>
+<link rel=icon type=image/png sizes=32x32 href=/favicon-32x32.png>
+<link rel=icon type=image/png sizes=16x16 href=/favicon-16x16.png>
+<link rel=manifest href=/site.webmanifest>
+<meta property="og:title" content="Guacamole の機能紹介">
+<meta property="og:description" content="kakakakakku さんのブログの Guacamole 記事を見て、私もやったのになあとこんな tweet をしてしまいました。 Guacamole を docker compose でって、去年やったわー、でもブログに書かずじまいだった">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://preview-blog.1q77.com/2019/01/guacamole-functions/"><meta property="article:section" content="posts">
+<meta property="article:published_time" content="2019-01-13T16:19:08+00:00">
+<meta property="article:modified_time" content="2019-01-13T16:19:08+00:00">
+<meta name=twitter:card content="summary">
+<meta name=twitter:title content="Guacamole の機能紹介">
+<meta name=twitter:description content="kakakakakku さんのブログの Guacamole 記事を見て、私もやったのになあとこんな tweet をしてしまいました。 Guacamole を docker compose でって、去年やったわー、でもブログに書かずじまいだった">
+<script type=application/ld+json>[{"@context":"https://schema.org","@type":"Article","articleSection":"Posts","name":"Guacamole の機能紹介","headline":"Guacamole の機能紹介","abstract":"kakakakakku さんのブログの Guacamole 記事を見て、私もやったのになあとこんな tweet をしてしまいました。 Guacamole を docker compose でって、去年やったわー、でもブログに書かずじまいだった","inLanguage":"ja","url":"https:\/\/preview-blog.1q77.com\/2019\/01\/guacamole-functions\/","author":{"@type":"Person","name":"Yoshinori Teraoka"},"copyrightYear":"2019","dateCreated":"2019-01-13T16:19:08\u002b00:00","datePublished":"2019-01-13T16:19:08\u002b00:00","dateModified":"2019-01-13T16:19:08\u002b00:00","keywords":["Docker","Guacamole","remotedesktop"],"mainEntityOfPage":"true","wordCount":"4962"}]</script>
+<meta name=author content="Yoshinori Teraoka">
+<link href=https://twitter.com/yteraoka rel=me>
+<link href=https://github.com/yteraoka rel=me>
+<link href=https://linkedin.com/in/fa5b66b7-9c77-4e1b-8b97-40ba4a5a2c13/ rel=me>
+<link href=https://medium.com/@yteraoka rel=me>
+<link rel=stylesheet href=https://rsms.me/inter/inter.css>
+</head><body class="flex flex-col h-screen px-6 m-auto text-lg leading-7 max-w-7xl bg-neutral text-neutral-900 dark:bg-neutral-800 dark:text-neutral sm:px-14 md:px-24 lg:px-32">
+<div id=the-top class="absolute flex self-center">
+<a class="px-3 py-1 text-sm -translate-y-8 rounded-b-lg bg-primary-200 focus:translate-y-0 dark:bg-neutral-600" href=#main-content><span class="font-bold text-primary-600 ltr:pr-2 rtl:pl-2 dark:text-primary-400">&darr;</span>メインコンテンツへスキップ</a>
+</div>
+<div style=padding-left:0;padding-right:0 class="flex items-center justify-between px-4 py-6 sm:px-6 md:justify-start space-x-3">
+<div class="flex flex-1 items-center justify-between">
+<nav class="flex space-x-3">
+<a href=/ class="text-base font-medium text-gray-500 hover:text-gray-900">1Q77</a>
+</nav>
+<div class="hidden md:flex items-center space-x-5 md:ml-12">
+<a href=/posts/ class="text-base font-medium text-gray-500 hover:text-gray-900" title=Posts>
+Blog
+</a>
+<a href=/tags/ class="text-base font-medium text-gray-500 hover:text-gray-900" title=Tags>
+Tags
+</a>
+<a href=https://github.com/yteraoka class="text-base font-medium text-gray-500 hover:text-gray-900" title>
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><path fill="currentcolor" d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6.0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6.0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3.0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1.0-6.2-.3-40.4-.3-61.4.0.0-70 15-84.7-29.8.0.0-11.4-29.1-27.8-36.6.0.0-22.9-15.7 1.6-15.4.0.0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5.0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9.0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4.0 33.7-.3 75.4-.3 83.6.0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6.0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9.0-6.2-1.4-2.3-4-3.3-5.6-2z"/></svg>
+</span>
+&nbsp;
+GitHub
+</a>
+<a href=https://twitter.com/yteraoka class="text-base font-medium text-gray-500 hover:text-gray-900" title>
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentcolor" d="M459.37 151.716c.325 4.548.325 9.097.325 13.645.0 138.72-105.583 298.558-298.558 298.558-59.452.0-114.68-17.219-161.137-47.106 8.447.974 16.568 1.299 25.34 1.299 49.055.0 94.213-16.568 130.274-44.832-46.132-.975-84.792-31.188-98.112-72.772 6.498.974 12.995 1.624 19.818 1.624 9.421.0 18.843-1.3 27.614-3.573-48.081-9.747-84.143-51.98-84.143-102.985v-1.299c13.969 7.797 30.214 12.67 47.431 13.319-28.264-18.843-46.781-51.005-46.781-87.391.0-19.492 5.197-37.36 14.294-52.954 51.655 63.675 129.3 105.258 216.365 109.807-1.624-7.797-2.599-15.918-2.599-24.04.0-57.828 46.782-104.934 104.934-104.934 30.213.0 57.502 12.67 76.67 33.137 23.715-4.548 46.456-13.32 66.599-25.34-7.798 24.366-24.366 44.833-46.132 57.827 21.117-2.273 41.584-8.122 60.426-16.243-14.292 20.791-32.161 39.308-52.628 54.253z"/></svg>
+</span>
+&nbsp;
+Twitter
+</a>
+<a href=https://qiita.com/yteraoka class="text-base font-medium text-gray-500 hover:text-gray-900" title>
+Qiita
+</a>
+<button id=search-button class="text-base hover:text-primary-600 dark:hover:text-primary-400" title>
+<span class="relative inline-block align-text-bottom icon"><svg aria-hidden="true" focusable="false" data-prefix="fas" data-icon="search" class="svg-inline--fa fa-search fa-w-16" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentcolor" d="M505 442.7 405.3 343c-4.5-4.5-10.6-7-17-7H372c27.6-35.3 44-79.7 44-128C416 93.1 322.9.0 208 0S0 93.1.0 208s93.1 208 208 208c48.3.0 92.7-16.4 128-44v16.3c0 6.4 2.5 12.5 7 17l99.7 99.7c9.4 9.4 24.6 9.4 33.9.0l28.3-28.3c9.4-9.4 9.4-24.6.1-34zM208 336c-70.7.0-128-57.2-128-128 0-70.7 57.2-128 128-128 70.7.0 128 57.2 128 128 0 70.7-57.2 128-128 128z"/></svg>
+</span>
+</button>
+<div class="ltr:mr-14 rtl:ml-14 cursor-pointer text-sm text-neutral-700 hover:text-primary-600 dark:text-neutral dark:hover:text-primary-400">
+<button id=appearance-switcher type=button>
+<div class="flex items-center justify-center h-12 dark:hidden">
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentcolor" d="M32 256C32 132.2 132.3 32 255.8 32c11.36.0 29.7 1.668 40.9 3.746 9.616 1.777 11.75 14.63 3.279 19.44C245 86.5 211.2 144.6 211.2 207.8c0 109.7 99.71 193 208.3 172.3 9.561-1.805 16.28 9.324 10.11 16.95C387.9 448.6 324.8 480 255.8 480 132.1 480 32 379.6 32 256z"/></svg>
+</span>
+</div>
+<div class="items-center justify-center hidden h-12 dark:flex">
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentcolor" d="M256 159.1c-53.02.0-95.1 42.98-95.1 95.1s41.2 96.9 95.1 96.9 95.1-42.98 95.1-95.1S309 159.1 256 159.1zM509.3 347l-63.2-91.9 63.15-91.01c6.332-9.125 1.104-21.74-9.826-23.72l-109-19.7-19.7-109c-1.975-10.93-14.59-16.16-23.72-9.824L256 65.89 164.1 2.736c-9.125-6.332-21.74-1.107-23.72 9.824L121.6 121.6 12.56 141.3C1.633 143.2-3.596 155.9 2.736 164.1L65.89 256 2.74 347.01c-6.332 9.125-1.105 21.74 9.824 23.72l109 19.7 19.7 109c1.975 10.93 14.59 16.16 23.72 9.824L256 446.1l91.01 63.15c9.127 6.334 21.75 1.107 23.72-9.822l19.7-109 109-19.7C510.4 368.8 515.6 356.1 509.3 347zM256 383.1c-70.69.0-127.1-57.31-127.1-127.1.0-70.69 57.31-127.1 127.1-127.1S383.1 186.2 383.1 256c0 70.7-56.4 127.1-127.1 127.1z"/></svg>
+</span>
+</div>
+</button>
+</div>
+</div>
+<div class="flex md:hidden items-center space-x-5 md:ml-12">
+<span></span>
+<button id=search-button-mobile class="text-base hover:text-primary-600 dark:hover:text-primary-400" title>
+<span class="relative inline-block align-text-bottom icon"><svg aria-hidden="true" focusable="false" data-prefix="fas" data-icon="search" class="svg-inline--fa fa-search fa-w-16" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentcolor" d="M505 442.7 405.3 343c-4.5-4.5-10.6-7-17-7H372c27.6-35.3 44-79.7 44-128C416 93.1 322.9.0 208 0S0 93.1.0 208s93.1 208 208 208c48.3.0 92.7-16.4 128-44v16.3c0 6.4 2.5 12.5 7 17l99.7 99.7c9.4 9.4 24.6 9.4 33.9.0l28.3-28.3c9.4-9.4 9.4-24.6.1-34zM208 336c-70.7.0-128-57.2-128-128 0-70.7 57.2-128 128-128 70.7.0 128 57.2 128 128 0 70.7-57.2 128-128 128z"/></svg>
+</span>
+</button>
+<button id=appearance-switcher-mobile type=button style=margin-right:5px>
+<div class="flex items-center justify-center h-12 dark:hidden">
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentcolor" d="M32 256C32 132.2 132.3 32 255.8 32c11.36.0 29.7 1.668 40.9 3.746 9.616 1.777 11.75 14.63 3.279 19.44C245 86.5 211.2 144.6 211.2 207.8c0 109.7 99.71 193 208.3 172.3 9.561-1.805 16.28 9.324 10.11 16.95C387.9 448.6 324.8 480 255.8 480 132.1 480 32 379.6 32 256z"/></svg>
+</span>
+</div>
+<div class="items-center justify-center hidden h-12 dark:flex">
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentcolor" d="M256 159.1c-53.02.0-95.1 42.98-95.1 95.1s41.2 96.9 95.1 96.9 95.1-42.98 95.1-95.1S309 159.1 256 159.1zM509.3 347l-63.2-91.9 63.15-91.01c6.332-9.125 1.104-21.74-9.826-23.72l-109-19.7-19.7-109c-1.975-10.93-14.59-16.16-23.72-9.824L256 65.89 164.1 2.736c-9.125-6.332-21.74-1.107-23.72 9.824L121.6 121.6 12.56 141.3C1.633 143.2-3.596 155.9 2.736 164.1L65.89 256 2.74 347.01c-6.332 9.125-1.105 21.74 9.824 23.72l109 19.7 19.7 109c1.975 10.93 14.59 16.16 23.72 9.824L256 446.1l91.01 63.15c9.127 6.334 21.75 1.107 23.72-9.822l19.7-109 109-19.7C510.4 368.8 515.6 356.1 509.3 347zM256 383.1c-70.69.0-127.1-57.31-127.1-127.1.0-70.69 57.31-127.1 127.1-127.1S383.1 186.2 383.1 256c0 70.7-56.4 127.1-127.1 127.1z"/></svg>
+</span>
+</div>
+</button>
+</div>
+</div>
+<div class="-my-2 -mr-2 md:hidden">
+<label id=menu-button for=menu-controller class=block>
+<input type=checkbox id=menu-controller class=hidden>
+<div class="cursor-pointer hover:text-primary-600 dark:hover:text-primary-400">
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path fill="currentcolor" d="M0 96C0 78.33 14.33 64 32 64H416c17.7.0 32 14.33 32 32 0 17.7-14.3 32-32 32H32C14.33 128 0 113.7.0 96zM0 256c0-17.7 14.33-32 32-32H416c17.7.0 32 14.3 32 32s-14.3 32-32 32H32c-17.67.0-32-14.3-32-32zM416 448H32c-17.67.0-32-14.3-32-32s14.33-32 32-32H416c17.7.0 32 14.3 32 32s-14.3 32-32 32z"/></svg>
+</span>
+</div>
+<div id=menu-wrapper style=padding-top:25px class="fixed inset-0 z-30 invisible w-screen h-screen m-auto overflow-auto transition-opacity opacity-0 cursor-default bg-neutral-100/50 backdrop-blur-sm dark:bg-neutral-900/50">
+<ul class="flex movedown flex-col w-full px-6 py-6 mx-auto overflow-visible list-none ltr:text-right rtl:text-left max-w-7xl sm:px-14 md:px-24 lg:px-32 sm:py-10 sm:pt-10">
+<li class=mb-1>
+<span class="cursor-pointer hover:text-primary-600 dark:hover:text-primary-400">
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><path fill="currentcolor" d="M310.6 361.4c12.5 12.5 12.5 32.75.0 45.25C304.4 412.9 296.2 416 288 416s-16.38-3.125-22.62-9.375L160 301.3 54.63 406.6C48.38 412.9 40.19 416 32 416S15.63 412.9 9.375 406.6c-12.5-12.5-12.5-32.75.0-45.25l105.4-105.4L9.375 150.6c-12.5-12.5-12.5-32.75.0-45.25s32.75-12.5 45.25.0L160 210.8l105.4-105.4c12.5-12.5 32.75-12.5 45.25.0s12.5 32.75.0 45.25l-105.4 105.4L310.6 361.4z"/></svg>
+</span>
+</span>
+</li>
+<li class=mb-1>
+<a class="decoration-primary-500 hover:underline hover:decoration-2 hover:underline-offset-2" href=/posts/ title=Posts>
+Blog
+</a>
+</li>
+<li class=mb-1>
+<a class="decoration-primary-500 hover:underline hover:decoration-2 hover:underline-offset-2" href=/tags/ title=Tags>
+Tags
+</a>
+</li>
+<li class=mb-1>
+<a class="decoration-primary-500 hover:underline hover:decoration-2 hover:underline-offset-2" href=https://github.com/yteraoka title>
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><path fill="currentcolor" d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6.0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6.0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3.0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1.0-6.2-.3-40.4-.3-61.4.0.0-70 15-84.7-29.8.0.0-11.4-29.1-27.8-36.6.0.0-22.9-15.7 1.6-15.4.0.0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5.0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9.0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4.0 33.7-.3 75.4-.3 83.6.0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6.0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9.0-6.2-1.4-2.3-4-3.3-5.6-2z"/></svg>
+</span>
+&nbsp;
+GitHub
+</a>
+</li>
+<li class=mb-1>
+<a class="decoration-primary-500 hover:underline hover:decoration-2 hover:underline-offset-2" href=https://twitter.com/yteraoka title>
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentcolor" d="M459.37 151.716c.325 4.548.325 9.097.325 13.645.0 138.72-105.583 298.558-298.558 298.558-59.452.0-114.68-17.219-161.137-47.106 8.447.974 16.568 1.299 25.34 1.299 49.055.0 94.213-16.568 130.274-44.832-46.132-.975-84.792-31.188-98.112-72.772 6.498.974 12.995 1.624 19.818 1.624 9.421.0 18.843-1.3 27.614-3.573-48.081-9.747-84.143-51.98-84.143-102.985v-1.299c13.969 7.797 30.214 12.67 47.431 13.319-28.264-18.843-46.781-51.005-46.781-87.391.0-19.492 5.197-37.36 14.294-52.954 51.655 63.675 129.3 105.258 216.365 109.807-1.624-7.797-2.599-15.918-2.599-24.04.0-57.828 46.782-104.934 104.934-104.934 30.213.0 57.502 12.67 76.67 33.137 23.715-4.548 46.456-13.32 66.599-25.34-7.798 24.366-24.366 44.833-46.132 57.827 21.117-2.273 41.584-8.122 60.426-16.243-14.292 20.791-32.161 39.308-52.628 54.253z"/></svg>
+</span>
+&nbsp;
+Twitter
+</a>
+</li>
+<li class=mb-1>
+<a class="decoration-primary-500 hover:underline hover:decoration-2 hover:underline-offset-2" href=https://qiita.com/yteraoka title>
+Qiita
+</a>
+</li>
+</ul>
+</div>
+</label>
+</div>
+</div>
+<div id=mobile-menu class="fixed inset-0 z-30 invisible w-screen h-screen m-auto overflow-auto transition-opacity opacity-0 cursor-default bg-neutral-100/50 backdrop-blur-sm dark:bg-neutral-900/50">
+<ul class="flex movedown flex-col w-full px-6 py-6 mx-auto overflow-visible list-none ltr:text-right rtl:text-left max-w-7xl sm:px-14 md:px-24 lg:px-32 sm:py-10 sm:pt-10">
+<li class=mb-1>
+<span class="cursor-pointer hover:text-primary-600 dark:hover:text-primary-400">
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><path fill="currentcolor" d="M310.6 361.4c12.5 12.5 12.5 32.75.0 45.25C304.4 412.9 296.2 416 288 416s-16.38-3.125-22.62-9.375L160 301.3 54.63 406.6C48.38 412.9 40.19 416 32 416S15.63 412.9 9.375 406.6c-12.5-12.5-12.5-32.75.0-45.25l105.4-105.4L9.375 150.6c-12.5-12.5-12.5-32.75.0-45.25s32.75-12.5 45.25.0L160 210.8l105.4-105.4c12.5-12.5 32.75-12.5 45.25.0s12.5 32.75.0 45.25l-105.4 105.4L310.6 361.4z"/></svg>
+</span>
+</span>
+</li>
+<li class=mb-1>
+<a class="decoration-primary-500 hover:underline hover:decoration-2 hover:underline-offset-2" href=/posts/ title=Posts>Blog</a>
+</li>
+<li class=mb-1>
+<a class="decoration-primary-500 hover:underline hover:decoration-2 hover:underline-offset-2" href=/tags/ title=Tags>Tags</a>
+</li>
+<li class=mb-1>
+<a class="decoration-primary-500 hover:underline hover:decoration-2 hover:underline-offset-2" href=https://github.com/yteraoka title>GitHub</a>
+</li>
+<li class=mb-1>
+<a class="decoration-primary-500 hover:underline hover:decoration-2 hover:underline-offset-2" href=https://twitter.com/yteraoka title>Twitter</a>
+</li>
+<li class=mb-1>
+<a class="decoration-primary-500 hover:underline hover:decoration-2 hover:underline-offset-2" href=https://qiita.com/yteraoka title>Qiita</a>
+</li>
+<li>
+<button id=search-button-mobile class="text-base hover:text-primary-600 dark:hover:text-primary-400">
+<span class="relative inline-block align-text-bottom icon"><svg aria-hidden="true" focusable="false" data-prefix="fas" data-icon="search" class="svg-inline--fa fa-search fa-w-16" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentcolor" d="M505 442.7 405.3 343c-4.5-4.5-10.6-7-17-7H372c27.6-35.3 44-79.7 44-128C416 93.1 322.9.0 208 0S0 93.1.0 208s93.1 208 208 208c48.3.0 92.7-16.4 128-44v16.3c0 6.4 2.5 12.5 7 17l99.7 99.7c9.4 9.4 24.6 9.4 33.9.0l28.3-28.3c9.4-9.4 9.4-24.6.1-34zM208 336c-70.7.0-128-57.2-128-128 0-70.7 57.2-128 128-128 70.7.0 128 57.2 128 128 0 70.7-57.2 128-128 128z"/></svg>
+</span>
+</button>
+</li>
+</ul>
+</div>
+<div class="relative flex flex-col grow">
+<main id=main-content class=grow>
+<article>
+<header class=max-w-prose>
+<ol class="text-sm text-neutral-500 dark:text-neutral-400 print:hidden">
+<li class="inline hidden">
+<a class="hover:underline decoration-neutral-300 dark:underline-neutral-600" href=/>1Q77</a><span class="px-1 text-primary-500">/</span>
+</li>
+<li class=inline>
+<a class="hover:underline decoration-neutral-300 dark:underline-neutral-600" href=/posts/>Posts</a><span class="px-1 text-primary-500">/</span>
+</li>
+<li class="inline hidden">
+<a class="hover:underline decoration-neutral-300 dark:underline-neutral-600" href=/2019/01/guacamole-functions/>Guacamole の機能紹介</a><span class="px-1 text-primary-500">/</span>
+</li>
+</ol>
+<h1 class="mt-0 text-4xl font-extrabold text-neutral-900 dark:text-neutral">
+Guacamole の機能紹介
+</h1>
+<div class="mt-8 mb-12 text-base text-neutral-500 dark:text-neutral-400 print:hidden">
+<div class="flex flex-row flex-wrap items-center">
+<time datetime="2019-01-13 16:19:08 +0000 UTC">2019年1月13日</time>
+</div>
+<div class="flex flex-row flex-wrap items-center">
+<span style=margin-top:.5rem class=mr-2 onclick='window.open("/tags/docker/")'>
+<span class=flex>
+<span class="rounded-md border border-primary-400 px-1 py-[1px] text-xs font-normal text-primary-700 dark:border-primary-600 dark:text-primary-400">
+Docker
+</span>
+</span>
+</span>
+<span style=margin-top:.5rem class=mr-2 onclick='window.open("/tags/guacamole/")'>
+<span class=flex>
+<span class="rounded-md border border-primary-400 px-1 py-[1px] text-xs font-normal text-primary-700 dark:border-primary-600 dark:text-primary-400">
+Guacamole
+</span>
+</span>
+</span>
+<span style=margin-top:.5rem class=mr-2 onclick='window.open("/tags/remotedesktop/")'>
+<span class=flex>
+<span class="rounded-md border border-primary-400 px-1 py-[1px] text-xs font-normal text-primary-700 dark:border-primary-600 dark:text-primary-400">
+remotedesktop
+</span>
+</span>
+</span>
+</div>
+</div>
+</header>
+<section class="flex flex-col max-w-full mt-0 prose dark:prose-invert lg:flex-row">
+<div class="order-first px-0 lg:order-last lg:max-w-xs ltr:lg:pl-8 rtl:lg:pr-8">
+<div class="toc ltr:pl-5 rtl:pr-5 print:hidden lg:sticky lg:top-10">
+<details open class="mt-0 overflow-hidden rounded-lg ltr:-ml-5 ltr:pl-5 rtl:-mr-5 rtl:pr-5 hidden lg:block">
+<summary class="block py-1 text-lg font-semibold cursor-pointer bg-neutral-100 text-neutral-800 ltr:-ml-5 ltr:pl-5 rtl:-mr-5 rtl:pr-5 dark:bg-neutral-700 dark:text-neutral-100 lg:hidden">
+目次
+</summary>
+<div class="py-2 border-dotted border-neutral-300 ltr:-ml-5 ltr:border-l ltr:pl-5 rtl:-mr-5 rtl:border-r rtl:pr-5 dark:border-neutral-600">
+<nav id=TableOfContents>
+<ul>
+<li><a href=#guacamole-とは>Guacamole とは</a></li>
+<li><a href=#docker-compose-で実行する>Docker Compose で実行する</a>
+<ul>
+<li><a href=#環境>環境</a></li>
+<li><a href=#構成>構成</a></li>
+<li><a href=#docker-compose-設定>docker-compose 設定</a>
+<ul>
+<li><a href=#docker-composeyml>docker-compose.yml</a></li>
+<li><a href=#env>env</a></li>
+<li><a href=#nginxconf>nginx.conf</a></li>
+</ul>
+</li>
+<li><a href=#database-の初期化>Database の初期化</a></li>
+<li><a href=#起動>起動</a></li>
+<li><a href=#ssh>SSH</a></li>
+<li><a href=#remote-desktop>Remote Desktop</a></li>
+</ul>
+</li>
+<li><a href=#time-based-one-time-password>Time-based One-time Password</a></li>
+<li><a href=#ldap-認証>LDAP 認証</a></li>
+<li><a href=#ad-hoc-connect>Ad-hoc Connect</a></li>
+<li><a href=#セッション共有>セッション共有</a></li>
+<li><a href=#レコーディング>レコーディング</a>
+<ul>
+<li><a href=#text-session-recording-typescripts>Text session recording (typescripts)</a></li>
+<li><a href=#screen-recording>Screen Recording</a></li>
+</ul>
+</li>
+<li><a href=#sftp-によるファイルのアップロード>SFTP によるファイルのアップロード</a></li>
+<li><a href=#リモートデスクトップでのドライブマウント>リモートデスクトップでのドライブマウント</a></li>
+<li><a href=#接続設定のグルーピングと権限設定>接続設定のグルーピングと権限設定</a></li>
+<li><a href=#その他>その他</a></li>
+</ul>
+</nav>
+</div>
+</details>
+<details class="mt-0 overflow-hidden rounded-lg ltr:-ml-5 ltr:pl-5 rtl:-mr-5 rtl:pr-5 lg:hidden">
+<summary class="py-1 text-lg font-semibold cursor-pointer bg-neutral-100 text-neutral-800 ltr:-ml-5 ltr:pl-5 rtl:-mr-5 rtl:pr-5 dark:bg-neutral-700 dark:text-neutral-100 lg:hidden">
+目次
+</summary>
+<div class="py-2 border-dotted border-neutral-300 ltr:-ml-5 ltr:border-l ltr:pl-5 rtl:-mr-5 rtl:border-r rtl:pr-5 dark:border-neutral-600">
+<nav id=TableOfContents>
+<ul>
+<li><a href=#guacamole-とは>Guacamole とは</a></li>
+<li><a href=#docker-compose-で実行する>Docker Compose で実行する</a>
+<ul>
+<li><a href=#環境>環境</a></li>
+<li><a href=#構成>構成</a></li>
+<li><a href=#docker-compose-設定>docker-compose 設定</a>
+<ul>
+<li><a href=#docker-composeyml>docker-compose.yml</a></li>
+<li><a href=#env>env</a></li>
+<li><a href=#nginxconf>nginx.conf</a></li>
+</ul>
+</li>
+<li><a href=#database-の初期化>Database の初期化</a></li>
+<li><a href=#起動>起動</a></li>
+<li><a href=#ssh>SSH</a></li>
+<li><a href=#remote-desktop>Remote Desktop</a></li>
+</ul>
+</li>
+<li><a href=#time-based-one-time-password>Time-based One-time Password</a></li>
+<li><a href=#ldap-認証>LDAP 認証</a></li>
+<li><a href=#ad-hoc-connect>Ad-hoc Connect</a></li>
+<li><a href=#セッション共有>セッション共有</a></li>
+<li><a href=#レコーディング>レコーディング</a>
+<ul>
+<li><a href=#text-session-recording-typescripts>Text session recording (typescripts)</a></li>
+<li><a href=#screen-recording>Screen Recording</a></li>
+</ul>
+</li>
+<li><a href=#sftp-によるファイルのアップロード>SFTP によるファイルのアップロード</a></li>
+<li><a href=#リモートデスクトップでのドライブマウント>リモートデスクトップでのドライブマウント</a></li>
+<li><a href=#接続設定のグルーピングと権限設定>接続設定のグルーピングと権限設定</a></li>
+<li><a href=#その他>その他</a></li>
+</ul>
+</nav>
+</div>
+</details>
+</div>
+</div>
+<div class="min-w-0 min-h-0 max-w-prose">
+<p>kakakakakku さんの<a href=https://kakakakakku.hatenablog.com/entry/2019/01/09/001605>ブログの Guacamole 記事</a>を見て、私もやったのになあとこんな tweet をしてしまいました。</p>
+<blockquote class=twitter-tweet><p lang=ja dir=ltr>Guacamole を docker compose でって、去年やったわー、でもブログに書かずじまいだったわー。書こう / “001605” <a href=https://t.co/DEMJDqM5O5>https://t.co/DEMJDqM5O5</a></p>&mdash; yteraoka (@yteraoka) <a href="https://twitter.com/yteraoka/status/1082856539667365888?ref_src=twsrc%5Etfw">January 9, 2019</a></blockquote>
+<script async src=https://platform.twitter.com/widgets.js></script>
+<p>てなわけで書かざるをえません。そして書こうと思ったら直前に1年ぶりの新バージョン <a href=https://guacamole.apache.org/releases/1.0.0/>1.0.0 がリリース</a>されていたのでこれを試します。</p>
+<h2 id=guacamole-とは class="relative group">Guacamole とは <span class="absolute top-0 w-6 transition-opacity opacity-0 ltr:-left-6 rtl:-right-6 not-prose group-hover:opacity-100"><a class="group-hover:text-primary-300 dark:group-hover:text-neutral-700" style=text-decoration-line:none!important href=#guacamole-%e3%81%a8%e3%81%af aria-label=アンカー>#</a></span></h2>
+<p>（オフィスでご覧の方は ZOZOTOWN Guacamole で検索するといいんじゃないかな 🤭）</p>
+<p><a href=https://guacamole.apache.org/>https://guacamole.apache.org/</a> に</p>
+<blockquote>
+<p>Apache Guacamole is a clientless remote desktop gateway. It supports standard protocols like VNC, RDP, and SSH.</p>
+</blockquote>
+<p>と書いてあります。</p>
+<p>ブラウザさえあれば、Windows へのリモートデスクトップも VNC サーバーへのアクセスも SSH も Telnet もできちゃうすぐれものです。その操作をレコーディングして監査に使うこともできますし、セッションを共有することで別の場所にいる誰かと画面や SSH のセッションを共有することも可能です。参照専用の共有と操作可能な共有から選択できますし、共有用のリンクからであれば Guacamole へのログインも不要です。認証については DB に Guacamole 用ユーザーを作成することも可能ですし、LDAP を参照することも OpenID サーバと連携させることも可能です。1.0.0 では RADIUS にも対応したようですし、LDAP のグループにも対応したっぽい。以前は2要素認証として <a href=https://duo.com/>Duo</a> だけがサポートされていましたが 1.0.0 から <a href=https://ja.wikipedia.org/wiki/Google_Authenticator>Google Authenticator</a> や <a href=https://authy.com/>Authy</a> などで使える TOTP (Time-based One-time Password) も使えるようになりました。</p>
+<p>共有アカウントの接続情報を登録しておき、Guacamole の認証、認可によりその接続を利用させるといった使い方になると思います。</p>
+<h2 id=docker-compose-で実行する class="relative group">Docker Compose で実行する <span class="absolute top-0 w-6 transition-opacity opacity-0 ltr:-left-6 rtl:-right-6 not-prose group-hover:opacity-100"><a class="group-hover:text-primary-300 dark:group-hover:text-neutral-700" style=text-decoration-line:none!important href=#docker-compose-%e3%81%a7%e5%ae%9f%e8%a1%8c%e3%81%99%e3%82%8b aria-label=アンカー>#</a></span></h2>
+<p>各機能を使うにはいろいろ依存ライブらいなどを用意する必要があるので Docker を使うのが楽そうです。そこで docker-compose を使います。</p>
+<h3 id=環境 class="relative group">環境 <span class="absolute top-0 w-6 transition-opacity opacity-0 ltr:-left-6 rtl:-right-6 not-prose group-hover:opacity-100"><a class="group-hover:text-primary-300 dark:group-hover:text-neutral-700" style=text-decoration-line:none!important href=#%e7%92%b0%e5%a2%83 aria-label=アンカー>#</a></span></h3>
+<p>使った docker と docker-compose のバージョンは次の通り。</p>
+<pre tabindex=0><code>$ sudo docker version
+Client:
+ Version:           18.09.1
+ API version:       1.39
+ Go version:        go1.10.6
+ Git commit:        4c52b90
+ Built:             Wed Jan  9 19:35:01 2019
+ OS/Arch:           linux/amd64
+ Experimental:      false
+
+Server: Docker Engine - Community
+ Engine:
+  Version:          18.09.1
+  API version:      1.39 (minimum version 1.12)
+  Go version:       go1.10.6
+  Git commit:       4c52b90
+  Built:            Wed Jan  9 19:06:30 2019
+  OS/Arch:          linux/amd64
+  Experimental:     false
+</code></pre><pre tabindex=0><code>$ docker-compose version
+docker-compose version 1.23.2, build 1110ad01
+docker-py version: 3.6.0
+CPython version: 3.6.7
+OpenSSL version: OpenSSL 1.1.0f  25 May 2017
+</code></pre><h3 id=構成 class="relative group">構成 <span class="absolute top-0 w-6 transition-opacity opacity-0 ltr:-left-6 rtl:-right-6 not-prose group-hover:opacity-100"><a class="group-hover:text-primary-300 dark:group-hover:text-neutral-700" style=text-decoration-line:none!important href=#%e6%a7%8b%e6%88%90 aria-label=アンカー>#</a></span></h3>
+<p>Guacamole はサーバーの guacd と、クライアントで Web UI を提供する guacamole と設定やユーザー情報を保存する Database (MySQL, PostgreSQL, SQLServer) で構成されます。この記事では Database に PostgreSQL を使いました。LDAP のスキーマを拡張することで設定も LDAP に保存することができるようですが試していません。後半で LDAP 連携も試します。</p>
+<h3 id=docker-compose-設定 class="relative group">docker-compose 設定 <span class="absolute top-0 w-6 transition-opacity opacity-0 ltr:-left-6 rtl:-right-6 not-prose group-hover:opacity-100"><a class="group-hover:text-primary-300 dark:group-hover:text-neutral-700" style=text-decoration-line:none!important href=#docker-compose-%e8%a8%ad%e5%ae%9a aria-label=アンカー>#</a></span></h3>
+<p><code>docker-compose.yml</code> は次のようにします。PostgreSQL のデータはホストのディレクトリをマウントさせるため <code>pgdata</code> ディレクトリをホスト側に作成しておきます。</p>
+<h4 id=docker-composeyml class="relative group">docker-compose.yml <span class="absolute top-0 w-6 transition-opacity opacity-0 ltr:-left-6 rtl:-right-6 not-prose group-hover:opacity-100"><a class="group-hover:text-primary-300 dark:group-hover:text-neutral-700" style=text-decoration-line:none!important href=#docker-composeyml aria-label=アンカー>#</a></span></h4>
+<div class=highlight><pre tabindex=0 class=chroma><code class=language-yaml data-lang=yaml><span class=nt>version</span><span class=p>:</span><span class=w> </span><span class=s1>&#39;2&#39;</span><span class=w>
+</span><span class=w></span><span class=nt>services</span><span class=p>:</span><span class=w>
+</span><span class=w>  </span><span class=nt>postgres</span><span class=p>:</span><span class=w>
+</span><span class=w>    </span><span class=nt>image</span><span class=p>:</span><span class=w> </span><span class=l>postgres:10-alpine</span><span class=w>
+</span><span class=w>    </span><span class=nt>env_file</span><span class=p>:</span><span class=w> </span><span class=l>./env</span><span class=w>
+</span><span class=w>    </span><span class=nt>volumes</span><span class=p>:</span><span class=w>
+</span><span class=w>      </span>- <span class=l>./pgdata:/var/lib/postgresql/data</span><span class=w>
+</span><span class=w>    </span><span class=nt>restart</span><span class=p>:</span><span class=w> </span><span class=l>always</span><span class=w>
+</span><span class=w>
+</span><span class=w>  </span><span class=nt>guacd</span><span class=p>:</span><span class=w>
+</span><span class=w>    </span><span class=nt>image</span><span class=p>:</span><span class=w> </span><span class=l>guacamole/guacd:1.0.0</span><span class=w>
+</span><span class=w>    </span><span class=nt>restart</span><span class=p>:</span><span class=w> </span><span class=l>always</span><span class=w>
+</span><span class=w>
+</span><span class=w>  </span><span class=nt>guacamole</span><span class=p>:</span><span class=w>
+</span><span class=w>    </span><span class=nt>image</span><span class=p>:</span><span class=w> </span><span class=l>guacamole/guacamole:1.0.0</span><span class=w>
+</span><span class=w>    </span><span class=nt>env_file</span><span class=p>:</span><span class=w> </span><span class=l>./env</span><span class=w>
+</span><span class=w>    </span><span class=nt>environment</span><span class=p>:</span><span class=w>
+</span><span class=w>      </span><span class=nt>GUACD_HOSTNAME</span><span class=p>:</span><span class=w> </span><span class=l>guacd</span><span class=w>
+</span><span class=w>      </span><span class=nt>GUACD_PORT</span><span class=p>:</span><span class=w> </span><span class=m>4822</span><span class=w>
+</span><span class=w>      </span><span class=nt>POSTGRES_HOSTNAME</span><span class=p>:</span><span class=w> </span><span class=l>postgres</span><span class=w>
+</span><span class=w>    </span><span class=nt>restart</span><span class=p>:</span><span class=w> </span><span class=l>always</span><span class=w>
+</span><span class=w>
+</span><span class=w>  </span><span class=nt>nginx</span><span class=p>:</span><span class=w>
+</span><span class=w>    </span><span class=nt>image</span><span class=p>:</span><span class=w> </span><span class=l>nginx:latest</span><span class=w>
+</span><span class=w>    </span><span class=nt>ports</span><span class=p>:</span><span class=w>
+</span><span class=w>      </span>- <span class=s2>&#34;80:80&#34;</span><span class=w>
+</span><span class=w>    </span><span class=nt>volumes</span><span class=p>:</span><span class=w>
+</span><span class=w>      </span>- <span class=l>./nginx.conf:/etc/nginx/nginx.conf</span><span class=w>
+</span><span class=w>    </span><span class=nt>restart</span><span class=p>:</span><span class=w> </span><span class=l>always</span><span class=w>
+</span></code></pre></div><h4 id=env class="relative group">env <span class="absolute top-0 w-6 transition-opacity opacity-0 ltr:-left-6 rtl:-right-6 not-prose group-hover:opacity-100"><a class="group-hover:text-primary-300 dark:group-hover:text-neutral-700" style=text-decoration-line:none!important href=#env aria-label=アンカー>#</a></span></h4>
+<p><code>env</code> ファイルに guacamole と postgres コンテナで共有する環境変数を入れてあります。</p>
+<pre tabindex=0><code>POSTGRES_DATABASE=guacamole
+POSTGRES_USER=guacamole
+POSTGRES_PASSWORD=guacamole
+</code></pre><p>guacamole の Tomcat に直接アクセスしても良いのですが、実用するには手前の Reverse Proxy で https 終端をすると思うので nginx を入れます。WebSocket に対応する必要があるため <code>nginx.conf</code> を用意してマウントします。</p>
+<h4 id=nginxconf class="relative group">nginx.conf <span class="absolute top-0 w-6 transition-opacity opacity-0 ltr:-left-6 rtl:-right-6 not-prose group-hover:opacity-100"><a class="group-hover:text-primary-300 dark:group-hover:text-neutral-700" style=text-decoration-line:none!important href=#nginxconf aria-label=アンカー>#</a></span></h4>
+<div class=highlight><pre tabindex=0 class=chroma><code class=language-nginx data-lang=nginx><span class=k>user</span> <span class=s>nginx</span><span class=p>;</span>
+<span class=k>worker_processes</span> <span class=mi>1</span><span class=p>;</span>
+
+<span class=k>error_log</span> <span class=s>/var/log/nginx/error.log</span> <span class=s>warn</span><span class=p>;</span>
+<span class=k>pid</span> <span class=s>/var/run/nginx.pid</span><span class=p>;</span>
+
+<span class=k>events</span> <span class=p>{</span>
+  <span class=kn>worker_connections</span> <span class=mi>1024</span><span class=p>;</span>
+<span class=p>}</span>
+
+<span class=k>http</span> <span class=p>{</span>
+  <span class=kn>include</span> <span class=s>/etc/nginx/mime.types</span><span class=p>;</span>
+  <span class=kn>default_type</span> <span class=s>application/octet-stream</span><span class=p>;</span>
+
+  <span class=kn>server</span> <span class=p>{</span>
+    <span class=kn>listen</span> <span class=mi>80</span><span class=p>;</span>
+    <span class=kn>root</span> <span class=s>/usr/share/nginx/html</span><span class=p>;</span>
+    <span class=kn>location</span> <span class=s>/guacamole/</span> <span class=p>{</span>
+      <span class=kn>proxy_pass</span> <span class=s>http://guacamole:8080/guacamole/</span><span class=p>;</span>
+      <span class=kn>proxy_buffering</span> <span class=no>off</span><span class=p>;</span>
+      <span class=kn>proxy_http_version</span> <span class=mi>1</span><span class=s>.1</span><span class=p>;</span>
+      <span class=kn>proxy_set_header</span> <span class=s>X-Forwarded-For</span> <span class=nv>$proxy_add_x_forwarded_for</span><span class=p>;</span>
+      <span class=kn>proxy_set_header</span> <span class=s>Upgrade</span> <span class=nv>$http_upgrade</span><span class=p>;</span>
+      <span class=kn>proxy_set_header</span> <span class=s>Connection</span> <span class=nv>$http_connection</span><span class=p>;</span>
+      <span class=c1>#access_log off;
+</span><span class=c1></span>    <span class=p>}</span>
+  <span class=p>}</span>
+<span class=p>}</span>
+</code></pre></div><h3 id=database-の初期化 class="relative group">Database の初期化 <span class="absolute top-0 w-6 transition-opacity opacity-0 ltr:-left-6 rtl:-right-6 not-prose group-hover:opacity-100"><a class="group-hover:text-primary-300 dark:group-hover:text-neutral-700" style=text-decoration-line:none!important href=#database-%e3%81%ae%e5%88%9d%e6%9c%9f%e5%8c%96 aria-label=アンカー>#</a></span></h3>
+<p>Database にテーブルを作ったりする必要があります。次のようにして初期化用の SQL を生成します。</p>
+<pre tabindex=0><code>sudo docker run --rm guacamole/guacamole:1.0.0 /opt/guacamole/bin/initdb.sh --postgres &gt; init.sql
+
+</code></pre><p>次にこの SQL を Database に適用します。</p>
+<pre tabindex=0><code>sudo docker-compose up --no-start postgres
+sudo docker-compose start postgres
+cat init.sql | sudo docker-compose exec -T postgres psql -U guacamole -d guacamole
+</code></pre><h3 id=起動 class="relative group">起動 <span class="absolute top-0 w-6 transition-opacity opacity-0 ltr:-left-6 rtl:-right-6 not-prose group-hover:opacity-100"><a class="group-hover:text-primary-300 dark:group-hover:text-neutral-700" style=text-decoration-line:none!important href=#%e8%b5%b7%e5%8b%95 aria-label=アンカー>#</a></span></h3>
+<p>あとは <code>docker-compose up</code> で起動させれば OK</p>
+<pre tabindex=0><code>sudo docker-compose up
+</code></pre><p>ブラウザで <code>/guacamole/</code> にアクセスして次のようなログインフォームが表示されたらきっと成功。ID: <code>guacadmin</code> Password: <code>guacadmin</code> でログインしてみましょう。</p>
+<img src=guacamole-login-form.png>
+<h3 id=ssh class="relative group">SSH <span class="absolute top-0 w-6 transition-opacity opacity-0 ltr:-left-6 rtl:-right-6 not-prose group-hover:opacity-100"><a class="group-hover:text-primary-300 dark:group-hover:text-neutral-700" style=text-decoration-line:none!important href=#ssh aria-label=アンカー>#</a></span></h3>
+<p>ログインできたら右上のメニューから <strong>settings</strong> に入ります。</p>
+<img src=guacadmin-menu.png>
+<img src=guacamole-settings.png>
+<p>ここの <strong>Connections</strong> から <strong>New Connection</strong> で接続情報を設定します。SSH では次の設定項目があります。</p>
+<figure>
+<img class="my-0 rounded-md" srcset="/2019/01/guacamole-functions/guacamole-add-ssh-connection_hu802ac978157138b550e72cdd00b61d00_161419_330x0_resize_box_3.png 330w,
+/2019/01/guacamole-functions/guacamole-add-ssh-connection_hu802ac978157138b550e72cdd00b61d00_161419_660x0_resize_box_3.png 660w,
+/2019/01/guacamole-functions/guacamole-add-ssh-connection_hu802ac978157138b550e72cdd00b61d00_161419_1024x0_resize_box_3.png 1024w,
+/2019/01/guacamole-functions/guacamole-add-ssh-connection_hu802ac978157138b550e72cdd00b61d00_161419_1320x0_resize_box_3.png 2x" src=/2019/01/guacamole-functions/guacamole-add-ssh-connection_hu802ac978157138b550e72cdd00b61d00_161419_660x0_resize_box_3.png alt>
+</figure>
+<p><a href=https://guacamole.apache.org/doc/gug/configuring-guacamole.html#ssh>Configuring Guacamole SSH</a></p>
+<p><strong>Name</strong>と接続先の<strong>Hostname</strong>が最低限必要な設定ですが、これではパスワード認証となります。公開鍵認証にするためには<strong>Private key</strong>が必要です。<strong>Username</strong>、<strong>Password</strong>、<strong>Passphrase</strong> がブランクの場合は接続時に入力を求められます。ログインに必要な情報がすべて設定されていれば Guacamole にログインして表示される接続名をクリックするだけで何の入力もなしにログインできます。</p>
+<p><strong>Private key</strong> も <strong>Password</strong> も <strong>Passphrase</strong> も plain text で guacamole_connection_parameter テーブルに保存されます。</p>
+<p>次のような OpenSSH の Private key の新しいフォーマットは未対応のようです。</p>
+<pre tabindex=0><code>-----BEGIN OPENSSH PRIVATE KEY-----
+...
+-----END OPENSSH PRIVATE KEY-----
+
+</code></pre><p>ブラウザでの SSH はどんなものかと思っていましたが、思っていた以上に違和感なく使えました。Bash での各種 Ctrl キーとの組み合わせも動作しますし。文字列を選択した状態でマウスの右クリックをすればペーストできます。</p>
+<h3 id=remote-desktop class="relative group">Remote Desktop <span class="absolute top-0 w-6 transition-opacity opacity-0 ltr:-left-6 rtl:-right-6 not-prose group-hover:opacity-100"><a class="group-hover:text-primary-300 dark:group-hover:text-neutral-700" style=text-decoration-line:none!important href=#remote-desktop aria-label=アンカー>#</a></span></h3>
+<p>Remote Desktop の場合は次の設定項目があります。</p>
+<figure>
+<img class="my-0 rounded-md" srcset="/2019/01/guacamole-functions/guacamole-add-rdp-connection_hu89f21af41ed47bc5a8a6a5260addaaab_272885_330x0_resize_box_3.png 330w,
+/2019/01/guacamole-functions/guacamole-add-rdp-connection_hu89f21af41ed47bc5a8a6a5260addaaab_272885_660x0_resize_box_3.png 660w,
+/2019/01/guacamole-functions/guacamole-add-rdp-connection_hu89f21af41ed47bc5a8a6a5260addaaab_272885_1024x0_resize_box_3.png 1024w,
+/2019/01/guacamole-functions/guacamole-add-rdp-connection_hu89f21af41ed47bc5a8a6a5260addaaab_272885_1320x0_resize_box_3.png 2x" src=/2019/01/guacamole-functions/guacamole-add-rdp-connection_hu89f21af41ed47bc5a8a6a5260addaaab_272885_660x0_resize_box_3.png alt>
+</figure>
+<p>Remote Desktop の場合は <strong>Name</strong>, <strong>Hostname</strong> だけではなく、<strong>Username</strong>, <strong>Password</strong> などログインするのに必要なものはすべて登録済みである必要があります。これも SSH と同じく guacamole_connection_parameter テーブルに plain text で保存されます。EC2 の Windows Server 2016 では <strong>Security Mode</strong> は Any にする必要がありました。(Lightsail の 512MB メモリの Windows は遅すぎてまともに使えなかった)</p>
+<p>これがブラウザ内に表示される画面です。</p>
+<figure>
+<img class="my-0 rounded-md" src=guacamole-remote-desktop.png alt>
+</figure>
+<h2 id=time-based-one-time-password class="relative group">Time-based One-time Password <span class="absolute top-0 w-6 transition-opacity opacity-0 ltr:-left-6 rtl:-right-6 not-prose group-hover:opacity-100"><a class="group-hover:text-primary-300 dark:group-hover:text-neutral-700" style=text-decoration-line:none!important href=#time-based-one-time-password aria-label=アンカー>#</a></span></h2>
+<p>TOTP を有効にするにはそれ用の jar ファイルを <code>${GUACAMOLE_HOME}/extensions</code> ディレクトリに置いて起動するようにしてやる必要があります。docker での起動は <code>/opt/guacamole/bin/start.sh</code> が環境変数によって使う Database を判断して毎回 ${GUACAMOLE_HOME} を作り直しています。一旦ディレクトリごと削除した後に ${GUACAMOLE_HOME} で指定したディレクトリをコピーしてから Database 用の jar をコピーするので docker-compose.yml を次のようにして guacamole/extensions に TOTP 用 jar を置いておきます。</p>
+<div class=highlight><pre tabindex=0 class=chroma><code class=language-yaml data-lang=yaml><span class=w>  </span><span class=nt>guacamole</span><span class=p>:</span><span class=w>
+</span><span class=w>    </span><span class=nt>image</span><span class=p>:</span><span class=w> </span><span class=l>guacamole/guacamole:1.0.0</span><span class=w>
+</span><span class=w>    </span><span class=nt>env_file</span><span class=p>:</span><span class=w> </span><span class=l>./env</span><span class=w>
+</span><span class=w>    </span><span class=nt>environment</span><span class=p>:</span><span class=w>
+</span><span class=w>      </span><span class=nt>GUACD_HOSTNAME</span><span class=p>:</span><span class=w> </span><span class=l>guacd</span><span class=w>
+</span><span class=w>      </span><span class=nt>GUACD_PORT</span><span class=p>:</span><span class=w> </span><span class=m>4822</span><span class=w>
+</span><span class=w>      </span><span class=nt>POSTGRES_HOSTNAME</span><span class=p>:</span><span class=w> </span><span class=l>postgres</span><span class=w>
+</span><span class=w>      </span><span class=nt>GUACAMOLE_HOME</span><span class=p>:</span><span class=w> </span><span class=l>/guacamole-template</span><span class=w>
+</span><span class=w>    </span><span class=nt>volumes</span><span class=p>:</span><span class=w>
+</span><span class=w>      </span>- <span class=l>./guacamole:/guacamole-template:ro</span><span class=w>
+</span><span class=w>    </span><span class=nt>restart</span><span class=p>:</span><span class=w> </span><span class=l>always</span><span class=w>
+</span></code></pre></div><p>jar の入った tar.gz をダウンロードして展開する。</p>
+<div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash>curl -Lo guacamole-auth-totp-1.0.0.tar.gz <span class=se>\
+</span><span class=se></span>  <span class=s2>&#34;http://apache.org/dyn/closer.cgi?action=download&amp;filename=guacamole/1.0.0/binary/guacamole-auth-totp-1.0.0.tar.gz&#34;</span>
+
+<span class=nb>test</span> -d guacamole/extensions <span class=o>||</span> mkdir -p guacamole/extensions
+
+tar -xvf guacamole-auth-totp-1.0.0.tar.gz <span class=se>\
+</span><span class=se></span>  --strip-components <span class=m>1</span> <span class=se>\
+</span><span class=se></span>  -C guacamole/extensions <span class=se>\
+</span><span class=se></span>  guacamole-auth-totp-1.0.0/guacamole-auth-totp-1.0.0.jar
+</code></pre></div><p>この状態で <code>docker-compose down</code> & <code>docker-compose up</code> すれば TOTP が使えるようになります。初回、ID, Password を入力した後に登録画面が表示されます。</p>
+<figure>
+<img class="my-0 rounded-md" srcset="/2019/01/guacamole-functions/guacamole-totp_hu422b5ffda9f21f882a85ccd709d6bcad_46679_330x0_resize_box_3.png 330w,
+/2019/01/guacamole-functions/guacamole-totp_hu422b5ffda9f21f882a85ccd709d6bcad_46679_660x0_resize_box_3.png 660w,
+/2019/01/guacamole-functions/guacamole-totp_hu422b5ffda9f21f882a85ccd709d6bcad_46679_1024x0_resize_box_3.png 1024w,
+/2019/01/guacamole-functions/guacamole-totp_hu422b5ffda9f21f882a85ccd709d6bcad_46679_1320x0_resize_box_3.png 2x" src=/2019/01/guacamole-functions/guacamole-totp_hu422b5ffda9f21f882a85ccd709d6bcad_46679_660x0_resize_box_3.png alt>
+</figure>
+<p>登録が完了すれば次回ログインからは ID, Password 入力後に次のように 6 桁のコード入力を求められます。</p>
+<figure>
+<img class="my-0 rounded-md" srcset="/2019/01/guacamole-functions/guacamole-input-auth-code_hu08f7cde228ec63b175ee1032e46caa3c_8920_330x0_resize_box_3.png 330w,
+/2019/01/guacamole-functions/guacamole-input-auth-code_hu08f7cde228ec63b175ee1032e46caa3c_8920_660x0_resize_box_3.png 660w,
+/2019/01/guacamole-functions/guacamole-input-auth-code_hu08f7cde228ec63b175ee1032e46caa3c_8920_1024x0_resize_box_3.png 1024w,
+/2019/01/guacamole-functions/guacamole-input-auth-code_hu08f7cde228ec63b175ee1032e46caa3c_8920_1320x0_resize_box_3.png 2x" src=/2019/01/guacamole-functions/guacamole-input-auth-code_hu08f7cde228ec63b175ee1032e46caa3c_8920_660x0_resize_box_3.png alt>
+</figure>
+<p>TOTP は Database (MySQL, PostgreSQL, SQLServer) 認証でしかサポートされていないようです。OpenID の場合は OpenID サーバー側でやるべきでしょうしね。</p>
+<p>(Vagrant でやっていたのですが、途中 PC を Suspend していたため、その間、サーバーの時刻が止まっておりずれてしまって。Varidation が通らなくてしばらくハマってました 😅)</p>
+<h2 id=ldap-認証 class="relative group">LDAP 認証 <span class="absolute top-0 w-6 transition-opacity opacity-0 ltr:-left-6 rtl:-right-6 not-prose group-hover:opacity-100"><a class="group-hover:text-primary-300 dark:group-hover:text-neutral-700" style=text-decoration-line:none!important href=#ldap-%e8%aa%8d%e8%a8%bc aria-label=アンカー>#</a></span></h2>
+<p>次に<a href=https://guacamole.apache.org/doc/gug/ldap-auth.html>LDAP認証</a>を試します。環境変数で LDAP サーバーの指定をするだけで起動前に jar がコピーされて LDAP アカウントでロおグインできるようになります。<a href=https://guacamole.apache.org/doc/gug/ldap-auth.html>https://guacamole.apache.org/doc/gug/ldap-auth.html</a></p>
+<div class=highlight><pre tabindex=0 class=chroma><code class=language-yaml data-lang=yaml><span class=w>  </span><span class=nt>guacamole</span><span class=p>:</span><span class=w>
+</span><span class=w>    </span><span class=nt>image</span><span class=p>:</span><span class=w> </span><span class=l>guacamole/guacamole:1.0.0</span><span class=w>
+</span><span class=w>    </span><span class=nt>env_file</span><span class=p>:</span><span class=w> </span><span class=l>./env</span><span class=w>
+</span><span class=w>    </span><span class=nt>environment</span><span class=p>:</span><span class=w>
+</span><span class=w>      </span><span class=nt>GUACD_HOSTNAME</span><span class=p>:</span><span class=w> </span><span class=l>guacd</span><span class=w>
+</span><span class=w>      </span><span class=nt>GUACD_PORT</span><span class=p>:</span><span class=w> </span><span class=m>4822</span><span class=w>
+</span><span class=w>      </span><span class=nt>POSTGRES_HOSTNAME</span><span class=p>:</span><span class=w> </span><span class=l>postgres</span><span class=w>
+</span><span class=w>      </span><span class=nt>LDAP_HOSTNAME</span><span class=p>:</span><span class=w> </span><span class=l>ldap.example.com</span><span class=w>
+</span><span class=w>      </span><span class=nt>LDAP_PORT</span><span class=p>:</span><span class=w> </span><span class=m>636</span><span class=w>
+</span><span class=w>      </span><span class=nt>LDAP_ENCRYPTION_METHOD</span><span class=p>:</span><span class=w> </span><span class=l>ssl</span><span class=w>
+</span><span class=w>      </span><span class=nt>LDAP_USER_BASE_DN</span><span class=p>:</span><span class=w> </span><span class=l>ou=people,dc=example,dc=com</span><span class=w>
+</span><span class=w>    </span><span class=nt>restart</span><span class=p>:</span><span class=w> </span><span class=l>always</span><span class=w>
+</span></code></pre></div><p>LDAP がらみで使える環境変数には次のものがあります。</p>
+<ul>
+<li>LDAP_HOSTNAME</li>
+<li>LDAP_PORT</li>
+<li>LDAP_ENCRYPTION_METHOD</li>
+<li>LDAP_USER_BASE_DN</li>
+<li>LDAP_USERNAME_ATTRIBUTE</li>
+<li>LDAP_GROUP_BASE_DN</li>
+<li>LDAP_CONFIG_BASE_DN</li>
+<li>LDAP_SEARCH_BIND_DN</li>
+<li>LDAP_SEARCH_BIND_PASSWORD</li>
+</ul>
+<h2 id=ad-hoc-connect class="relative group">Ad-hoc Connect <span class="absolute top-0 w-6 transition-opacity opacity-0 ltr:-left-6 rtl:-right-6 not-prose group-hover:opacity-100"><a class="group-hover:text-primary-300 dark:group-hover:text-neutral-700" style=text-decoration-line:none!important href=#ad-hoc-connect aria-label=アンカー>#</a></span></h2>
+<p>TOTP と同じように guacamole-auth-quickconnect-1.0.0.jar を extensions ディレクトリに置くことで <a href=https://guacamole.apache.org/doc/gug/adhoc-connections.html>Ad-hoc Connections</a> が使えるようになります。Ad-hoc Connection は登録済みの接続設定を使うのではなく <code>ssh://linux1.example.com/</code> などとその場で入力して接続できるようになります。</p>
+<pre tabindex=0><code>curl -Lo guacamole-auth-quickconnect-1.0.0.tar.gz \
+  &quot;http://apache.org/dyn/closer.cgi?action=download&amp;filename=guacamole/1.0.0/binary/guacamole-auth-quickconnect-1.0.0.tar.gz&quot;
+
+tar -xvf /tmp/guacamole-auth-quickconnect-1.0.0.tar.gz \
+  --strip-components 1 \
+  -C guacamole/extensions \
+  guacamole-auth-quickconnect-1.0.0/guacamole-auth-quickconnect-1.0.0.jar
+</code></pre><p>Home 画面に次の用な入力フォームが表示されます。</p>
+<figure>
+<img class="my-0 rounded-md" srcset="/2019/01/guacamole-functions/guacamole-quick-connection_hu7366b887a97419dedfe62337b013034f_5520_330x0_resize_box_3.png 330w,
+/2019/01/guacamole-functions/guacamole-quick-connection_hu7366b887a97419dedfe62337b013034f_5520_660x0_resize_box_3.png 660w,
+/2019/01/guacamole-functions/guacamole-quick-connection_hu7366b887a97419dedfe62337b013034f_5520_1024x0_resize_box_3.png 1024w,
+/2019/01/guacamole-functions/guacamole-quick-connection_hu7366b887a97419dedfe62337b013034f_5520_1320x0_resize_box_3.png 2x" src=/2019/01/guacamole-functions/guacamole-quick-connection_hu7366b887a97419dedfe62337b013034f_5520_660x0_resize_box_3.png alt>
+</figure>
+<p>認証情報が保存できないので実際に使える場面は少なそうですけど。</p>
+<h2 id=セッション共有 class="relative group">セッション共有 <span class="absolute top-0 w-6 transition-opacity opacity-0 ltr:-left-6 rtl:-right-6 not-prose group-hover:opacity-100"><a class="group-hover:text-primary-300 dark:group-hover:text-neutral-700" style=text-decoration-line:none!important href=#%e3%82%bb%e3%83%83%e3%82%b7%e3%83%a7%e3%83%b3%e5%85%b1%e6%9c%89 aria-label=アンカー>#</a></span></h2>
+<p>URL を共有することで SSH やリモートデスクトップのセッションを複数人で共有することができます。そしてこれは Guacamole にログインする必要がないため、組織外の人と共有できます。参照専用で共有することもできます。</p>
+<img src=guacamole-connections2.png>
+<p>接続設定に対して <strong>New Sharing Profile</strong> で共有プロファイルを作成することができます。このキャプチャの <strong>ec2-win1</strong> には <strong>readonly</strong> と <strong>share-test</strong> という2つの共有プロファイルを作成してあります。作成時に Read-only フラグにチェックを入れておくことで参照専用で共有することができるようになります。</p>
+<p>共有用のリンクを取得するには接続した状態で <strong>Ctrl</strong>+<strong>Alt</strong>+<strong>Shift</strong> で <a href=https://guacamole.apache.org/doc/gug/using-guacamole.html#guacamole-menu>Guacamole menu</a> を表示して、そこの上部にある share ボタンからプロファイルを選択します。</p>
+<img src=guacamole-menu-rdp.png>
+<p>SSH でも同様です</p>
+<img src=guacamole-share-connection.png>
+<p>表示されたリンクを使って共有セッションにアクセスすることができます。Guacamole menu は共有リンクの表示以外にオンスクリーンキーボードを表示させたり、マウスの挙動をタブレットやスマホ用に切り替えたりもできます。これは個人設定の Preference でも設定可能ですが、セッション中に変更するにはこのメニューを使います。Guacamole menu からホーム画面やセッティング画面に移動すればセッションは継続したまま別のセッションに移ったりできます。</p>
+<p>「今、こんな感じの画面になってて困ってます」って共有する時とかに便利そうですね。</p>
+<p><a href=https://guacamole.apache.org/doc/gug/using-guacamole.html#client-share-menu>Sharing the connection</a></p>
+<h2 id=レコーディング class="relative group">レコーディング <span class="absolute top-0 w-6 transition-opacity opacity-0 ltr:-left-6 rtl:-right-6 not-prose group-hover:opacity-100"><a class="group-hover:text-primary-300 dark:group-hover:text-neutral-700" style=text-decoration-line:none!important href=#%e3%83%ac%e3%82%b3%e3%83%bc%e3%83%87%e3%82%a3%e3%83%b3%e3%82%b0 aria-label=アンカー>#</a></span></h2>
+<p>リモートデスクトップや VNC ではグラフィカルなレコーディングが可能です。SSH や Telnet ではそれに加えてテキストでのレコーティングも可能です。保存を行うのはサーバー側の <strong>guacd</strong> です。</p>
+<h3 id=text-session-recording-typescripts class="relative group">Text session recording (typescripts) <span class="absolute top-0 w-6 transition-opacity opacity-0 ltr:-left-6 rtl:-right-6 not-prose group-hover:opacity-100"><a class="group-hover:text-primary-300 dark:group-hover:text-neutral-700" style=text-decoration-line:none!important href=#text-session-recording-typescripts aria-label=アンカー>#</a></span></h3>
+<p>SSH や Telnet の場合は Typescript path に保存先ディレクトリを指定すれば script コマンドでのログが保存されます。<strong>Typescript name</strong> が未設定の場合は typescript というファイル名で保存されます。<strong>Automatically create typescript path</strong> にチェックを入れておくと保存先ディレクトリが存在しない場合にディレクトリを作成してくれます。ただし、作成するのは最後のサブディレクトリだけで、その親ディレクトリは予め存在している必要があります。次のように2つ以降のセッションには末尾に連番の数字がつきます。</p>
+<pre tabindex=0><code>typescript  typescript.1  typescript.1.timing  typescript.2  typescript.2.timing  typescript.timing
+</code></pre><p>再生するには次のように <code>scriptreplay</code> コマンドを使います。</p>
+<pre tabindex=0><code>scriptreplay typescript.timing typescript
+</code></pre><p>テキストなので grep したりエディタで開くこともできます。</p>
+<h3 id=screen-recording class="relative group">Screen Recording <span class="absolute top-0 w-6 transition-opacity opacity-0 ltr:-left-6 rtl:-right-6 not-prose group-hover:opacity-100"><a class="group-hover:text-primary-300 dark:group-hover:text-neutral-700" style=text-decoration-line:none!important href=#screen-recording aria-label=アンカー>#</a></span></h3>
+<p>グラフィカルなレコーディングもテキストと同様に <strong>Recording path</strong> に保存先ディレクトリを指定すればレコーディングされます。<strong>Recording name</strong> でファイル名を指定しなかった場合は <strong>recording</strong> というファイル名で保存されます。2つ目以降は末尾に連番の数字がつきます。<code>guacenc</code> コマンドを使うことで保存されたファイルから MP4 ファイルを生成することができます。<strong>Include key events</strong> を有効にしておけば <code>guaclog</code> コマンドで入力をテキストで書き出すことができます。</p>
+<p>ただし、<code>guacenc</code> も <code>guaclog</code> も <strong>guacd</strong> コンテナに含まれていなかったので試していません。</p>
+<h2 id=sftp-によるファイルのアップロード class="relative group">SFTP によるファイルのアップロード <span class="absolute top-0 w-6 transition-opacity opacity-0 ltr:-left-6 rtl:-right-6 not-prose group-hover:opacity-100"><a class="group-hover:text-primary-300 dark:group-hover:text-neutral-700" style=text-decoration-line:none!important href=#sftp-%e3%81%ab%e3%82%88%e3%82%8b%e3%83%95%e3%82%a1%e3%82%a4%e3%83%ab%e3%81%ae%e3%82%a2%e3%83%83%e3%83%97%e3%83%ad%e3%83%bc%e3%83%89 aria-label=アンカー>#</a></span></h2>
+<p>SSH の場合は設定の <strong>Enable SFTP</strong> を有効にして <strong>File browser root directory</strong> にサーバー側のディレクトリを指定するとそのディレクトリ以下のディレクトリツリーを参照できるようになり、任意の場所にファイルをアップロードしたり、ダウンロードすることができるようになります。</p>
+<p>次のキャプチャのように Guacamole メニュー (<strong>Ctrl</strong>+<strong>Alt</strong>+<strong>Shift</strong>) に <strong>Device</strong> という項目が表示されます。この例ではディレクトリが未指定なので <code>/</code> で全部が見えるようになっています。</p>
+<figure>
+<img class="my-0 rounded-md" srcset="/2019/01/guacamole-functions/guacadmin-device_hu368b5b1f33d6c10ebdeda144e2200eb5_39526_330x0_resize_box_3.png 330w,
+/2019/01/guacamole-functions/guacadmin-device_hu368b5b1f33d6c10ebdeda144e2200eb5_39526_660x0_resize_box_3.png 660w,
+/2019/01/guacamole-functions/guacadmin-device_hu368b5b1f33d6c10ebdeda144e2200eb5_39526_1024x0_resize_box_3.png 1024w,
+/2019/01/guacamole-functions/guacadmin-device_hu368b5b1f33d6c10ebdeda144e2200eb5_39526_1320x0_resize_box_3.png 2x" src=/2019/01/guacamole-functions/guacadmin-device_hu368b5b1f33d6c10ebdeda144e2200eb5_39526_660x0_resize_box_3.png alt>
+</figure>
+<p>Device を選択するとファイルブラウザの用なものが表示されるので、ここからたどってファイルをダウンロードしたり、ディレクトリにファイルをアップロードします。</p>
+<figure>
+<img class="my-0 rounded-md" src=guacamole-sftp.png alt>
+</figure>
+<p>リモートデスクトップと VNC にも SFTP 設定はありますが、別途 SFTP サーバーや認証情報を設定する必要があります。リモデ先が Windows であればそこで SFTP サーバーを起動させるか、その Windows からアクセス可能なファイルサーバーに SFTP でアクセスするとかいった使い方になるようです。</p>
+<h2 id=リモートデスクトップでのドライブマウント class="relative group">リモートデスクトップでのドライブマウント <span class="absolute top-0 w-6 transition-opacity opacity-0 ltr:-left-6 rtl:-right-6 not-prose group-hover:opacity-100"><a class="group-hover:text-primary-300 dark:group-hover:text-neutral-700" style=text-decoration-line:none!important href=#%e3%83%aa%e3%83%a2%e3%83%bc%e3%83%88%e3%83%87%e3%82%b9%e3%82%af%e3%83%88%e3%83%83%e3%83%97%e3%81%a7%e3%81%ae%e3%83%89%e3%83%a9%e3%82%a4%e3%83%96%e3%83%9e%e3%82%a6%e3%83%b3%e3%83%88 aria-label=アンカー>#</a></span></h2>
+<p>Windows ならクリップボードからファイルもコピーできるんだろうか？とも思ったけど、文字列のコピペはできますがファイルはできないようです。リモートデスクトップの設定には <strong>Device Redirection</strong> というセクションがあり、この中に <strong>Enable drive</strong>、<strong>Drive name</strong>、<strong>Drive path</strong>、<strong>Automatically create drive</strong> という項目があり、Guacamole サーバーの指定のディレクトリをリモデ先がマウントしてアクセスすることができるようになります。</p>
+<p>次のように設定してみます</p>
+<figure>
+<img class="my-0 rounded-md" srcset="/2019/01/guacamole-functions/guacamole-device-redirection-setting_hub93889c8d7bb62ba27081139e5fa4f97_17337_330x0_resize_box_3.png 330w,
+/2019/01/guacamole-functions/guacamole-device-redirection-setting_hub93889c8d7bb62ba27081139e5fa4f97_17337_660x0_resize_box_3.png 660w,
+/2019/01/guacamole-functions/guacamole-device-redirection-setting_hub93889c8d7bb62ba27081139e5fa4f97_17337_1024x0_resize_box_3.png 1024w,
+/2019/01/guacamole-functions/guacamole-device-redirection-setting_hub93889c8d7bb62ba27081139e5fa4f97_17337_1320x0_resize_box_3.png 2x" src=/2019/01/guacamole-functions/guacamole-device-redirection-setting_hub93889c8d7bb62ba27081139e5fa4f97_17337_660x0_resize_box_3.png alt>
+</figure>
+<p>すると、リモデ先では次のようにドライブとしてマウントされています</p>
+<figure>
+<img class="my-0 rounded-md" srcset="/2019/01/guacamole-functions/guacamole-drive_hu74188a06e53dcc8e149b0db9d63c335a_71468_330x0_resize_box_3.png 330w,
+/2019/01/guacamole-functions/guacamole-drive_hu74188a06e53dcc8e149b0db9d63c335a_71468_660x0_resize_box_3.png 660w,
+/2019/01/guacamole-functions/guacamole-drive_hu74188a06e53dcc8e149b0db9d63c335a_71468_1024x0_resize_box_3.png 1024w,
+/2019/01/guacamole-functions/guacamole-drive_hu74188a06e53dcc8e149b0db9d63c335a_71468_1320x0_resize_box_3.png 2x" src=/2019/01/guacamole-functions/guacamole-drive_hu74188a06e53dcc8e149b0db9d63c335a_71468_660x0_resize_box_3.png alt>
+</figure>
+<p>このドライブ内に <code>Download</code> という作成した覚えのないフォルダが存在するのですが、この <code>Download</code> フォルダにファイルを置くとブラウザでダウンロードする形でリモデ先からファイルをコピーすることができるのです。ドライブ内の他の場所にファイルを置くとそれは <strong>guacd</strong> を実行しているサーバー（コンテナ）内の指定のディレクトリ配下にコピーされます</p>
+<h2 id=接続設定のグルーピングと権限設定 class="relative group">接続設定のグルーピングと権限設定 <span class="absolute top-0 w-6 transition-opacity opacity-0 ltr:-left-6 rtl:-right-6 not-prose group-hover:opacity-100"><a class="group-hover:text-primary-300 dark:group-hover:text-neutral-700" style=text-decoration-line:none!important href=#%e6%8e%a5%e7%b6%9a%e8%a8%ad%e5%ae%9a%e3%81%ae%e3%82%b0%e3%83%ab%e3%83%bc%e3%83%94%e3%83%b3%e3%82%b0%e3%81%a8%e6%a8%a9%e9%99%90%e8%a8%ad%e5%ae%9a aria-label=アンカー>#</a></span></h2>
+<p>このキャプチャはセッション共有の節で使ったものですが、接続情報が <strong>Banana</strong> と <strong>Orange</strong> というフォルダに分かれています。</p>
+<figure>
+<img class="my-0 rounded-md" srcset="/2019/01/guacamole-functions/guacamole-connections2_hu9ef1e75cd3c6da443448fbf0e440bca9_50552_330x0_resize_box_3.png 330w,
+/2019/01/guacamole-functions/guacamole-connections2_hu9ef1e75cd3c6da443448fbf0e440bca9_50552_660x0_resize_box_3.png 660w,
+/2019/01/guacamole-functions/guacamole-connections2_hu9ef1e75cd3c6da443448fbf0e440bca9_50552_1024x0_resize_box_3.png 1024w,
+/2019/01/guacamole-functions/guacamole-connections2_hu9ef1e75cd3c6da443448fbf0e440bca9_50552_1320x0_resize_box_3.png 2x" src=/2019/01/guacamole-functions/guacamole-connections2_hu9ef1e75cd3c6da443448fbf0e440bca9_50552_660x0_resize_box_3.png alt>
+</figure>
+<p>このようにグループ分けすることでグループ単位で人やグループにその接続の使用を許可するかどうかの設定が可能です。個別の接続単位でももちろん制御可能です。ユーザーごとに新たな設定を追加可能にするかどうかなどを設定できます。</p>
+<figure>
+<img class="my-0 rounded-md" srcset="/2019/01/guacamole-functions/guacadmin-add-user_hu25dac99961b44b16118290e851d7f4cd_77078_330x0_resize_box_3.png 330w,
+/2019/01/guacamole-functions/guacadmin-add-user_hu25dac99961b44b16118290e851d7f4cd_77078_660x0_resize_box_3.png 660w,
+/2019/01/guacamole-functions/guacadmin-add-user_hu25dac99961b44b16118290e851d7f4cd_77078_1024x0_resize_box_3.png 1024w,
+/2019/01/guacamole-functions/guacadmin-add-user_hu25dac99961b44b16118290e851d7f4cd_77078_1320x0_resize_box_3.png 2x" src=/2019/01/guacamole-functions/guacadmin-add-user_hu25dac99961b44b16118290e851d7f4cd_77078_660x0_resize_box_3.png alt>
+</figure>
+<p>このキャプチャは接続設定作成前のものですが、作成済みの場合は一番下に接続設定のツリーが表示され、どれを使用可能とするかを選択できます。ユーザーグループの方でも制御可能です。</p>
+<h2 id=その他 class="relative group">その他 <span class="absolute top-0 w-6 transition-opacity opacity-0 ltr:-left-6 rtl:-right-6 not-prose group-hover:opacity-100"><a class="group-hover:text-primary-300 dark:group-hover:text-neutral-700" style=text-decoration-line:none!important href=#%e3%81%9d%e3%81%ae%e4%bb%96 aria-label=アンカー>#</a></span></h2>
+<p>OpenID 認証や VNC 接続など、ここで試さなかった機能が他にもあります</p>
+<p>い～～～～っじょうぅ！</p>
+</div>
+<script>var liked_article=!1,oid,id,viewed,oid_likes,id_likes,liked;typeof auth!='undefined'&&(oid="views_posts/guacamole-functions/index.md",id=oid&&oid.replaceAll("/","-"),viewed=localStorage.getItem(id),viewed||auth.signInAnonymously().then(()=>{var a=db.collection('views').doc(id);localStorage.setItem(id,!0),a.get().then(a=>{a.exists?db.collection('views').doc(id).update({views:firebase.firestore.FieldValue.increment(1)}):db.collection('views').doc(id).set({views:1})}).catch(a=>{console.log("Error getting document:",a)})}).catch(a=>{var b=a.code,c=a.message;console.error(b,c)}),oid_likes="likes_posts/guacamole-functions/index.md",id_likes=oid_likes&&oid_likes.replaceAll("/","-"),liked=localStorage.getItem(id_likes),liked&&(liked_article=!0,document.querySelectorAll("button[id='likes_button']")[0].innerText="Remove Like"));function like_article(a){console.log("add"),liked_article=!0,localStorage.setItem(a,!0),document.querySelectorAll("button[id='likes_button']")[0].innerText="Remove Like",auth.signInAnonymously().then(()=>{var b=db.collection('likes').doc(a);b.get().then(b=>{b.exists?db.collection('likes').doc(a).update({likes:firebase.firestore.FieldValue.increment(1)}):db.collection('likes').doc(a).set({likes:1})}).catch(a=>{console.log("Error getting document:",a)})}).catch(a=>{var b=a.code,c=a.message;console.error(b,c)})}function remove_like_article(a){console.log("remove"),liked_article=!1,localStorage.setItem(a,!1),document.querySelectorAll("button[id='likes_button']")[0].innerText="Like",auth.signInAnonymously().then(()=>{var b=db.collection('likes').doc(a);b.get().then(b=>{b.exists?db.collection('likes').doc(a).update({likes:firebase.firestore.FieldValue.increment(-1)}):db.collection('likes').doc(a).set({likes:0})}).catch(a=>{console.log("Error getting document:",a)})}).catch(a=>{var b=a.code,c=a.message;console.error(b,c)})}function process_article(){var a="likes_posts/guacamole-functions/index.md",b=a&&a.replaceAll("/","-");liked_article?remove_like_article(b):like_article(b)}</script>
+</section>
+<footer class="pt-8 max-w-prose print:hidden">
+<div class=flex>
+<div class=place-self-center>
+<div class="text-[0.6rem] uppercase leading-3 text-neutral-500 dark:text-neutral-400">
+著者
+</div>
+<div class="font-semibold leading-6 text-neutral-800 dark:text-neutral-300">
+Yoshinori Teraoka
+</div>
+<div class="text-2xl sm:text-lg">
+<div class="flex flex-wrap text-neutral-400 dark:text-neutral-500">
+<a class="px-1 hover:text-primary-700 dark:hover:text-primary-400" href=https://twitter.com/yteraoka target=_blank aria-label=Twitter rel="me noopener noreferrer">
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentcolor" d="M459.37 151.716c.325 4.548.325 9.097.325 13.645.0 138.72-105.583 298.558-298.558 298.558-59.452.0-114.68-17.219-161.137-47.106 8.447.974 16.568 1.299 25.34 1.299 49.055.0 94.213-16.568 130.274-44.832-46.132-.975-84.792-31.188-98.112-72.772 6.498.974 12.995 1.624 19.818 1.624 9.421.0 18.843-1.3 27.614-3.573-48.081-9.747-84.143-51.98-84.143-102.985v-1.299c13.969 7.797 30.214 12.67 47.431 13.319-28.264-18.843-46.781-51.005-46.781-87.391.0-19.492 5.197-37.36 14.294-52.954 51.655 63.675 129.3 105.258 216.365 109.807-1.624-7.797-2.599-15.918-2.599-24.04.0-57.828 46.782-104.934 104.934-104.934 30.213.0 57.502 12.67 76.67 33.137 23.715-4.548 46.456-13.32 66.599-25.34-7.798 24.366-24.366 44.833-46.132 57.827 21.117-2.273 41.584-8.122 60.426-16.243-14.292 20.791-32.161 39.308-52.628 54.253z"/></svg>
+</span>
+</a>
+<a class="px-1 hover:text-primary-700 dark:hover:text-primary-400" href=https://github.com/yteraoka target=_blank aria-label=Github rel="me noopener noreferrer">
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><path fill="currentcolor" d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6.0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6.0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3.0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1.0-6.2-.3-40.4-.3-61.4.0.0-70 15-84.7-29.8.0.0-11.4-29.1-27.8-36.6.0.0-22.9-15.7 1.6-15.4.0.0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5.0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9.0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4.0 33.7-.3 75.4-.3 83.6.0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6.0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9.0-6.2-1.4-2.3-4-3.3-5.6-2z"/></svg>
+</span>
+</a>
+<a class="px-1 hover:text-primary-700 dark:hover:text-primary-400" href=https://linkedin.com/in/fa5b66b7-9c77-4e1b-8b97-40ba4a5a2c13/ target=_blank aria-label=Linkedin rel="me noopener noreferrer">
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path fill="currentcolor" d="M416 32H31.9C14.3 32 0 46.5.0 64.3v383.4C0 465.5 14.3 480 31.9 480H416c17.6.0 32-14.5 32-32.3V64.3c0-17.8-14.4-32.3-32-32.3zM135.4 416H69V202.2h66.5V416zm-33.2-243c-21.3.0-38.5-17.3-38.5-38.5S80.9 96 102.2 96c21.2.0 38.5 17.3 38.5 38.5.0 21.3-17.2 38.5-38.5 38.5zm282.1 243h-66.4V312c0-24.8-.5-56.7-34.5-56.7-34.6.0-39.9 27-39.9 54.9V416h-66.4V202.2h63.7v29.2h.9c8.9-16.8 30.6-34.5 62.9-34.5 67.2.0 79.7 44.3 79.7 101.9V416z"/></svg>
+</span>
+</a>
+<a class="px-1 hover:text-primary-700 dark:hover:text-primary-400" href=https://medium.com/@yteraoka target=_blank aria-label=Medium rel="me noopener noreferrer">
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512"><path fill="currentcolor" d="M180.5 74.262C80.813 74.262.0 155.633.0 256S80.819 437.738 180.5 437.738 361 356.373 361 256 280.191 74.262 180.5 74.262zm288.25 10.646c-49.845.0-90.245 76.619-90.245 171.095s40.406 171.1 90.251 171.1 90.251-76.619 90.251-171.1H559C559 161.5 518.6 84.908 468.752 84.908zm139.506 17.821c-17.526.0-31.735 68.628-31.735 153.274s14.2 153.274 31.735 153.274S640 340.631 640 256c0-84.649-14.215-153.271-31.742-153.271z"/></svg>
+</span>
+</a>
+</div>
+</div>
+</div>
+</div>
+<section class="flex flex-row flex-wrap justify-center pt-4 text-xl">
+<a class="m-1 inline-block min-w-[2.4rem] rounded bg-neutral-300 p-1 text-center text-neutral-700 hover:bg-primary-500 hover:text-neutral dark:bg-neutral-700 dark:text-neutral-300 dark:hover:bg-primary-400 dark:hover:text-neutral-800" href="https://www.linkedin.com/shareArticle?mini=true&url=https://preview-blog.1q77.com/2019/01/guacamole-functions/&title=Guacamole%20%e3%81%ae%e6%a9%9f%e8%83%bd%e7%b4%b9%e4%bb%8b" title=LinkedInでシェアする aria-label=LinkedInでシェアする>
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path fill="currentcolor" d="M416 32H31.9C14.3 32 0 46.5.0 64.3v383.4C0 465.5 14.3 480 31.9 480H416c17.6.0 32-14.5 32-32.3V64.3c0-17.8-14.4-32.3-32-32.3zM135.4 416H69V202.2h66.5V416zm-33.2-243c-21.3.0-38.5-17.3-38.5-38.5S80.9 96 102.2 96c21.2.0 38.5 17.3 38.5 38.5.0 21.3-17.2 38.5-38.5 38.5zm282.1 243h-66.4V312c0-24.8-.5-56.7-34.5-56.7-34.6.0-39.9 27-39.9 54.9V416h-66.4V202.2h63.7v29.2h.9c8.9-16.8 30.6-34.5 62.9-34.5 67.2.0 79.7 44.3 79.7 101.9V416z"/></svg>
+</span>
+</a>
+<a class="m-1 inline-block min-w-[2.4rem] rounded bg-neutral-300 p-1 text-center text-neutral-700 hover:bg-primary-500 hover:text-neutral dark:bg-neutral-700 dark:text-neutral-300 dark:hover:bg-primary-400 dark:hover:text-neutral-800" href="https://twitter.com/intent/tweet/?url=https://preview-blog.1q77.com/2019/01/guacamole-functions/&text=Guacamole%20%e3%81%ae%e6%a9%9f%e8%83%bd%e7%b4%b9%e4%bb%8b" title=Twitterに投稿する aria-label=Twitterに投稿する>
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentcolor" d="M459.37 151.716c.325 4.548.325 9.097.325 13.645.0 138.72-105.583 298.558-298.558 298.558-59.452.0-114.68-17.219-161.137-47.106 8.447.974 16.568 1.299 25.34 1.299 49.055.0 94.213-16.568 130.274-44.832-46.132-.975-84.792-31.188-98.112-72.772 6.498.974 12.995 1.624 19.818 1.624 9.421.0 18.843-1.3 27.614-3.573-48.081-9.747-84.143-51.98-84.143-102.985v-1.299c13.969 7.797 30.214 12.67 47.431 13.319-28.264-18.843-46.781-51.005-46.781-87.391.0-19.492 5.197-37.36 14.294-52.954 51.655 63.675 129.3 105.258 216.365 109.807-1.624-7.797-2.599-15.918-2.599-24.04.0-57.828 46.782-104.934 104.934-104.934 30.213.0 57.502 12.67 76.67 33.137 23.715-4.548 46.456-13.32 66.599-25.34-7.798 24.366-24.366 44.833-46.132 57.827 21.117-2.273 41.584-8.122 60.426-16.243-14.292 20.791-32.161 39.308-52.628 54.253z"/></svg>
+</span>
+</a>
+</section>
+<div class=pt-8>
+<hr class="border-dotted border-neutral-300 dark:border-neutral-600">
+<div class="flex justify-between pt-3">
+<span>
+<a class="flex group" href=/2019/01/creating-highly-available-1-13-clusters-with-kubeadm/>
+<span class="mr-3 text-neutral-700 group-hover:text-primary-600 ltr:inline rtl:hidden dark:text-neutral dark:group-hover:text-primary-400">&larr;</span>
+<span class="ml-3 text-neutral-700 group-hover:text-primary-600 ltr:hidden rtl:inline dark:text-neutral dark:group-hover:text-primary-400">&rarr;</span>
+<span class="flex flex-col">
+<span class="mt-[0.1rem] leading-6 group-hover:underline group-hover:decoration-primary-500">kubeadm で kubernetes 1.13 の HA 環境を構築</span>
+<span class="mt-[0.1rem] text-xs text-neutral-500 dark:text-neutral-400">
+<time datetime="2019-01-05 16:54:22 +0000 UTC">2019年1月5日</time>
+</span>
+</span>
+</a>
+</span>
+<span>
+<a class="flex text-right group" href=/2019/02/dns-over-https/>
+<span class="flex flex-col">
+<span class="mt-[0.1rem] leading-6 group-hover:underline group-hover:decoration-primary-500">DNS over HTTPS の使いみち</span>
+<span class="mt-[0.1rem] text-xs text-neutral-500 dark:text-neutral-400">
+<time datetime="2019-02-23 05:14:33 +0000 UTC">2019年2月23日</time>
+</span>
+</span>
+<span class="ml-3 text-neutral-700 group-hover:text-primary-600 ltr:inline rtl:hidden dark:text-neutral dark:group-hover:text-primary-400">&rarr;</span>
+<span class="mr-3 text-neutral-700 group-hover:text-primary-600 ltr:hidden rtl:inline dark:text-neutral dark:group-hover:text-primary-400">&larr;</span>
+</a>
+</span>
+</div>
+</div>
+</footer>
+</article>
+<div class="pointer-events-none absolute top-[100vh] bottom-0 w-12 ltr:right-0 rtl:left-0">
+<a href=#the-top class="pointer-events-auto sticky top-[calc(100vh-5.5rem)] flex h-12 w-12 items-center justify-center rounded-full bg-neutral/50 text-xl text-neutral-700 backdrop-blur hover:text-primary-600 dark:bg-neutral-800/50 dark:text-neutral dark:hover:text-primary-400" aria-label=TOPへスクロール title=TOPへスクロール>
+&uarr;
+</a>
+</div>
+</main><footer class="py-10 print:hidden">
+<div class="flex items-center justify-between">
+<p class="text-sm text-neutral-500 dark:text-neutral-400">
+&copy;
+2022
+Yoshinori Teraoka
+</p>
+</div>
+<script>mediumZoom(document.querySelectorAll("img:not(.nozoom)"),{margin:24,background:'rgba(0,0,0,0.5)',scrollOffset:0})</script>
+<script type=text/javascript src=/js/process.min.48d08339b8a087b59c7b8cb42b6717aeeed3e07bfc68b1654cac27f00583284dac59cae47fb686dd7c0e9ff1d2745689dc2071230dff432ca6d7fc24b9f2e036.js integrity="sha512-SNCDObigh7Wce4y0K2cXru7T4Hv8aLFlTKwn8AWDKE2sWcrkf7aG3XwOn/HSdFaJ3CBxIw3/Qyym1/wkufLgNg=="></script>
+</footer><div id=search-wrapper class="invisible fixed inset-0 z-50 flex h-screen w-screen cursor-default flex-col bg-neutral-500/50 p-4 backdrop-blur-sm dark:bg-neutral-900/50 sm:p-6 md:p-[10vh] lg:p-[12vh]" data-url=https://preview-blog.1q77.com/>
+<div id=search-modal class="flex flex-col w-full max-w-3xl min-h-0 mx-auto border rounded-md shadow-lg top-20 border-neutral-200 bg-neutral dark:border-neutral-700 dark:bg-neutral-800">
+<header class="relative z-10 flex items-center justify-between flex-none px-2">
+<form class="flex items-center flex-auto min-w-0">
+<div class="flex items-center justify-center w-8 h-8 text-neutral-400">
+<span class="relative inline-block align-text-bottom icon"><svg aria-hidden="true" focusable="false" data-prefix="fas" data-icon="search" class="svg-inline--fa fa-search fa-w-16" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentcolor" d="M505 442.7 405.3 343c-4.5-4.5-10.6-7-17-7H372c27.6-35.3 44-79.7 44-128C416 93.1 322.9.0 208 0S0 93.1.0 208s93.1 208 208 208c48.3.0 92.7-16.4 128-44v16.3c0 6.4 2.5 12.5 7 17l99.7 99.7c9.4 9.4 24.6 9.4 33.9.0l28.3-28.3c9.4-9.4 9.4-24.6.1-34zM208 336c-70.7.0-128-57.2-128-128 0-70.7 57.2-128 128-128 70.7.0 128 57.2 128 128 0 70.7-57.2 128-128 128z"/></svg>
+</span>
+</div>
+<input type=search id=search-query class="flex flex-auto h-12 mx-1 bg-transparent appearance-none focus:outline-dotted focus:outline-2 focus:outline-transparent" placeholder=Search tabindex=0>
+</form>
+<button id=close-search-button class="flex items-center justify-center w-8 h-8 text-neutral-700 hover:text-primary-600 dark:text-neutral dark:hover:text-primary-400" title="閉じる (Esc)">
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><path fill="currentcolor" d="M310.6 361.4c12.5 12.5 12.5 32.75.0 45.25C304.4 412.9 296.2 416 288 416s-16.38-3.125-22.62-9.375L160 301.3 54.63 406.6C48.38 412.9 40.19 416 32 416S15.63 412.9 9.375 406.6c-12.5-12.5-12.5-32.75.0-45.25l105.4-105.4L9.375 150.6c-12.5-12.5-12.5-32.75.0-45.25s32.75-12.5 45.25.0L160 210.8l105.4-105.4c12.5-12.5 32.75-12.5 45.25.0s12.5 32.75.0 45.25l-105.4 105.4L310.6 361.4z"/></svg>
+</span>
+</button>
+</header>
+<section class="flex-auto px-2 overflow-auto">
+<ul id=search-results>
+</ul>
+</section>
+</div>
+</div>
+</div>
+</body>
+</html>

@@ -1,0 +1,605 @@
+<!doctype html><html lang=ja dir=ltr class=scroll-smooth data-default-appearance=light data-auto-appearance=true><head>
+<meta charset=utf-8>
+<meta http-equiv=content-language content="ja">
+<meta name=viewport content="width=device-width,initial-scale=1">
+<meta http-equiv=x-ua-compatible content="ie=edge">
+<title>Rancher2 の構築からサービス公開まで &#183; 1Q77</title>
+<meta name=title content="Rancher2 の構築からサービス公開まで &#183; 1Q77">
+<link rel=canonical href=https://preview-blog.1q77.com/2019/03/rancher2-walk-through/>
+<link type=text/css rel=stylesheet href=/css/main.bundle.min.a9d40529d239a91ecb75447e67ee6c80c1f1c28593904b4052651b12220121e13ec42904268b0193a6858f039cf8bfdd2b1331529ed341ddc7488cec3bdcbc2e.css integrity="sha512-qdQFKdI5qR7LdUR+Z+5sgMHxwoWTkEtAUmUbEiIBIeE+xCkEJosBk6aFjwOc+L/dKxMxUp7TQd3HSIzsO9y8Lg==">
+<script type=text/javascript src=/js/main.min.cf83e1357eefb8bdf1542850d66d8007d620e4050b5715dc83f4a921d36ce9ce47d0d13c5d85f2b0ff8318d2877eec2f63b931bd47417a81a538327af927da3e.js integrity="sha512-z4PhNX7vuL3xVChQ1m2AB9Yg5AULVxXcg/SpIdNs6c5H0NE8XYXysP+DGNKHfuwvY7kxvUdBeoGlODJ6+SfaPg=="></script>
+<script type=text/javascript src=/js/appearance.min.49025a779c36ad37a5bf9f1cc6bffd35ccb69ce15560ef1b10057ddf31576265b19f8bcc1733207336c9144926f7b18aea2e5895f29e858b24271332a2fa5cd5.js integrity="sha512-SQJad5w2rTelv58cxr/9Ncy2nOFVYO8bEAV93zFXYmWxn4vMFzMgczbJFEkm97GK6i5YlfKehYskJxMyovpc1Q=="></script>
+<script defer type=text/javascript id=script-bundle src=/js/main.bundle.min.34ee8372ff77835535e486c6ed01ff6993374a1cec8108898cad793fc6ae7520778e24db68e085c762d25af6fa7d00b57d7a791438dc68b676581f8c8344f6e0.js integrity="sha512-NO6Dcv93g1U15IbG7QH/aZM3ShzsgQiJjK15P8audSB3jiTbaOCFx2LSWvb6fQC1fXp5FDjcaLZ2WB+Mg0T24A==" data-copy data-copied></script>
+<script src=/js/zoom.min.js></script>
+<link rel=apple-touch-icon sizes=180x180 href=/apple-touch-icon.png>
+<link rel=icon type=image/png sizes=32x32 href=/favicon-32x32.png>
+<link rel=icon type=image/png sizes=16x16 href=/favicon-16x16.png>
+<link rel=manifest href=/site.webmanifest>
+<meta property="og:title" content="Rancher2 の構築からサービス公開まで">
+<meta property="og:description" content="Rancher 2.x の HA 構成を RKE でセットアップし、Kubernetes クラスタを追加して、その中にコンテナをデプロイし、nginx-ingress-cont">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://preview-blog.1q77.com/2019/03/rancher2-walk-through/"><meta property="article:section" content="posts">
+<meta property="article:published_time" content="2019-03-10T12:09:55+00:00">
+<meta property="article:modified_time" content="2019-03-10T12:09:55+00:00">
+<meta name=twitter:card content="summary">
+<meta name=twitter:title content="Rancher2 の構築からサービス公開まで">
+<meta name=twitter:description content="Rancher 2.x の HA 構成を RKE でセットアップし、Kubernetes クラスタを追加して、その中にコンテナをデプロイし、nginx-ingress-cont">
+<script type=application/ld+json>[{"@context":"https://schema.org","@type":"Article","articleSection":"Posts","name":"Rancher2 の構築からサービス公開まで","headline":"Rancher2 の構築からサービス公開まで","abstract":"Rancher 2.x の HA 構成を RKE でセットアップし、Kubernetes クラスタを追加して、その中にコンテナをデプロイし、nginx-ingress-cont","inLanguage":"ja","url":"https:\/\/preview-blog.1q77.com\/2019\/03\/rancher2-walk-through\/","author":{"@type":"Person","name":"Yoshinori Teraoka"},"copyrightYear":"2019","dateCreated":"2019-03-10T12:09:55\u002b00:00","datePublished":"2019-03-10T12:09:55\u002b00:00","dateModified":"2019-03-10T12:09:55\u002b00:00","keywords":["Kubernetes","Rancher"],"mainEntityOfPage":"true","wordCount":"2375"}]</script>
+<meta name=author content="Yoshinori Teraoka">
+<link href=https://twitter.com/yteraoka rel=me>
+<link href=https://github.com/yteraoka rel=me>
+<link href=https://linkedin.com/in/fa5b66b7-9c77-4e1b-8b97-40ba4a5a2c13/ rel=me>
+<link href=https://medium.com/@yteraoka rel=me>
+<link rel=stylesheet href=https://rsms.me/inter/inter.css>
+</head><body class="flex flex-col h-screen px-6 m-auto text-lg leading-7 max-w-7xl bg-neutral text-neutral-900 dark:bg-neutral-800 dark:text-neutral sm:px-14 md:px-24 lg:px-32">
+<div id=the-top class="absolute flex self-center">
+<a class="px-3 py-1 text-sm -translate-y-8 rounded-b-lg bg-primary-200 focus:translate-y-0 dark:bg-neutral-600" href=#main-content><span class="font-bold text-primary-600 ltr:pr-2 rtl:pl-2 dark:text-primary-400">&darr;</span>メインコンテンツへスキップ</a>
+</div>
+<div style=padding-left:0;padding-right:0 class="flex items-center justify-between px-4 py-6 sm:px-6 md:justify-start space-x-3">
+<div class="flex flex-1 items-center justify-between">
+<nav class="flex space-x-3">
+<a href=/ class="text-base font-medium text-gray-500 hover:text-gray-900">1Q77</a>
+</nav>
+<div class="hidden md:flex items-center space-x-5 md:ml-12">
+<a href=/posts/ class="text-base font-medium text-gray-500 hover:text-gray-900" title=Posts>
+Blog
+</a>
+<a href=/tags/ class="text-base font-medium text-gray-500 hover:text-gray-900" title=Tags>
+Tags
+</a>
+<a href=https://github.com/yteraoka class="text-base font-medium text-gray-500 hover:text-gray-900" title>
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><path fill="currentcolor" d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6.0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6.0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3.0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1.0-6.2-.3-40.4-.3-61.4.0.0-70 15-84.7-29.8.0.0-11.4-29.1-27.8-36.6.0.0-22.9-15.7 1.6-15.4.0.0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5.0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9.0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4.0 33.7-.3 75.4-.3 83.6.0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6.0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9.0-6.2-1.4-2.3-4-3.3-5.6-2z"/></svg>
+</span>
+&nbsp;
+GitHub
+</a>
+<a href=https://twitter.com/yteraoka class="text-base font-medium text-gray-500 hover:text-gray-900" title>
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentcolor" d="M459.37 151.716c.325 4.548.325 9.097.325 13.645.0 138.72-105.583 298.558-298.558 298.558-59.452.0-114.68-17.219-161.137-47.106 8.447.974 16.568 1.299 25.34 1.299 49.055.0 94.213-16.568 130.274-44.832-46.132-.975-84.792-31.188-98.112-72.772 6.498.974 12.995 1.624 19.818 1.624 9.421.0 18.843-1.3 27.614-3.573-48.081-9.747-84.143-51.98-84.143-102.985v-1.299c13.969 7.797 30.214 12.67 47.431 13.319-28.264-18.843-46.781-51.005-46.781-87.391.0-19.492 5.197-37.36 14.294-52.954 51.655 63.675 129.3 105.258 216.365 109.807-1.624-7.797-2.599-15.918-2.599-24.04.0-57.828 46.782-104.934 104.934-104.934 30.213.0 57.502 12.67 76.67 33.137 23.715-4.548 46.456-13.32 66.599-25.34-7.798 24.366-24.366 44.833-46.132 57.827 21.117-2.273 41.584-8.122 60.426-16.243-14.292 20.791-32.161 39.308-52.628 54.253z"/></svg>
+</span>
+&nbsp;
+Twitter
+</a>
+<a href=https://qiita.com/yteraoka class="text-base font-medium text-gray-500 hover:text-gray-900" title>
+Qiita
+</a>
+<button id=search-button class="text-base hover:text-primary-600 dark:hover:text-primary-400" title>
+<span class="relative inline-block align-text-bottom icon"><svg aria-hidden="true" focusable="false" data-prefix="fas" data-icon="search" class="svg-inline--fa fa-search fa-w-16" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentcolor" d="M505 442.7 405.3 343c-4.5-4.5-10.6-7-17-7H372c27.6-35.3 44-79.7 44-128C416 93.1 322.9.0 208 0S0 93.1.0 208s93.1 208 208 208c48.3.0 92.7-16.4 128-44v16.3c0 6.4 2.5 12.5 7 17l99.7 99.7c9.4 9.4 24.6 9.4 33.9.0l28.3-28.3c9.4-9.4 9.4-24.6.1-34zM208 336c-70.7.0-128-57.2-128-128 0-70.7 57.2-128 128-128 70.7.0 128 57.2 128 128 0 70.7-57.2 128-128 128z"/></svg>
+</span>
+</button>
+<div class="ltr:mr-14 rtl:ml-14 cursor-pointer text-sm text-neutral-700 hover:text-primary-600 dark:text-neutral dark:hover:text-primary-400">
+<button id=appearance-switcher type=button>
+<div class="flex items-center justify-center h-12 dark:hidden">
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentcolor" d="M32 256C32 132.2 132.3 32 255.8 32c11.36.0 29.7 1.668 40.9 3.746 9.616 1.777 11.75 14.63 3.279 19.44C245 86.5 211.2 144.6 211.2 207.8c0 109.7 99.71 193 208.3 172.3 9.561-1.805 16.28 9.324 10.11 16.95C387.9 448.6 324.8 480 255.8 480 132.1 480 32 379.6 32 256z"/></svg>
+</span>
+</div>
+<div class="items-center justify-center hidden h-12 dark:flex">
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentcolor" d="M256 159.1c-53.02.0-95.1 42.98-95.1 95.1s41.2 96.9 95.1 96.9 95.1-42.98 95.1-95.1S309 159.1 256 159.1zM509.3 347l-63.2-91.9 63.15-91.01c6.332-9.125 1.104-21.74-9.826-23.72l-109-19.7-19.7-109c-1.975-10.93-14.59-16.16-23.72-9.824L256 65.89 164.1 2.736c-9.125-6.332-21.74-1.107-23.72 9.824L121.6 121.6 12.56 141.3C1.633 143.2-3.596 155.9 2.736 164.1L65.89 256 2.74 347.01c-6.332 9.125-1.105 21.74 9.824 23.72l109 19.7 19.7 109c1.975 10.93 14.59 16.16 23.72 9.824L256 446.1l91.01 63.15c9.127 6.334 21.75 1.107 23.72-9.822l19.7-109 109-19.7C510.4 368.8 515.6 356.1 509.3 347zM256 383.1c-70.69.0-127.1-57.31-127.1-127.1.0-70.69 57.31-127.1 127.1-127.1S383.1 186.2 383.1 256c0 70.7-56.4 127.1-127.1 127.1z"/></svg>
+</span>
+</div>
+</button>
+</div>
+</div>
+<div class="flex md:hidden items-center space-x-5 md:ml-12">
+<span></span>
+<button id=search-button-mobile class="text-base hover:text-primary-600 dark:hover:text-primary-400" title>
+<span class="relative inline-block align-text-bottom icon"><svg aria-hidden="true" focusable="false" data-prefix="fas" data-icon="search" class="svg-inline--fa fa-search fa-w-16" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentcolor" d="M505 442.7 405.3 343c-4.5-4.5-10.6-7-17-7H372c27.6-35.3 44-79.7 44-128C416 93.1 322.9.0 208 0S0 93.1.0 208s93.1 208 208 208c48.3.0 92.7-16.4 128-44v16.3c0 6.4 2.5 12.5 7 17l99.7 99.7c9.4 9.4 24.6 9.4 33.9.0l28.3-28.3c9.4-9.4 9.4-24.6.1-34zM208 336c-70.7.0-128-57.2-128-128 0-70.7 57.2-128 128-128 70.7.0 128 57.2 128 128 0 70.7-57.2 128-128 128z"/></svg>
+</span>
+</button>
+<button id=appearance-switcher-mobile type=button style=margin-right:5px>
+<div class="flex items-center justify-center h-12 dark:hidden">
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentcolor" d="M32 256C32 132.2 132.3 32 255.8 32c11.36.0 29.7 1.668 40.9 3.746 9.616 1.777 11.75 14.63 3.279 19.44C245 86.5 211.2 144.6 211.2 207.8c0 109.7 99.71 193 208.3 172.3 9.561-1.805 16.28 9.324 10.11 16.95C387.9 448.6 324.8 480 255.8 480 132.1 480 32 379.6 32 256z"/></svg>
+</span>
+</div>
+<div class="items-center justify-center hidden h-12 dark:flex">
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentcolor" d="M256 159.1c-53.02.0-95.1 42.98-95.1 95.1s41.2 96.9 95.1 96.9 95.1-42.98 95.1-95.1S309 159.1 256 159.1zM509.3 347l-63.2-91.9 63.15-91.01c6.332-9.125 1.104-21.74-9.826-23.72l-109-19.7-19.7-109c-1.975-10.93-14.59-16.16-23.72-9.824L256 65.89 164.1 2.736c-9.125-6.332-21.74-1.107-23.72 9.824L121.6 121.6 12.56 141.3C1.633 143.2-3.596 155.9 2.736 164.1L65.89 256 2.74 347.01c-6.332 9.125-1.105 21.74 9.824 23.72l109 19.7 19.7 109c1.975 10.93 14.59 16.16 23.72 9.824L256 446.1l91.01 63.15c9.127 6.334 21.75 1.107 23.72-9.822l19.7-109 109-19.7C510.4 368.8 515.6 356.1 509.3 347zM256 383.1c-70.69.0-127.1-57.31-127.1-127.1.0-70.69 57.31-127.1 127.1-127.1S383.1 186.2 383.1 256c0 70.7-56.4 127.1-127.1 127.1z"/></svg>
+</span>
+</div>
+</button>
+</div>
+</div>
+<div class="-my-2 -mr-2 md:hidden">
+<label id=menu-button for=menu-controller class=block>
+<input type=checkbox id=menu-controller class=hidden>
+<div class="cursor-pointer hover:text-primary-600 dark:hover:text-primary-400">
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path fill="currentcolor" d="M0 96C0 78.33 14.33 64 32 64H416c17.7.0 32 14.33 32 32 0 17.7-14.3 32-32 32H32C14.33 128 0 113.7.0 96zM0 256c0-17.7 14.33-32 32-32H416c17.7.0 32 14.3 32 32s-14.3 32-32 32H32c-17.67.0-32-14.3-32-32zM416 448H32c-17.67.0-32-14.3-32-32s14.33-32 32-32H416c17.7.0 32 14.3 32 32s-14.3 32-32 32z"/></svg>
+</span>
+</div>
+<div id=menu-wrapper style=padding-top:25px class="fixed inset-0 z-30 invisible w-screen h-screen m-auto overflow-auto transition-opacity opacity-0 cursor-default bg-neutral-100/50 backdrop-blur-sm dark:bg-neutral-900/50">
+<ul class="flex movedown flex-col w-full px-6 py-6 mx-auto overflow-visible list-none ltr:text-right rtl:text-left max-w-7xl sm:px-14 md:px-24 lg:px-32 sm:py-10 sm:pt-10">
+<li class=mb-1>
+<span class="cursor-pointer hover:text-primary-600 dark:hover:text-primary-400">
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><path fill="currentcolor" d="M310.6 361.4c12.5 12.5 12.5 32.75.0 45.25C304.4 412.9 296.2 416 288 416s-16.38-3.125-22.62-9.375L160 301.3 54.63 406.6C48.38 412.9 40.19 416 32 416S15.63 412.9 9.375 406.6c-12.5-12.5-12.5-32.75.0-45.25l105.4-105.4L9.375 150.6c-12.5-12.5-12.5-32.75.0-45.25s32.75-12.5 45.25.0L160 210.8l105.4-105.4c12.5-12.5 32.75-12.5 45.25.0s12.5 32.75.0 45.25l-105.4 105.4L310.6 361.4z"/></svg>
+</span>
+</span>
+</li>
+<li class=mb-1>
+<a class="decoration-primary-500 hover:underline hover:decoration-2 hover:underline-offset-2" href=/posts/ title=Posts>
+Blog
+</a>
+</li>
+<li class=mb-1>
+<a class="decoration-primary-500 hover:underline hover:decoration-2 hover:underline-offset-2" href=/tags/ title=Tags>
+Tags
+</a>
+</li>
+<li class=mb-1>
+<a class="decoration-primary-500 hover:underline hover:decoration-2 hover:underline-offset-2" href=https://github.com/yteraoka title>
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><path fill="currentcolor" d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6.0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6.0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3.0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1.0-6.2-.3-40.4-.3-61.4.0.0-70 15-84.7-29.8.0.0-11.4-29.1-27.8-36.6.0.0-22.9-15.7 1.6-15.4.0.0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5.0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9.0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4.0 33.7-.3 75.4-.3 83.6.0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6.0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9.0-6.2-1.4-2.3-4-3.3-5.6-2z"/></svg>
+</span>
+&nbsp;
+GitHub
+</a>
+</li>
+<li class=mb-1>
+<a class="decoration-primary-500 hover:underline hover:decoration-2 hover:underline-offset-2" href=https://twitter.com/yteraoka title>
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentcolor" d="M459.37 151.716c.325 4.548.325 9.097.325 13.645.0 138.72-105.583 298.558-298.558 298.558-59.452.0-114.68-17.219-161.137-47.106 8.447.974 16.568 1.299 25.34 1.299 49.055.0 94.213-16.568 130.274-44.832-46.132-.975-84.792-31.188-98.112-72.772 6.498.974 12.995 1.624 19.818 1.624 9.421.0 18.843-1.3 27.614-3.573-48.081-9.747-84.143-51.98-84.143-102.985v-1.299c13.969 7.797 30.214 12.67 47.431 13.319-28.264-18.843-46.781-51.005-46.781-87.391.0-19.492 5.197-37.36 14.294-52.954 51.655 63.675 129.3 105.258 216.365 109.807-1.624-7.797-2.599-15.918-2.599-24.04.0-57.828 46.782-104.934 104.934-104.934 30.213.0 57.502 12.67 76.67 33.137 23.715-4.548 46.456-13.32 66.599-25.34-7.798 24.366-24.366 44.833-46.132 57.827 21.117-2.273 41.584-8.122 60.426-16.243-14.292 20.791-32.161 39.308-52.628 54.253z"/></svg>
+</span>
+&nbsp;
+Twitter
+</a>
+</li>
+<li class=mb-1>
+<a class="decoration-primary-500 hover:underline hover:decoration-2 hover:underline-offset-2" href=https://qiita.com/yteraoka title>
+Qiita
+</a>
+</li>
+</ul>
+</div>
+</label>
+</div>
+</div>
+<div id=mobile-menu class="fixed inset-0 z-30 invisible w-screen h-screen m-auto overflow-auto transition-opacity opacity-0 cursor-default bg-neutral-100/50 backdrop-blur-sm dark:bg-neutral-900/50">
+<ul class="flex movedown flex-col w-full px-6 py-6 mx-auto overflow-visible list-none ltr:text-right rtl:text-left max-w-7xl sm:px-14 md:px-24 lg:px-32 sm:py-10 sm:pt-10">
+<li class=mb-1>
+<span class="cursor-pointer hover:text-primary-600 dark:hover:text-primary-400">
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><path fill="currentcolor" d="M310.6 361.4c12.5 12.5 12.5 32.75.0 45.25C304.4 412.9 296.2 416 288 416s-16.38-3.125-22.62-9.375L160 301.3 54.63 406.6C48.38 412.9 40.19 416 32 416S15.63 412.9 9.375 406.6c-12.5-12.5-12.5-32.75.0-45.25l105.4-105.4L9.375 150.6c-12.5-12.5-12.5-32.75.0-45.25s32.75-12.5 45.25.0L160 210.8l105.4-105.4c12.5-12.5 32.75-12.5 45.25.0s12.5 32.75.0 45.25l-105.4 105.4L310.6 361.4z"/></svg>
+</span>
+</span>
+</li>
+<li class=mb-1>
+<a class="decoration-primary-500 hover:underline hover:decoration-2 hover:underline-offset-2" href=/posts/ title=Posts>Blog</a>
+</li>
+<li class=mb-1>
+<a class="decoration-primary-500 hover:underline hover:decoration-2 hover:underline-offset-2" href=/tags/ title=Tags>Tags</a>
+</li>
+<li class=mb-1>
+<a class="decoration-primary-500 hover:underline hover:decoration-2 hover:underline-offset-2" href=https://github.com/yteraoka title>GitHub</a>
+</li>
+<li class=mb-1>
+<a class="decoration-primary-500 hover:underline hover:decoration-2 hover:underline-offset-2" href=https://twitter.com/yteraoka title>Twitter</a>
+</li>
+<li class=mb-1>
+<a class="decoration-primary-500 hover:underline hover:decoration-2 hover:underline-offset-2" href=https://qiita.com/yteraoka title>Qiita</a>
+</li>
+<li>
+<button id=search-button-mobile class="text-base hover:text-primary-600 dark:hover:text-primary-400">
+<span class="relative inline-block align-text-bottom icon"><svg aria-hidden="true" focusable="false" data-prefix="fas" data-icon="search" class="svg-inline--fa fa-search fa-w-16" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentcolor" d="M505 442.7 405.3 343c-4.5-4.5-10.6-7-17-7H372c27.6-35.3 44-79.7 44-128C416 93.1 322.9.0 208 0S0 93.1.0 208s93.1 208 208 208c48.3.0 92.7-16.4 128-44v16.3c0 6.4 2.5 12.5 7 17l99.7 99.7c9.4 9.4 24.6 9.4 33.9.0l28.3-28.3c9.4-9.4 9.4-24.6.1-34zM208 336c-70.7.0-128-57.2-128-128 0-70.7 57.2-128 128-128 70.7.0 128 57.2 128 128 0 70.7-57.2 128-128 128z"/></svg>
+</span>
+</button>
+</li>
+</ul>
+</div>
+<div class="relative flex flex-col grow">
+<main id=main-content class=grow>
+<article>
+<header class=max-w-prose>
+<ol class="text-sm text-neutral-500 dark:text-neutral-400 print:hidden">
+<li class="inline hidden">
+<a class="hover:underline decoration-neutral-300 dark:underline-neutral-600" href=/>1Q77</a><span class="px-1 text-primary-500">/</span>
+</li>
+<li class=inline>
+<a class="hover:underline decoration-neutral-300 dark:underline-neutral-600" href=/posts/>Posts</a><span class="px-1 text-primary-500">/</span>
+</li>
+<li class="inline hidden">
+<a class="hover:underline decoration-neutral-300 dark:underline-neutral-600" href=/2019/03/rancher2-walk-through/>Rancher2 の構築からサービス公開まで</a><span class="px-1 text-primary-500">/</span>
+</li>
+</ol>
+<h1 class="mt-0 text-4xl font-extrabold text-neutral-900 dark:text-neutral">
+Rancher2 の構築からサービス公開まで
+</h1>
+<div class="mt-8 mb-12 text-base text-neutral-500 dark:text-neutral-400 print:hidden">
+<div class="flex flex-row flex-wrap items-center">
+<time datetime="2019-03-10 12:09:55 +0000 UTC">2019年3月10日</time>
+</div>
+<div class="flex flex-row flex-wrap items-center">
+<span style=margin-top:.5rem class=mr-2 onclick='window.open("/tags/kubernetes/")'>
+<span class=flex>
+<span class="rounded-md border border-primary-400 px-1 py-[1px] text-xs font-normal text-primary-700 dark:border-primary-600 dark:text-primary-400">
+Kubernetes
+</span>
+</span>
+</span>
+<span style=margin-top:.5rem class=mr-2 onclick='window.open("/tags/rancher/")'>
+<span class=flex>
+<span class="rounded-md border border-primary-400 px-1 py-[1px] text-xs font-normal text-primary-700 dark:border-primary-600 dark:text-primary-400">
+Rancher
+</span>
+</span>
+</span>
+</div>
+</div>
+</header>
+<section class="flex flex-col max-w-full mt-0 prose dark:prose-invert lg:flex-row">
+<div class="order-first px-0 lg:order-last lg:max-w-xs ltr:lg:pl-8 rtl:lg:pr-8">
+<div class="toc ltr:pl-5 rtl:pr-5 print:hidden lg:sticky lg:top-10">
+<details open class="mt-0 overflow-hidden rounded-lg ltr:-ml-5 ltr:pl-5 rtl:-mr-5 rtl:pr-5 hidden lg:block">
+<summary class="block py-1 text-lg font-semibold cursor-pointer bg-neutral-100 text-neutral-800 ltr:-ml-5 ltr:pl-5 rtl:-mr-5 rtl:pr-5 dark:bg-neutral-700 dark:text-neutral-100 lg:hidden">
+目次
+</summary>
+<div class="py-2 border-dotted border-neutral-300 ltr:-ml-5 ltr:border-l ltr:pl-5 rtl:-mr-5 rtl:border-r rtl:pr-5 dark:border-neutral-600">
+<nav id=TableOfContents>
+<ul>
+<li>
+<ul>
+<li><a href=#kubernetes-クラスタの追加>Kubernetes クラスタの追加</a></li>
+<li><a href=#kubernetes-クラスタへの-node-の追加>Kubernetes クラスタへの Node の追加</a></li>
+<li><a href=#プロジェクトの作成>プロジェクトの作成</a></li>
+<li><a href=#ネームスペースの作成>ネームスペースの作成</a></li>
+<li><a href=#ワークロードのデプロイ>ワークロードのデプロイ</a></li>
+<li><a href=#nginx-ingress-controller-で外部公開する>nginx ingress controller で外部公開する</a></li>
+</ul>
+</li>
+</ul>
+</nav>
+</div>
+</details>
+<details class="mt-0 overflow-hidden rounded-lg ltr:-ml-5 ltr:pl-5 rtl:-mr-5 rtl:pr-5 lg:hidden">
+<summary class="py-1 text-lg font-semibold cursor-pointer bg-neutral-100 text-neutral-800 ltr:-ml-5 ltr:pl-5 rtl:-mr-5 rtl:pr-5 dark:bg-neutral-700 dark:text-neutral-100 lg:hidden">
+目次
+</summary>
+<div class="py-2 border-dotted border-neutral-300 ltr:-ml-5 ltr:border-l ltr:pl-5 rtl:-mr-5 rtl:border-r rtl:pr-5 dark:border-neutral-600">
+<nav id=TableOfContents>
+<ul>
+<li>
+<ul>
+<li><a href=#kubernetes-クラスタの追加>Kubernetes クラスタの追加</a></li>
+<li><a href=#kubernetes-クラスタへの-node-の追加>Kubernetes クラスタへの Node の追加</a></li>
+<li><a href=#プロジェクトの作成>プロジェクトの作成</a></li>
+<li><a href=#ネームスペースの作成>ネームスペースの作成</a></li>
+<li><a href=#ワークロードのデプロイ>ワークロードのデプロイ</a></li>
+<li><a href=#nginx-ingress-controller-で外部公開する>nginx ingress controller で外部公開する</a></li>
+</ul>
+</li>
+</ul>
+</nav>
+</div>
+</details>
+</div>
+</div>
+<div class="min-w-0 min-h-0 max-w-prose">
+<p>Rancher 2.x の HA 構成を RKE でセットアップし、Kubernetes クラスタを追加して、その中にコンテナをデプロイし、nginx-ingress-controller 経由で外からアクセスできるようにします。</p>
+<p>RKE での HA 構成セットアップは過去の投稿 (<a href=/2018/05/rancher-2-0-ha-install-using-terraform-and-rke/>続 Rancher 2.0 の HA 構成を試す</a>) と同じです。1コマンドで構築できます。現在のところ RKE でセットアップできるのは 2.0.8 までのようでちょっと古めで、選択できる Kubernetes も 1.11.2 まで (<a href=https://github.com/rancher/rancher/commit/e90c3c6b0a8d4a373663c04653f7974da0e88ba2#diff-96be3367763348349d37e6ffab22981a>Hardcode Rancher version to v2.0.8 in rke templates</a>)。その後の更新はできるんじゃないかとは思うものの調べられていない。</p>
+<h3 id=kubernetes-クラスタの追加 class="relative group">Kubernetes クラスタの追加 <span class="absolute top-0 w-6 transition-opacity opacity-0 ltr:-left-6 rtl:-right-6 not-prose group-hover:opacity-100"><a class="group-hover:text-primary-300 dark:group-hover:text-neutral-700" style=text-decoration-line:none!important href=#kubernetes-%e3%82%af%e3%83%a9%e3%82%b9%e3%82%bf%e3%81%ae%e8%bf%bd%e5%8a%a0 aria-label=アンカー>#</a></span></h3>
+<p>Rancher セットアップ後のクラスタ一覧画面です<br>
+<figure>
+<img class="my-0 rounded-md" srcset="/2019/03/rancher2-walk-through/cluster-list_hu0f3b390f61a5e59f572ff99bfa84d9a8_43021_330x0_resize_box_3.png 330w,
+/2019/03/rancher2-walk-through/cluster-list_hu0f3b390f61a5e59f572ff99bfa84d9a8_43021_660x0_resize_box_3.png 660w,
+/2019/03/rancher2-walk-through/cluster-list_hu0f3b390f61a5e59f572ff99bfa84d9a8_43021_1024x0_resize_box_3.png 1024w,
+/2019/03/rancher2-walk-through/cluster-list_hu0f3b390f61a5e59f572ff99bfa84d9a8_43021_1320x0_resize_box_3.png 2x" src=/2019/03/rancher2-walk-through/cluster-list_hu0f3b390f61a5e59f572ff99bfa84d9a8_43021_660x0_resize_box_3.png alt>
+<figcaption>クラスタ一覧</figcaption>
+</figure>
+</p>
+<p>ここで右上の「<strong>Add Cluster</strong>」ボタンから新しい Kubernetes クラスタを追加します。(すでに存在する <strong>local</strong> というクラスタ内で Rancher サーバーが起動しています)</p>
+<p>クラスタ追加画面<br>
+<figure>
+<img class="my-0 rounded-md" srcset="/2019/03/rancher2-walk-through/add-cluster_hu3981e7d7875635363ef1ffd0ac70919f_171577_330x0_resize_box_3.png 330w,
+/2019/03/rancher2-walk-through/add-cluster_hu3981e7d7875635363ef1ffd0ac70919f_171577_660x0_resize_box_3.png 660w,
+/2019/03/rancher2-walk-through/add-cluster_hu3981e7d7875635363ef1ffd0ac70919f_171577_1024x0_resize_box_3.png 1024w,
+/2019/03/rancher2-walk-through/add-cluster_hu3981e7d7875635363ef1ffd0ac70919f_171577_1320x0_resize_box_3.png 2x" src=/2019/03/rancher2-walk-through/add-cluster_hu3981e7d7875635363ef1ffd0ac70919f_171577_660x0_resize_box_3.png alt>
+<figcaption>クラスタの追加</figcaption>
+</figure>
+</p>
+<p>メジャーなクラウドサービスを使っている場合は認証情報を渡せばサーバーの作成から全部やってくれますが、ここでは別途 Docker のインストールされたサーバーを用意することにします。そのため一番上のアイコンが並んでいるところでは「<strong>Custom</strong>」を選択します。他はデフォルトのままで次に進みます。(Rancher はクラウドのマネージド Kubernetes の管理もできますし、オンプレにすでに Kubernetes が存在すればそれの管理をすることもできます。)</p>
+<h3 id=kubernetes-クラスタへの-node-の追加 class="relative group">Kubernetes クラスタへの Node の追加 <span class="absolute top-0 w-6 transition-opacity opacity-0 ltr:-left-6 rtl:-right-6 not-prose group-hover:opacity-100"><a class="group-hover:text-primary-300 dark:group-hover:text-neutral-700" style=text-decoration-line:none!important href=#kubernetes-%e3%82%af%e3%83%a9%e3%82%b9%e3%82%bf%e3%81%b8%e3%81%ae-node-%e3%81%ae%e8%bf%bd%e5%8a%a0 aria-label=アンカー>#</a></span></h3>
+<p>ノードの追加コマンド確認画面<br>
+<figure>
+<img class="my-0 rounded-md" src=add-cluster2.png alt>
+<figcaption>ノードの登録</figcaption>
+</figure>
+</p>
+<p>まずは <strong>etcd</strong> と <strong>Control Plane</strong> 用の3台を登録します。表示されてる <strong>docker run</strong> コマンドをコピペすれば rancher-agent がノード内で起動して必要なことを全部やってくれます。完了までにはしばらく時間かかります。(Node Role で <strong>Worker</strong> にもチェックを入れておけば worker としても使えるノードとなりますが、ここでは分けることにします)</p>
+<p>ノード一覧画面<br>
+<figure>
+<img class="my-0 rounded-md" srcset="/2019/03/rancher2-walk-through/cp-nodes_hu94e80f8ce36d94fc3e721d3dfb7c50f8_69213_330x0_resize_box_3.png 330w,
+/2019/03/rancher2-walk-through/cp-nodes_hu94e80f8ce36d94fc3e721d3dfb7c50f8_69213_660x0_resize_box_3.png 660w,
+/2019/03/rancher2-walk-through/cp-nodes_hu94e80f8ce36d94fc3e721d3dfb7c50f8_69213_1024x0_resize_box_3.png 1024w,
+/2019/03/rancher2-walk-through/cp-nodes_hu94e80f8ce36d94fc3e721d3dfb7c50f8_69213_1320x0_resize_box_3.png 2x" src=/2019/03/rancher2-walk-through/cp-nodes_hu94e80f8ce36d94fc3e721d3dfb7c50f8_69213_660x0_resize_box_3.png alt>
+<figcaption>ノード一覧(1)</figcaption>
+</figure>
+</p>
+<p>Roles 列に <strong>etcd</strong> と <strong>Control Plane</strong> が入った3つのノードが確認できます。黄色い <strong>Unschedulable</strong> という表示はこれが Worker ノードでは無いためこのノードにコンテナが割り当てられないという意味です。</p>
+<p>ノードの追加コマンド確認画面<br>
+<figure>
+<img class="my-0 rounded-md" srcset="/2019/03/rancher2-walk-through/add-worker-nodes_hu804b62b03d642e38f60304f673d561f6_49210_330x0_resize_box_3.png 330w,
+/2019/03/rancher2-walk-through/add-worker-nodes_hu804b62b03d642e38f60304f673d561f6_49210_660x0_resize_box_3.png 660w,
+/2019/03/rancher2-walk-through/add-worker-nodes_hu804b62b03d642e38f60304f673d561f6_49210_1024x0_resize_box_3.png 1024w,
+/2019/03/rancher2-walk-through/add-worker-nodes_hu804b62b03d642e38f60304f673d561f6_49210_1320x0_resize_box_3.png 2x" src=/2019/03/rancher2-walk-through/add-worker-nodes_hu804b62b03d642e38f60304f673d561f6_49210_660x0_resize_box_3.png alt>
+<figcaption>Worker ノードの追加</figcaption>
+</figure>
+</p>
+<p>次に Worker ノードを追加します。Node Role で <strong>Worker</strong> だけを選択してコマンドをコピペします。この環境はもう削除済みなので token もそのまま載っけちゃってますが公開しちゃダメです。</p>
+<p>再びノード一覧画面<br>
+<figure>
+<img class="my-0 rounded-md" srcset="/2019/03/rancher2-walk-through/nodes_hu5b432707ea5acb86548a83ca1677edbd_74610_330x0_resize_box_3.png 330w,
+/2019/03/rancher2-walk-through/nodes_hu5b432707ea5acb86548a83ca1677edbd_74610_660x0_resize_box_3.png 660w,
+/2019/03/rancher2-walk-through/nodes_hu5b432707ea5acb86548a83ca1677edbd_74610_1024x0_resize_box_3.png 1024w,
+/2019/03/rancher2-walk-through/nodes_hu5b432707ea5acb86548a83ca1677edbd_74610_1320x0_resize_box_3.png 2x" src=/2019/03/rancher2-walk-through/nodes_hu5b432707ea5acb86548a83ca1677edbd_74610_660x0_resize_box_3.png alt>
+<figcaption>ノード一覧(2)</figcaption>
+</figure>
+</p>
+<p>Worker が追加されました。</p>
+<p>クラスタのダッシュボードはこんな感じ<br>
+<figure>
+<img class="my-0 rounded-md" srcset="/2019/03/rancher2-walk-through/cluster-dashboard_huaa925f9b6ef897ff410d32bbd678c1ce_91492_330x0_resize_box_3.png 330w,
+/2019/03/rancher2-walk-through/cluster-dashboard_huaa925f9b6ef897ff410d32bbd678c1ce_91492_660x0_resize_box_3.png 660w,
+/2019/03/rancher2-walk-through/cluster-dashboard_huaa925f9b6ef897ff410d32bbd678c1ce_91492_1024x0_resize_box_3.png 1024w,
+/2019/03/rancher2-walk-through/cluster-dashboard_huaa925f9b6ef897ff410d32bbd678c1ce_91492_1320x0_resize_box_3.png 2x" src=/2019/03/rancher2-walk-through/cluster-dashboard_huaa925f9b6ef897ff410d32bbd678c1ce_91492_660x0_resize_box_3.png alt>
+<figcaption>cluster dashboard</figcaption>
+</figure>
+</p>
+<p>選んだサーバーの CPU 数が少なかったかな</p>
+<pre tabindex=0><code>$ kubectl get nodes
+NAME   STATUS   ROLES               AGE   VERSION
+cp1    Ready    controlplane,etcd   34m   v1.11.2
+cp2    Ready    controlplane,etcd   34m   v1.11.2
+cp3    Ready    controlplane,etcd   40m   v1.11.2
+wk1    Ready    worker              3m    v1.11.2
+wk2    Ready    worker              3m    v1.11.2
+wk3    Ready    worker              3m    v1.11.2
+</code></pre><h3 id=プロジェクトの作成 class="relative group">プロジェクトの作成 <span class="absolute top-0 w-6 transition-opacity opacity-0 ltr:-left-6 rtl:-right-6 not-prose group-hover:opacity-100"><a class="group-hover:text-primary-300 dark:group-hover:text-neutral-700" style=text-decoration-line:none!important href=#%e3%83%97%e3%83%ad%e3%82%b8%e3%82%a7%e3%82%af%e3%83%88%e3%81%ae%e4%bd%9c%e6%88%90 aria-label=アンカー>#</a></span></h3>
+<p>Rancher 2.x では Kubernetes のクラスタとネームスペースの間にプロジェクトという層が入り、複数のネームスペースを束ねて権限管理を行うことができるようになっています。このあたりも過去の<a href=/2018/05/understanding-authentication-authorization-in-rancher-2-0/>投稿</a> (<a href=/2018/05/understanding-authentication-authorization-in-rancher-2-0/>Understanding Authentication & Authorization In Rancher 2.0</a>) で書きました。</p>
+<p>初期状態で <strong>Default</strong> と <strong>System</strong> というプロジェクトが存在します。<br>
+<figure>
+<img class="my-0 rounded-md" srcset="/2019/03/rancher2-walk-through/projects_hu81439bd40e5c04c7cf7da15821a1b577_80200_330x0_resize_box_3.png 330w,
+/2019/03/rancher2-walk-through/projects_hu81439bd40e5c04c7cf7da15821a1b577_80200_660x0_resize_box_3.png 660w,
+/2019/03/rancher2-walk-through/projects_hu81439bd40e5c04c7cf7da15821a1b577_80200_1024x0_resize_box_3.png 1024w,
+/2019/03/rancher2-walk-through/projects_hu81439bd40e5c04c7cf7da15821a1b577_80200_1320x0_resize_box_3.png 2x" src=/2019/03/rancher2-walk-through/projects_hu81439bd40e5c04c7cf7da15821a1b577_80200_660x0_resize_box_3.png alt>
+<figcaption>projects</figcaption>
+</figure>
+</p>
+<p>自分のコンテナをデプロイするなら <strong>Default</strong> を使っても良さそうですが、ここでは <strong>myproject</strong> というプロジェクトを作ってみます。</p>
+<p>プロジェクト追加画面<br>
+<figure>
+<img class="my-0 rounded-md" srcset="/2019/03/rancher2-walk-through/add-project_hu2c7512cc7f54dee1cbe1319c9b245cc1_54243_330x0_resize_box_3.png 330w,
+/2019/03/rancher2-walk-through/add-project_hu2c7512cc7f54dee1cbe1319c9b245cc1_54243_660x0_resize_box_3.png 660w,
+/2019/03/rancher2-walk-through/add-project_hu2c7512cc7f54dee1cbe1319c9b245cc1_54243_1024x0_resize_box_3.png 1024w,
+/2019/03/rancher2-walk-through/add-project_hu2c7512cc7f54dee1cbe1319c9b245cc1_54243_1320x0_resize_box_3.png 2x" src=/2019/03/rancher2-walk-through/add-project_hu2c7512cc7f54dee1cbe1319c9b245cc1_54243_660x0_resize_box_3.png alt>
+<figcaption>プロジェクトの追加</figcaption>
+</figure>
+</p>
+<p>クラスタ作成時に <a href=https://rancher.com/docs/rancher/v2.x/en/admin-settings/pod-security-policies/>Pod Security Policy</a> を有効にするかどうか、デフォルトを何にするかという選択項目がありましたが、ここでも出てきました。コンテナに特権の付与を許可するかどうかなどを制御することができます。</p>
+<h3 id=ネームスペースの作成 class="relative group">ネームスペースの作成 <span class="absolute top-0 w-6 transition-opacity opacity-0 ltr:-left-6 rtl:-right-6 not-prose group-hover:opacity-100"><a class="group-hover:text-primary-300 dark:group-hover:text-neutral-700" style=text-decoration-line:none!important href=#%e3%83%8d%e3%83%bc%e3%83%a0%e3%82%b9%e3%83%9a%e3%83%bc%e3%82%b9%e3%81%ae%e4%bd%9c%e6%88%90 aria-label=アンカー>#</a></span></h3>
+<p>Kubernetes ではネームスペース単位で権限を管理し、コンテナはネームスペース内にデプロイすることになるため、新しく作ったプロジェクト内にネームスペースを作成します。</p>
+<p>ネームスペース追加の画面<br>
+<figure>
+<img class="my-0 rounded-md" srcset="/2019/03/rancher2-walk-through/add-namespace_hu37bf3cbeefb343358d8f584b2dc87437_37568_330x0_resize_box_3.png 330w,
+/2019/03/rancher2-walk-through/add-namespace_hu37bf3cbeefb343358d8f584b2dc87437_37568_660x0_resize_box_3.png 660w,
+/2019/03/rancher2-walk-through/add-namespace_hu37bf3cbeefb343358d8f584b2dc87437_37568_1024x0_resize_box_3.png 1024w,
+/2019/03/rancher2-walk-through/add-namespace_hu37bf3cbeefb343358d8f584b2dc87437_37568_1320x0_resize_box_3.png 2x" src=/2019/03/rancher2-walk-through/add-namespace_hu37bf3cbeefb343358d8f584b2dc87437_37568_660x0_resize_box_3.png alt>
+<figcaption>ネームスペースの追加</figcaption>
+</figure>
+</p>
+<p>ネームスペースの名前を指定するだけです。ここでは <strong>myns</strong> とします。</p>
+<h3 id=ワークロードのデプロイ class="relative group">ワークロードのデプロイ <span class="absolute top-0 w-6 transition-opacity opacity-0 ltr:-left-6 rtl:-right-6 not-prose group-hover:opacity-100"><a class="group-hover:text-primary-300 dark:group-hover:text-neutral-700" style=text-decoration-line:none!important href=#%e3%83%af%e3%83%bc%e3%82%af%e3%83%ad%e3%83%bc%e3%83%89%e3%81%ae%e3%83%87%e3%83%97%e3%83%ad%e3%82%a4 aria-label=アンカー>#</a></span></h3>
+<p>Kubernetes 用語では Deployment と Service を作成することになるのかな。</p>
+<p>デプロイ前のワークロードページ<br>
+<figure>
+<img class="my-0 rounded-md" srcset="/2019/03/rancher2-walk-through/workloads_hu0019de0dcc376a378c911588a8602ff9_86149_330x0_resize_box_3.png 330w,
+/2019/03/rancher2-walk-through/workloads_hu0019de0dcc376a378c911588a8602ff9_86149_660x0_resize_box_3.png 660w,
+/2019/03/rancher2-walk-through/workloads_hu0019de0dcc376a378c911588a8602ff9_86149_1024x0_resize_box_3.png 1024w,
+/2019/03/rancher2-walk-through/workloads_hu0019de0dcc376a378c911588a8602ff9_86149_1320x0_resize_box_3.png 2x" src=/2019/03/rancher2-walk-through/workloads_hu0019de0dcc376a378c911588a8602ff9_86149_660x0_resize_box_3.png alt>
+<figcaption>ワークロードページ</figcaption>
+</figure>
+</p>
+<p>Deploy ボタンからワークロードをデプロイします</p>
+<p>ワークロードをデプロイするための入力画面<br>
+<figure>
+<img class="my-0 rounded-md" srcset="/2019/03/rancher2-walk-through/deploy-workload_hu0910a4f9f955712e1fd5f472ef4d4c51_227156_330x0_resize_box_3.png 330w,
+/2019/03/rancher2-walk-through/deploy-workload_hu0910a4f9f955712e1fd5f472ef4d4c51_227156_660x0_resize_box_3.png 660w,
+/2019/03/rancher2-walk-through/deploy-workload_hu0910a4f9f955712e1fd5f472ef4d4c51_227156_1024x0_resize_box_3.png 1024w,
+/2019/03/rancher2-walk-through/deploy-workload_hu0910a4f9f955712e1fd5f472ef4d4c51_227156_1320x0_resize_box_3.png 2x" src=/2019/03/rancher2-walk-through/deploy-workload_hu0910a4f9f955712e1fd5f472ef4d4c51_227156_660x0_resize_box_3.png alt>
+<figcaption>ワークロードのデプロイ</figcaption>
+</figure>
+</p>
+<p>名前、Docker Image、Pod の数、Port マッピング、スケーリングポリシーやボリューム、環境変数、ヘルスチェックなどを指定します。<strong>Show advanced options</strong> をクリックするともっと多くの項目が表示されます。Workload Type で <strong>More options</strong> をクリックすると DaemonSet や StatefulSet、CronJob、Job を選択できます。Port マッピングでは <strong>NodePort (On every node)</strong>、<strong>HostPort (Nodes running a pod)</strong>、<strong>Cluster IP (Internal only)</strong>、<strong>Layer-4 Load Balancer</strong> を選べます。ここでは <strong>Cluster IP (Internal only)</strong> を選択します。</p>
+<p>ワークロード一覧ページ<br>
+<figure>
+<img class="my-0 rounded-md" srcset="/2019/03/rancher2-walk-through/httpbin-deployed_hua1512d8e1e33dfda96cb9e07bec5a827_58350_330x0_resize_box_3.png 330w,
+/2019/03/rancher2-walk-through/httpbin-deployed_hua1512d8e1e33dfda96cb9e07bec5a827_58350_660x0_resize_box_3.png 660w,
+/2019/03/rancher2-walk-through/httpbin-deployed_hua1512d8e1e33dfda96cb9e07bec5a827_58350_1024x0_resize_box_3.png 1024w,
+/2019/03/rancher2-walk-through/httpbin-deployed_hua1512d8e1e33dfda96cb9e07bec5a827_58350_1320x0_resize_box_3.png 2x" src=/2019/03/rancher2-walk-through/httpbin-deployed_hua1512d8e1e33dfda96cb9e07bec5a827_58350_660x0_resize_box_3.png alt>
+<figcaption>Workload 一覧</figcaption>
+</figure>
+</p>
+<p>今回は設定しませんが <a href=https://rancher.com/docs/rancher/v2.x/en/k8s-in-rancher/workloads/add-a-sidecar/>サイドカー設定</a>はこのページの右の︙ボタンから行います。</p>
+<p>上のキャプチャのようにして <a href=http://httpbin.org/>httpbin.org</a> のコンテナをデプロイしてみました。(<a href=https://hub.docker.com/r/kennethreitz/httpbin/>kennethreitz/httpbin</a>)<br>
+<figure>
+<img class="my-0 rounded-md" srcset="/2019/03/rancher2-walk-through/workload-httpbin_hu4f9d1018800dcbe2a36a011ce67d83a2_159348_330x0_resize_box_3.png 330w,
+/2019/03/rancher2-walk-through/workload-httpbin_hu4f9d1018800dcbe2a36a011ce67d83a2_159348_660x0_resize_box_3.png 660w,
+/2019/03/rancher2-walk-through/workload-httpbin_hu4f9d1018800dcbe2a36a011ce67d83a2_159348_1024x0_resize_box_3.png 1024w,
+/2019/03/rancher2-walk-through/workload-httpbin_hu4f9d1018800dcbe2a36a011ce67d83a2_159348_1320x0_resize_box_3.png 2x" src=/2019/03/rancher2-walk-through/workload-httpbin_hu4f9d1018800dcbe2a36a011ce67d83a2_159348_660x0_resize_box_3.png alt>
+<figcaption>httpbin workload</figcaption>
+</figure>
+</p>
+<p>Cluster IP で作成しているのでこのままでは外部からアクセスできません</p>
+<pre tabindex=0><code>$ kubectl get services -n myns
+NAME      TYPE        CLUSTER-IP     EXTERNAL-IP   PORT(S)   AGE
+httpbin   ClusterIP   10.43.74.133   80/TCP    16m 
+</code></pre><pre tabindex=0><code>$ kubectl get pods -n myns
+NAME                       READY   STATUS    RESTARTS   AGE
+httpbin-578b587f58-9xgwb   1/1     Running   0          16m
+httpbin-578b587f58-bz27f   1/1     Running   0          16m
+httpbin-578b587f58-tbnnd   1/1     Running   0          16m
+</code></pre><h3 id=nginx-ingress-controller-で外部公開する class="relative group">nginx ingress controller で外部公開する <span class="absolute top-0 w-6 transition-opacity opacity-0 ltr:-left-6 rtl:-right-6 not-prose group-hover:opacity-100"><a class="group-hover:text-primary-300 dark:group-hover:text-neutral-700" style=text-decoration-line:none!important href=#nginx-ingress-controller-%e3%81%a7%e5%a4%96%e9%83%a8%e5%85%ac%e9%96%8b%e3%81%99%e3%82%8b aria-label=アンカー>#</a></span></h3>
+<p>デプロイしたコンテナに外部からアクセスできるように Workloads タブの Load Balance のページから Ingress 設定を追加します<br>
+<figure>
+<img class="my-0 rounded-md" srcset="/2019/03/rancher2-walk-through/lb-list_hu31c0f3726a4da99e3eed6a269a149798_85152_330x0_resize_box_3.png 330w,
+/2019/03/rancher2-walk-through/lb-list_hu31c0f3726a4da99e3eed6a269a149798_85152_660x0_resize_box_3.png 660w,
+/2019/03/rancher2-walk-through/lb-list_hu31c0f3726a4da99e3eed6a269a149798_85152_1024x0_resize_box_3.png 1024w,
+/2019/03/rancher2-walk-through/lb-list_hu31c0f3726a4da99e3eed6a269a149798_85152_1320x0_resize_box_3.png 2x" src=/2019/03/rancher2-walk-through/lb-list_hu31c0f3726a4da99e3eed6a269a149798_85152_660x0_resize_box_3.png alt>
+<figcaption>Load Balancing</figcaption>
+</figure>
+</p>
+<p>Ingress 設定入力ページ<br>
+<figure>
+<img class="my-0 rounded-md" srcset="/2019/03/rancher2-walk-through/add-ingress_hu131599dacd3e1017b419af8200c462fd_91368_330x0_resize_box_3.png 330w,
+/2019/03/rancher2-walk-through/add-ingress_hu131599dacd3e1017b419af8200c462fd_91368_660x0_resize_box_3.png 660w,
+/2019/03/rancher2-walk-through/add-ingress_hu131599dacd3e1017b419af8200c462fd_91368_1024x0_resize_box_3.png 1024w,
+/2019/03/rancher2-walk-through/add-ingress_hu131599dacd3e1017b419af8200c462fd_91368_1320x0_resize_box_3.png 2x" src=/2019/03/rancher2-walk-through/add-ingress_hu131599dacd3e1017b419af8200c462fd_91368_660x0_resize_box_3.png alt>
+<figcaption>Ingress の追加</figcaption>
+</figure>
+</p>
+<p>Hostname と Path ごとにどこに proxy するかを設定します。TLS の証明書設定も可能です。</p>
+<p>追加後の Load Balancing 画面<br>
+<figure>
+<img class="my-0 rounded-md" srcset="/2019/03/rancher2-walk-through/lb-list2_hu6921200251e7430bd34bce7625c676f8_55086_330x0_resize_box_3.png 330w,
+/2019/03/rancher2-walk-through/lb-list2_hu6921200251e7430bd34bce7625c676f8_55086_660x0_resize_box_3.png 660w,
+/2019/03/rancher2-walk-through/lb-list2_hu6921200251e7430bd34bce7625c676f8_55086_1024x0_resize_box_3.png 1024w,
+/2019/03/rancher2-walk-through/lb-list2_hu6921200251e7430bd34bce7625c676f8_55086_1320x0_resize_box_3.png 2x" src=/2019/03/rancher2-walk-through/lb-list2_hu6921200251e7430bd34bce7625c676f8_55086_660x0_resize_box_3.png alt>
+<figcaption>Load Balancing(2)</figcaption>
+</figure>
+</p>
+<p>これでしばらく待つとブラウザでインターネット越しにアクセスできるようになります。</p>
+<p><strong>nginx-ingress-controller</strong> が <strong>System</strong> プロジェクトの <strong>ingress-nginx</strong> ネームスペースに <strong>DaemonSet</strong> として各 Worker Node にデプロイされており、Worker Node に Ingress で設定した Host ヘッダーをつけてアクセスすることで作成したコンテナにルーティングされます。</p>
+<pre tabindex=0><code>$ kubectl get ingress --all-namespaces
+NAMESPACE   NAME      HOSTS                   ADDRESS                                      PORTS   AGE
+myns        httpbin   httpbin.do.teraoka.me   178.128.24.17,178.128.24.30,206.189.94.233   80      14m
+</code></pre><p>ブラウザで <strong>/anything</strong> にアクセスしました。</p>
+<div class=highlight><pre tabindex=0 class=chroma><code class=language-json data-lang=json><span class=p>{</span>
+  <span class=nt>&#34;args&#34;</span><span class=p>:</span> <span class=p>{},</span> 
+  <span class=nt>&#34;data&#34;</span><span class=p>:</span> <span class=s2>&#34;&#34;</span><span class=p>,</span> 
+  <span class=nt>&#34;files&#34;</span><span class=p>:</span> <span class=p>{},</span> 
+  <span class=nt>&#34;form&#34;</span><span class=p>:</span> <span class=p>{},</span> 
+  <span class=nt>&#34;headers&#34;</span><span class=p>:</span> <span class=p>{</span>
+    <span class=nt>&#34;Accept&#34;</span><span class=p>:</span> <span class=s2>&#34;text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8&#34;</span><span class=p>,</span> 
+    <span class=nt>&#34;Accept-Encoding&#34;</span><span class=p>:</span> <span class=s2>&#34;gzip, deflate&#34;</span><span class=p>,</span> 
+    <span class=nt>&#34;Accept-Language&#34;</span><span class=p>:</span> <span class=s2>&#34;ja-JP,ja;q=0.9,en-US;q=0.8,en;q=0.7&#34;</span><span class=p>,</span> 
+    <span class=nt>&#34;Connection&#34;</span><span class=p>:</span> <span class=s2>&#34;close&#34;</span><span class=p>,</span> 
+    <span class=nt>&#34;Host&#34;</span><span class=p>:</span> <span class=s2>&#34;httpbin.do.teraoka.me&#34;</span><span class=p>,</span> 
+    <span class=nt>&#34;Upgrade-Insecure-Requests&#34;</span><span class=p>:</span> <span class=s2>&#34;1&#34;</span><span class=p>,</span> 
+    <span class=nt>&#34;User-Agent&#34;</span><span class=p>:</span> <span class=s2>&#34;Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/72.0.3626.121 Safari/537.36&#34;</span><span class=p>,</span> 
+    <span class=nt>&#34;X-Forwarded-Host&#34;</span><span class=p>:</span> <span class=s2>&#34;httpbin.do.teraoka.me&#34;</span><span class=p>,</span> 
+    <span class=nt>&#34;X-Original-Uri&#34;</span><span class=p>:</span> <span class=s2>&#34;/anything&#34;</span><span class=p>,</span> 
+    <span class=nt>&#34;X-Scheme&#34;</span><span class=p>:</span> <span class=s2>&#34;http&#34;</span>
+  <span class=p>},</span> 
+  <span class=nt>&#34;json&#34;</span><span class=p>:</span> <span class=kc>null</span><span class=p>,</span> 
+  <span class=nt>&#34;method&#34;</span><span class=p>:</span> <span class=s2>&#34;GET&#34;</span><span class=p>,</span> 
+  <span class=nt>&#34;origin&#34;</span><span class=p>:</span> <span class=s2>&#34;我が家のグローバルIPアドレス&#34;</span><span class=p>,</span> 
+  <span class=nt>&#34;url&#34;</span><span class=p>:</span> <span class=s2>&#34;http://httpbin.do.teraoka.me/anything&#34;</span>
+<span class=p>}</span>
+</code></pre></div><p>Origin として Global IP が認識されているので X-Forwarded-For がちゃんとわたっているようです。</p>
+<p><strong>YAML 一個も書いてねー！</strong></p>
+</div>
+<script>var liked_article=!1,oid,id,viewed,oid_likes,id_likes,liked;typeof auth!='undefined'&&(oid="views_posts/rancher2-walk-through/index.md",id=oid&&oid.replaceAll("/","-"),viewed=localStorage.getItem(id),viewed||auth.signInAnonymously().then(()=>{var a=db.collection('views').doc(id);localStorage.setItem(id,!0),a.get().then(a=>{a.exists?db.collection('views').doc(id).update({views:firebase.firestore.FieldValue.increment(1)}):db.collection('views').doc(id).set({views:1})}).catch(a=>{console.log("Error getting document:",a)})}).catch(a=>{var b=a.code,c=a.message;console.error(b,c)}),oid_likes="likes_posts/rancher2-walk-through/index.md",id_likes=oid_likes&&oid_likes.replaceAll("/","-"),liked=localStorage.getItem(id_likes),liked&&(liked_article=!0,document.querySelectorAll("button[id='likes_button']")[0].innerText="Remove Like"));function like_article(a){console.log("add"),liked_article=!0,localStorage.setItem(a,!0),document.querySelectorAll("button[id='likes_button']")[0].innerText="Remove Like",auth.signInAnonymously().then(()=>{var b=db.collection('likes').doc(a);b.get().then(b=>{b.exists?db.collection('likes').doc(a).update({likes:firebase.firestore.FieldValue.increment(1)}):db.collection('likes').doc(a).set({likes:1})}).catch(a=>{console.log("Error getting document:",a)})}).catch(a=>{var b=a.code,c=a.message;console.error(b,c)})}function remove_like_article(a){console.log("remove"),liked_article=!1,localStorage.setItem(a,!1),document.querySelectorAll("button[id='likes_button']")[0].innerText="Like",auth.signInAnonymously().then(()=>{var b=db.collection('likes').doc(a);b.get().then(b=>{b.exists?db.collection('likes').doc(a).update({likes:firebase.firestore.FieldValue.increment(-1)}):db.collection('likes').doc(a).set({likes:0})}).catch(a=>{console.log("Error getting document:",a)})}).catch(a=>{var b=a.code,c=a.message;console.error(b,c)})}function process_article(){var a="likes_posts/rancher2-walk-through/index.md",b=a&&a.replaceAll("/","-");liked_article?remove_like_article(b):like_article(b)}</script>
+</section>
+<footer class="pt-8 max-w-prose print:hidden">
+<div class=flex>
+<div class=place-self-center>
+<div class="text-[0.6rem] uppercase leading-3 text-neutral-500 dark:text-neutral-400">
+著者
+</div>
+<div class="font-semibold leading-6 text-neutral-800 dark:text-neutral-300">
+Yoshinori Teraoka
+</div>
+<div class="text-2xl sm:text-lg">
+<div class="flex flex-wrap text-neutral-400 dark:text-neutral-500">
+<a class="px-1 hover:text-primary-700 dark:hover:text-primary-400" href=https://twitter.com/yteraoka target=_blank aria-label=Twitter rel="me noopener noreferrer">
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentcolor" d="M459.37 151.716c.325 4.548.325 9.097.325 13.645.0 138.72-105.583 298.558-298.558 298.558-59.452.0-114.68-17.219-161.137-47.106 8.447.974 16.568 1.299 25.34 1.299 49.055.0 94.213-16.568 130.274-44.832-46.132-.975-84.792-31.188-98.112-72.772 6.498.974 12.995 1.624 19.818 1.624 9.421.0 18.843-1.3 27.614-3.573-48.081-9.747-84.143-51.98-84.143-102.985v-1.299c13.969 7.797 30.214 12.67 47.431 13.319-28.264-18.843-46.781-51.005-46.781-87.391.0-19.492 5.197-37.36 14.294-52.954 51.655 63.675 129.3 105.258 216.365 109.807-1.624-7.797-2.599-15.918-2.599-24.04.0-57.828 46.782-104.934 104.934-104.934 30.213.0 57.502 12.67 76.67 33.137 23.715-4.548 46.456-13.32 66.599-25.34-7.798 24.366-24.366 44.833-46.132 57.827 21.117-2.273 41.584-8.122 60.426-16.243-14.292 20.791-32.161 39.308-52.628 54.253z"/></svg>
+</span>
+</a>
+<a class="px-1 hover:text-primary-700 dark:hover:text-primary-400" href=https://github.com/yteraoka target=_blank aria-label=Github rel="me noopener noreferrer">
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><path fill="currentcolor" d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6.0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6.0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3.0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1.0-6.2-.3-40.4-.3-61.4.0.0-70 15-84.7-29.8.0.0-11.4-29.1-27.8-36.6.0.0-22.9-15.7 1.6-15.4.0.0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5.0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9.0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4.0 33.7-.3 75.4-.3 83.6.0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6.0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9.0-6.2-1.4-2.3-4-3.3-5.6-2z"/></svg>
+</span>
+</a>
+<a class="px-1 hover:text-primary-700 dark:hover:text-primary-400" href=https://linkedin.com/in/fa5b66b7-9c77-4e1b-8b97-40ba4a5a2c13/ target=_blank aria-label=Linkedin rel="me noopener noreferrer">
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path fill="currentcolor" d="M416 32H31.9C14.3 32 0 46.5.0 64.3v383.4C0 465.5 14.3 480 31.9 480H416c17.6.0 32-14.5 32-32.3V64.3c0-17.8-14.4-32.3-32-32.3zM135.4 416H69V202.2h66.5V416zm-33.2-243c-21.3.0-38.5-17.3-38.5-38.5S80.9 96 102.2 96c21.2.0 38.5 17.3 38.5 38.5.0 21.3-17.2 38.5-38.5 38.5zm282.1 243h-66.4V312c0-24.8-.5-56.7-34.5-56.7-34.6.0-39.9 27-39.9 54.9V416h-66.4V202.2h63.7v29.2h.9c8.9-16.8 30.6-34.5 62.9-34.5 67.2.0 79.7 44.3 79.7 101.9V416z"/></svg>
+</span>
+</a>
+<a class="px-1 hover:text-primary-700 dark:hover:text-primary-400" href=https://medium.com/@yteraoka target=_blank aria-label=Medium rel="me noopener noreferrer">
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512"><path fill="currentcolor" d="M180.5 74.262C80.813 74.262.0 155.633.0 256S80.819 437.738 180.5 437.738 361 356.373 361 256 280.191 74.262 180.5 74.262zm288.25 10.646c-49.845.0-90.245 76.619-90.245 171.095s40.406 171.1 90.251 171.1 90.251-76.619 90.251-171.1H559C559 161.5 518.6 84.908 468.752 84.908zm139.506 17.821c-17.526.0-31.735 68.628-31.735 153.274s14.2 153.274 31.735 153.274S640 340.631 640 256c0-84.649-14.215-153.271-31.742-153.271z"/></svg>
+</span>
+</a>
+</div>
+</div>
+</div>
+</div>
+<section class="flex flex-row flex-wrap justify-center pt-4 text-xl">
+<a class="m-1 inline-block min-w-[2.4rem] rounded bg-neutral-300 p-1 text-center text-neutral-700 hover:bg-primary-500 hover:text-neutral dark:bg-neutral-700 dark:text-neutral-300 dark:hover:bg-primary-400 dark:hover:text-neutral-800" href="https://www.linkedin.com/shareArticle?mini=true&url=https://preview-blog.1q77.com/2019/03/rancher2-walk-through/&title=Rancher2%20%e3%81%ae%e6%a7%8b%e7%af%89%e3%81%8b%e3%82%89%e3%82%b5%e3%83%bc%e3%83%93%e3%82%b9%e5%85%ac%e9%96%8b%e3%81%be%e3%81%a7" title=LinkedInでシェアする aria-label=LinkedInでシェアする>
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path fill="currentcolor" d="M416 32H31.9C14.3 32 0 46.5.0 64.3v383.4C0 465.5 14.3 480 31.9 480H416c17.6.0 32-14.5 32-32.3V64.3c0-17.8-14.4-32.3-32-32.3zM135.4 416H69V202.2h66.5V416zm-33.2-243c-21.3.0-38.5-17.3-38.5-38.5S80.9 96 102.2 96c21.2.0 38.5 17.3 38.5 38.5.0 21.3-17.2 38.5-38.5 38.5zm282.1 243h-66.4V312c0-24.8-.5-56.7-34.5-56.7-34.6.0-39.9 27-39.9 54.9V416h-66.4V202.2h63.7v29.2h.9c8.9-16.8 30.6-34.5 62.9-34.5 67.2.0 79.7 44.3 79.7 101.9V416z"/></svg>
+</span>
+</a>
+<a class="m-1 inline-block min-w-[2.4rem] rounded bg-neutral-300 p-1 text-center text-neutral-700 hover:bg-primary-500 hover:text-neutral dark:bg-neutral-700 dark:text-neutral-300 dark:hover:bg-primary-400 dark:hover:text-neutral-800" href="https://twitter.com/intent/tweet/?url=https://preview-blog.1q77.com/2019/03/rancher2-walk-through/&text=Rancher2%20%e3%81%ae%e6%a7%8b%e7%af%89%e3%81%8b%e3%82%89%e3%82%b5%e3%83%bc%e3%83%93%e3%82%b9%e5%85%ac%e9%96%8b%e3%81%be%e3%81%a7" title=Twitterに投稿する aria-label=Twitterに投稿する>
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentcolor" d="M459.37 151.716c.325 4.548.325 9.097.325 13.645.0 138.72-105.583 298.558-298.558 298.558-59.452.0-114.68-17.219-161.137-47.106 8.447.974 16.568 1.299 25.34 1.299 49.055.0 94.213-16.568 130.274-44.832-46.132-.975-84.792-31.188-98.112-72.772 6.498.974 12.995 1.624 19.818 1.624 9.421.0 18.843-1.3 27.614-3.573-48.081-9.747-84.143-51.98-84.143-102.985v-1.299c13.969 7.797 30.214 12.67 47.431 13.319-28.264-18.843-46.781-51.005-46.781-87.391.0-19.492 5.197-37.36 14.294-52.954 51.655 63.675 129.3 105.258 216.365 109.807-1.624-7.797-2.599-15.918-2.599-24.04.0-57.828 46.782-104.934 104.934-104.934 30.213.0 57.502 12.67 76.67 33.137 23.715-4.548 46.456-13.32 66.599-25.34-7.798 24.366-24.366 44.833-46.132 57.827 21.117-2.273 41.584-8.122 60.426-16.243-14.292 20.791-32.161 39.308-52.628 54.253z"/></svg>
+</span>
+</a>
+</section>
+<div class=pt-8>
+<hr class="border-dotted border-neutral-300 dark:border-neutral-600">
+<div class="flex justify-between pt-3">
+<span>
+<a class="flex group" href=/2019/02/dns-over-https/>
+<span class="mr-3 text-neutral-700 group-hover:text-primary-600 ltr:inline rtl:hidden dark:text-neutral dark:group-hover:text-primary-400">&larr;</span>
+<span class="ml-3 text-neutral-700 group-hover:text-primary-600 ltr:hidden rtl:inline dark:text-neutral dark:group-hover:text-primary-400">&rarr;</span>
+<span class="flex flex-col">
+<span class="mt-[0.1rem] leading-6 group-hover:underline group-hover:decoration-primary-500">DNS over HTTPS の使いみち</span>
+<span class="mt-[0.1rem] text-xs text-neutral-500 dark:text-neutral-400">
+<time datetime="2019-02-23 05:14:33 +0000 UTC">2019年2月23日</time>
+</span>
+</span>
+</a>
+</span>
+<span>
+<a class="flex text-right group" href=/2019/03/rancher-migrating-from-an-ha-rke-add-on-install/>
+<span class="flex flex-col">
+<span class="mt-[0.1rem] leading-6 group-hover:underline group-hover:decoration-primary-500">Rancher: Migrating from an HA RKE Add-on Install</span>
+<span class="mt-[0.1rem] text-xs text-neutral-500 dark:text-neutral-400">
+<time datetime="2019-03-24 13:56:39 +0000 UTC">2019年3月24日</time>
+</span>
+</span>
+<span class="ml-3 text-neutral-700 group-hover:text-primary-600 ltr:inline rtl:hidden dark:text-neutral dark:group-hover:text-primary-400">&rarr;</span>
+<span class="mr-3 text-neutral-700 group-hover:text-primary-600 ltr:hidden rtl:inline dark:text-neutral dark:group-hover:text-primary-400">&larr;</span>
+</a>
+</span>
+</div>
+</div>
+</footer>
+</article>
+<div class="pointer-events-none absolute top-[100vh] bottom-0 w-12 ltr:right-0 rtl:left-0">
+<a href=#the-top class="pointer-events-auto sticky top-[calc(100vh-5.5rem)] flex h-12 w-12 items-center justify-center rounded-full bg-neutral/50 text-xl text-neutral-700 backdrop-blur hover:text-primary-600 dark:bg-neutral-800/50 dark:text-neutral dark:hover:text-primary-400" aria-label=TOPへスクロール title=TOPへスクロール>
+&uarr;
+</a>
+</div>
+</main><footer class="py-10 print:hidden">
+<div class="flex items-center justify-between">
+<p class="text-sm text-neutral-500 dark:text-neutral-400">
+&copy;
+2022
+Yoshinori Teraoka
+</p>
+</div>
+<script>mediumZoom(document.querySelectorAll("img:not(.nozoom)"),{margin:24,background:'rgba(0,0,0,0.5)',scrollOffset:0})</script>
+<script type=text/javascript src=/js/process.min.48d08339b8a087b59c7b8cb42b6717aeeed3e07bfc68b1654cac27f00583284dac59cae47fb686dd7c0e9ff1d2745689dc2071230dff432ca6d7fc24b9f2e036.js integrity="sha512-SNCDObigh7Wce4y0K2cXru7T4Hv8aLFlTKwn8AWDKE2sWcrkf7aG3XwOn/HSdFaJ3CBxIw3/Qyym1/wkufLgNg=="></script>
+</footer><div id=search-wrapper class="invisible fixed inset-0 z-50 flex h-screen w-screen cursor-default flex-col bg-neutral-500/50 p-4 backdrop-blur-sm dark:bg-neutral-900/50 sm:p-6 md:p-[10vh] lg:p-[12vh]" data-url=https://preview-blog.1q77.com/>
+<div id=search-modal class="flex flex-col w-full max-w-3xl min-h-0 mx-auto border rounded-md shadow-lg top-20 border-neutral-200 bg-neutral dark:border-neutral-700 dark:bg-neutral-800">
+<header class="relative z-10 flex items-center justify-between flex-none px-2">
+<form class="flex items-center flex-auto min-w-0">
+<div class="flex items-center justify-center w-8 h-8 text-neutral-400">
+<span class="relative inline-block align-text-bottom icon"><svg aria-hidden="true" focusable="false" data-prefix="fas" data-icon="search" class="svg-inline--fa fa-search fa-w-16" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentcolor" d="M505 442.7 405.3 343c-4.5-4.5-10.6-7-17-7H372c27.6-35.3 44-79.7 44-128C416 93.1 322.9.0 208 0S0 93.1.0 208s93.1 208 208 208c48.3.0 92.7-16.4 128-44v16.3c0 6.4 2.5 12.5 7 17l99.7 99.7c9.4 9.4 24.6 9.4 33.9.0l28.3-28.3c9.4-9.4 9.4-24.6.1-34zM208 336c-70.7.0-128-57.2-128-128 0-70.7 57.2-128 128-128 70.7.0 128 57.2 128 128 0 70.7-57.2 128-128 128z"/></svg>
+</span>
+</div>
+<input type=search id=search-query class="flex flex-auto h-12 mx-1 bg-transparent appearance-none focus:outline-dotted focus:outline-2 focus:outline-transparent" placeholder=Search tabindex=0>
+</form>
+<button id=close-search-button class="flex items-center justify-center w-8 h-8 text-neutral-700 hover:text-primary-600 dark:text-neutral dark:hover:text-primary-400" title="閉じる (Esc)">
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><path fill="currentcolor" d="M310.6 361.4c12.5 12.5 12.5 32.75.0 45.25C304.4 412.9 296.2 416 288 416s-16.38-3.125-22.62-9.375L160 301.3 54.63 406.6C48.38 412.9 40.19 416 32 416S15.63 412.9 9.375 406.6c-12.5-12.5-12.5-32.75.0-45.25l105.4-105.4L9.375 150.6c-12.5-12.5-12.5-32.75.0-45.25s32.75-12.5 45.25.0L160 210.8l105.4-105.4c12.5-12.5 32.75-12.5 45.25.0s12.5 32.75.0 45.25l-105.4 105.4L310.6 361.4z"/></svg>
+</span>
+</button>
+</header>
+<section class="flex-auto px-2 overflow-auto">
+<ul id=search-results>
+</ul>
+</section>
+</div>
+</div>
+</div>
+</body>
+</html>

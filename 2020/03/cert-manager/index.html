@@ -1,0 +1,691 @@
+<!doctype html><html lang=ja dir=ltr class=scroll-smooth data-default-appearance=light data-auto-appearance=true><head>
+<meta charset=utf-8>
+<meta http-equiv=content-language content="ja">
+<meta name=viewport content="width=device-width,initial-scale=1">
+<meta http-equiv=x-ua-compatible content="ie=edge">
+<title>cert-manager で証明書管理 &#183; 1Q77</title>
+<meta name=title content="cert-manager で証明書管理 &#183; 1Q77">
+<link rel=canonical href=https://preview-blog.1q77.com/2020/03/cert-manager/>
+<link type=text/css rel=stylesheet href=/css/main.bundle.min.a9d40529d239a91ecb75447e67ee6c80c1f1c28593904b4052651b12220121e13ec42904268b0193a6858f039cf8bfdd2b1331529ed341ddc7488cec3bdcbc2e.css integrity="sha512-qdQFKdI5qR7LdUR+Z+5sgMHxwoWTkEtAUmUbEiIBIeE+xCkEJosBk6aFjwOc+L/dKxMxUp7TQd3HSIzsO9y8Lg==">
+<script type=text/javascript src=/js/main.min.cf83e1357eefb8bdf1542850d66d8007d620e4050b5715dc83f4a921d36ce9ce47d0d13c5d85f2b0ff8318d2877eec2f63b931bd47417a81a538327af927da3e.js integrity="sha512-z4PhNX7vuL3xVChQ1m2AB9Yg5AULVxXcg/SpIdNs6c5H0NE8XYXysP+DGNKHfuwvY7kxvUdBeoGlODJ6+SfaPg=="></script>
+<script type=text/javascript src=/js/appearance.min.49025a779c36ad37a5bf9f1cc6bffd35ccb69ce15560ef1b10057ddf31576265b19f8bcc1733207336c9144926f7b18aea2e5895f29e858b24271332a2fa5cd5.js integrity="sha512-SQJad5w2rTelv58cxr/9Ncy2nOFVYO8bEAV93zFXYmWxn4vMFzMgczbJFEkm97GK6i5YlfKehYskJxMyovpc1Q=="></script>
+<script defer type=text/javascript id=script-bundle src=/js/main.bundle.min.34ee8372ff77835535e486c6ed01ff6993374a1cec8108898cad793fc6ae7520778e24db68e085c762d25af6fa7d00b57d7a791438dc68b676581f8c8344f6e0.js integrity="sha512-NO6Dcv93g1U15IbG7QH/aZM3ShzsgQiJjK15P8audSB3jiTbaOCFx2LSWvb6fQC1fXp5FDjcaLZ2WB+Mg0T24A==" data-copy data-copied></script>
+<script src=/js/zoom.min.js></script>
+<link rel=apple-touch-icon sizes=180x180 href=/apple-touch-icon.png>
+<link rel=icon type=image/png sizes=32x32 href=/favicon-32x32.png>
+<link rel=icon type=image/png sizes=16x16 href=/favicon-16x16.png>
+<link rel=manifest href=/site.webmanifest>
+<meta property="og:title" content="cert-manager で証明書管理">
+<meta property="og:description" content="前回の「ArgoCD と Istio Ingress Gateway」と、前々回の「 Istio 導入への道 – Ingress Gateway で TLS Termination 編 」で TLS の証明書を手動で取得して Secret として登録したが、登録もさ">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://preview-blog.1q77.com/2020/03/cert-manager/"><meta property="article:section" content="posts">
+<meta property="article:published_time" content="2020-03-28T14:02:59+00:00">
+<meta property="article:modified_time" content="2020-03-28T14:02:59+00:00">
+<meta name=twitter:card content="summary">
+<meta name=twitter:title content="cert-manager で証明書管理">
+<meta name=twitter:description content="前回の「ArgoCD と Istio Ingress Gateway」と、前々回の「 Istio 導入への道 – Ingress Gateway で TLS Termination 編 」で TLS の証明書を手動で取得して Secret として登録したが、登録もさ">
+<script type=application/ld+json>[{"@context":"https://schema.org","@type":"Article","articleSection":"Posts","name":"cert-manager で証明書管理","headline":"cert-manager で証明書管理","abstract":"前回の「ArgoCD と Istio Ingress Gateway」と、前々回の「 Istio 導入への道 – Ingress Gateway で TLS Termination 編 」で TLS の証明書を手動で取得して Secret として登録したが、登録もさ","inLanguage":"ja","url":"https:\/\/preview-blog.1q77.com\/2020\/03\/cert-manager\/","author":{"@type":"Person","name":"Yoshinori Teraoka"},"copyrightYear":"2020","dateCreated":"2020-03-28T14:02:59\u002b00:00","datePublished":"2020-03-28T14:02:59\u002b00:00","dateModified":"2020-03-28T14:02:59\u002b00:00","keywords":["Kubernetes","Kubernetes","cert-manager"],"mainEntityOfPage":"true","wordCount":"1715"}]</script>
+<meta name=author content="Yoshinori Teraoka">
+<link href=https://twitter.com/yteraoka rel=me>
+<link href=https://github.com/yteraoka rel=me>
+<link href=https://linkedin.com/in/fa5b66b7-9c77-4e1b-8b97-40ba4a5a2c13/ rel=me>
+<link href=https://medium.com/@yteraoka rel=me>
+<link rel=stylesheet href=https://rsms.me/inter/inter.css>
+</head><body class="flex flex-col h-screen px-6 m-auto text-lg leading-7 max-w-7xl bg-neutral text-neutral-900 dark:bg-neutral-800 dark:text-neutral sm:px-14 md:px-24 lg:px-32">
+<div id=the-top class="absolute flex self-center">
+<a class="px-3 py-1 text-sm -translate-y-8 rounded-b-lg bg-primary-200 focus:translate-y-0 dark:bg-neutral-600" href=#main-content><span class="font-bold text-primary-600 ltr:pr-2 rtl:pl-2 dark:text-primary-400">&darr;</span>メインコンテンツへスキップ</a>
+</div>
+<div style=padding-left:0;padding-right:0 class="flex items-center justify-between px-4 py-6 sm:px-6 md:justify-start space-x-3">
+<div class="flex flex-1 items-center justify-between">
+<nav class="flex space-x-3">
+<a href=/ class="text-base font-medium text-gray-500 hover:text-gray-900">1Q77</a>
+</nav>
+<div class="hidden md:flex items-center space-x-5 md:ml-12">
+<a href=/posts/ class="text-base font-medium text-gray-500 hover:text-gray-900" title=Posts>
+Blog
+</a>
+<a href=/tags/ class="text-base font-medium text-gray-500 hover:text-gray-900" title=Tags>
+Tags
+</a>
+<a href=https://github.com/yteraoka class="text-base font-medium text-gray-500 hover:text-gray-900" title>
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><path fill="currentcolor" d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6.0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6.0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3.0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1.0-6.2-.3-40.4-.3-61.4.0.0-70 15-84.7-29.8.0.0-11.4-29.1-27.8-36.6.0.0-22.9-15.7 1.6-15.4.0.0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5.0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9.0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4.0 33.7-.3 75.4-.3 83.6.0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6.0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9.0-6.2-1.4-2.3-4-3.3-5.6-2z"/></svg>
+</span>
+&nbsp;
+GitHub
+</a>
+<a href=https://twitter.com/yteraoka class="text-base font-medium text-gray-500 hover:text-gray-900" title>
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentcolor" d="M459.37 151.716c.325 4.548.325 9.097.325 13.645.0 138.72-105.583 298.558-298.558 298.558-59.452.0-114.68-17.219-161.137-47.106 8.447.974 16.568 1.299 25.34 1.299 49.055.0 94.213-16.568 130.274-44.832-46.132-.975-84.792-31.188-98.112-72.772 6.498.974 12.995 1.624 19.818 1.624 9.421.0 18.843-1.3 27.614-3.573-48.081-9.747-84.143-51.98-84.143-102.985v-1.299c13.969 7.797 30.214 12.67 47.431 13.319-28.264-18.843-46.781-51.005-46.781-87.391.0-19.492 5.197-37.36 14.294-52.954 51.655 63.675 129.3 105.258 216.365 109.807-1.624-7.797-2.599-15.918-2.599-24.04.0-57.828 46.782-104.934 104.934-104.934 30.213.0 57.502 12.67 76.67 33.137 23.715-4.548 46.456-13.32 66.599-25.34-7.798 24.366-24.366 44.833-46.132 57.827 21.117-2.273 41.584-8.122 60.426-16.243-14.292 20.791-32.161 39.308-52.628 54.253z"/></svg>
+</span>
+&nbsp;
+Twitter
+</a>
+<a href=https://qiita.com/yteraoka class="text-base font-medium text-gray-500 hover:text-gray-900" title>
+Qiita
+</a>
+<button id=search-button class="text-base hover:text-primary-600 dark:hover:text-primary-400" title>
+<span class="relative inline-block align-text-bottom icon"><svg aria-hidden="true" focusable="false" data-prefix="fas" data-icon="search" class="svg-inline--fa fa-search fa-w-16" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentcolor" d="M505 442.7 405.3 343c-4.5-4.5-10.6-7-17-7H372c27.6-35.3 44-79.7 44-128C416 93.1 322.9.0 208 0S0 93.1.0 208s93.1 208 208 208c48.3.0 92.7-16.4 128-44v16.3c0 6.4 2.5 12.5 7 17l99.7 99.7c9.4 9.4 24.6 9.4 33.9.0l28.3-28.3c9.4-9.4 9.4-24.6.1-34zM208 336c-70.7.0-128-57.2-128-128 0-70.7 57.2-128 128-128 70.7.0 128 57.2 128 128 0 70.7-57.2 128-128 128z"/></svg>
+</span>
+</button>
+<div class="ltr:mr-14 rtl:ml-14 cursor-pointer text-sm text-neutral-700 hover:text-primary-600 dark:text-neutral dark:hover:text-primary-400">
+<button id=appearance-switcher type=button>
+<div class="flex items-center justify-center h-12 dark:hidden">
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentcolor" d="M32 256C32 132.2 132.3 32 255.8 32c11.36.0 29.7 1.668 40.9 3.746 9.616 1.777 11.75 14.63 3.279 19.44C245 86.5 211.2 144.6 211.2 207.8c0 109.7 99.71 193 208.3 172.3 9.561-1.805 16.28 9.324 10.11 16.95C387.9 448.6 324.8 480 255.8 480 132.1 480 32 379.6 32 256z"/></svg>
+</span>
+</div>
+<div class="items-center justify-center hidden h-12 dark:flex">
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentcolor" d="M256 159.1c-53.02.0-95.1 42.98-95.1 95.1s41.2 96.9 95.1 96.9 95.1-42.98 95.1-95.1S309 159.1 256 159.1zM509.3 347l-63.2-91.9 63.15-91.01c6.332-9.125 1.104-21.74-9.826-23.72l-109-19.7-19.7-109c-1.975-10.93-14.59-16.16-23.72-9.824L256 65.89 164.1 2.736c-9.125-6.332-21.74-1.107-23.72 9.824L121.6 121.6 12.56 141.3C1.633 143.2-3.596 155.9 2.736 164.1L65.89 256 2.74 347.01c-6.332 9.125-1.105 21.74 9.824 23.72l109 19.7 19.7 109c1.975 10.93 14.59 16.16 23.72 9.824L256 446.1l91.01 63.15c9.127 6.334 21.75 1.107 23.72-9.822l19.7-109 109-19.7C510.4 368.8 515.6 356.1 509.3 347zM256 383.1c-70.69.0-127.1-57.31-127.1-127.1.0-70.69 57.31-127.1 127.1-127.1S383.1 186.2 383.1 256c0 70.7-56.4 127.1-127.1 127.1z"/></svg>
+</span>
+</div>
+</button>
+</div>
+</div>
+<div class="flex md:hidden items-center space-x-5 md:ml-12">
+<span></span>
+<button id=search-button-mobile class="text-base hover:text-primary-600 dark:hover:text-primary-400" title>
+<span class="relative inline-block align-text-bottom icon"><svg aria-hidden="true" focusable="false" data-prefix="fas" data-icon="search" class="svg-inline--fa fa-search fa-w-16" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentcolor" d="M505 442.7 405.3 343c-4.5-4.5-10.6-7-17-7H372c27.6-35.3 44-79.7 44-128C416 93.1 322.9.0 208 0S0 93.1.0 208s93.1 208 208 208c48.3.0 92.7-16.4 128-44v16.3c0 6.4 2.5 12.5 7 17l99.7 99.7c9.4 9.4 24.6 9.4 33.9.0l28.3-28.3c9.4-9.4 9.4-24.6.1-34zM208 336c-70.7.0-128-57.2-128-128 0-70.7 57.2-128 128-128 70.7.0 128 57.2 128 128 0 70.7-57.2 128-128 128z"/></svg>
+</span>
+</button>
+<button id=appearance-switcher-mobile type=button style=margin-right:5px>
+<div class="flex items-center justify-center h-12 dark:hidden">
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentcolor" d="M32 256C32 132.2 132.3 32 255.8 32c11.36.0 29.7 1.668 40.9 3.746 9.616 1.777 11.75 14.63 3.279 19.44C245 86.5 211.2 144.6 211.2 207.8c0 109.7 99.71 193 208.3 172.3 9.561-1.805 16.28 9.324 10.11 16.95C387.9 448.6 324.8 480 255.8 480 132.1 480 32 379.6 32 256z"/></svg>
+</span>
+</div>
+<div class="items-center justify-center hidden h-12 dark:flex">
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentcolor" d="M256 159.1c-53.02.0-95.1 42.98-95.1 95.1s41.2 96.9 95.1 96.9 95.1-42.98 95.1-95.1S309 159.1 256 159.1zM509.3 347l-63.2-91.9 63.15-91.01c6.332-9.125 1.104-21.74-9.826-23.72l-109-19.7-19.7-109c-1.975-10.93-14.59-16.16-23.72-9.824L256 65.89 164.1 2.736c-9.125-6.332-21.74-1.107-23.72 9.824L121.6 121.6 12.56 141.3C1.633 143.2-3.596 155.9 2.736 164.1L65.89 256 2.74 347.01c-6.332 9.125-1.105 21.74 9.824 23.72l109 19.7 19.7 109c1.975 10.93 14.59 16.16 23.72 9.824L256 446.1l91.01 63.15c9.127 6.334 21.75 1.107 23.72-9.822l19.7-109 109-19.7C510.4 368.8 515.6 356.1 509.3 347zM256 383.1c-70.69.0-127.1-57.31-127.1-127.1.0-70.69 57.31-127.1 127.1-127.1S383.1 186.2 383.1 256c0 70.7-56.4 127.1-127.1 127.1z"/></svg>
+</span>
+</div>
+</button>
+</div>
+</div>
+<div class="-my-2 -mr-2 md:hidden">
+<label id=menu-button for=menu-controller class=block>
+<input type=checkbox id=menu-controller class=hidden>
+<div class="cursor-pointer hover:text-primary-600 dark:hover:text-primary-400">
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path fill="currentcolor" d="M0 96C0 78.33 14.33 64 32 64H416c17.7.0 32 14.33 32 32 0 17.7-14.3 32-32 32H32C14.33 128 0 113.7.0 96zM0 256c0-17.7 14.33-32 32-32H416c17.7.0 32 14.3 32 32s-14.3 32-32 32H32c-17.67.0-32-14.3-32-32zM416 448H32c-17.67.0-32-14.3-32-32s14.33-32 32-32H416c17.7.0 32 14.3 32 32s-14.3 32-32 32z"/></svg>
+</span>
+</div>
+<div id=menu-wrapper style=padding-top:25px class="fixed inset-0 z-30 invisible w-screen h-screen m-auto overflow-auto transition-opacity opacity-0 cursor-default bg-neutral-100/50 backdrop-blur-sm dark:bg-neutral-900/50">
+<ul class="flex movedown flex-col w-full px-6 py-6 mx-auto overflow-visible list-none ltr:text-right rtl:text-left max-w-7xl sm:px-14 md:px-24 lg:px-32 sm:py-10 sm:pt-10">
+<li class=mb-1>
+<span class="cursor-pointer hover:text-primary-600 dark:hover:text-primary-400">
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><path fill="currentcolor" d="M310.6 361.4c12.5 12.5 12.5 32.75.0 45.25C304.4 412.9 296.2 416 288 416s-16.38-3.125-22.62-9.375L160 301.3 54.63 406.6C48.38 412.9 40.19 416 32 416S15.63 412.9 9.375 406.6c-12.5-12.5-12.5-32.75.0-45.25l105.4-105.4L9.375 150.6c-12.5-12.5-12.5-32.75.0-45.25s32.75-12.5 45.25.0L160 210.8l105.4-105.4c12.5-12.5 32.75-12.5 45.25.0s12.5 32.75.0 45.25l-105.4 105.4L310.6 361.4z"/></svg>
+</span>
+</span>
+</li>
+<li class=mb-1>
+<a class="decoration-primary-500 hover:underline hover:decoration-2 hover:underline-offset-2" href=/posts/ title=Posts>
+Blog
+</a>
+</li>
+<li class=mb-1>
+<a class="decoration-primary-500 hover:underline hover:decoration-2 hover:underline-offset-2" href=/tags/ title=Tags>
+Tags
+</a>
+</li>
+<li class=mb-1>
+<a class="decoration-primary-500 hover:underline hover:decoration-2 hover:underline-offset-2" href=https://github.com/yteraoka title>
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><path fill="currentcolor" d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6.0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6.0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3.0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1.0-6.2-.3-40.4-.3-61.4.0.0-70 15-84.7-29.8.0.0-11.4-29.1-27.8-36.6.0.0-22.9-15.7 1.6-15.4.0.0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5.0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9.0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4.0 33.7-.3 75.4-.3 83.6.0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6.0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9.0-6.2-1.4-2.3-4-3.3-5.6-2z"/></svg>
+</span>
+&nbsp;
+GitHub
+</a>
+</li>
+<li class=mb-1>
+<a class="decoration-primary-500 hover:underline hover:decoration-2 hover:underline-offset-2" href=https://twitter.com/yteraoka title>
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentcolor" d="M459.37 151.716c.325 4.548.325 9.097.325 13.645.0 138.72-105.583 298.558-298.558 298.558-59.452.0-114.68-17.219-161.137-47.106 8.447.974 16.568 1.299 25.34 1.299 49.055.0 94.213-16.568 130.274-44.832-46.132-.975-84.792-31.188-98.112-72.772 6.498.974 12.995 1.624 19.818 1.624 9.421.0 18.843-1.3 27.614-3.573-48.081-9.747-84.143-51.98-84.143-102.985v-1.299c13.969 7.797 30.214 12.67 47.431 13.319-28.264-18.843-46.781-51.005-46.781-87.391.0-19.492 5.197-37.36 14.294-52.954 51.655 63.675 129.3 105.258 216.365 109.807-1.624-7.797-2.599-15.918-2.599-24.04.0-57.828 46.782-104.934 104.934-104.934 30.213.0 57.502 12.67 76.67 33.137 23.715-4.548 46.456-13.32 66.599-25.34-7.798 24.366-24.366 44.833-46.132 57.827 21.117-2.273 41.584-8.122 60.426-16.243-14.292 20.791-32.161 39.308-52.628 54.253z"/></svg>
+</span>
+&nbsp;
+Twitter
+</a>
+</li>
+<li class=mb-1>
+<a class="decoration-primary-500 hover:underline hover:decoration-2 hover:underline-offset-2" href=https://qiita.com/yteraoka title>
+Qiita
+</a>
+</li>
+</ul>
+</div>
+</label>
+</div>
+</div>
+<div id=mobile-menu class="fixed inset-0 z-30 invisible w-screen h-screen m-auto overflow-auto transition-opacity opacity-0 cursor-default bg-neutral-100/50 backdrop-blur-sm dark:bg-neutral-900/50">
+<ul class="flex movedown flex-col w-full px-6 py-6 mx-auto overflow-visible list-none ltr:text-right rtl:text-left max-w-7xl sm:px-14 md:px-24 lg:px-32 sm:py-10 sm:pt-10">
+<li class=mb-1>
+<span class="cursor-pointer hover:text-primary-600 dark:hover:text-primary-400">
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><path fill="currentcolor" d="M310.6 361.4c12.5 12.5 12.5 32.75.0 45.25C304.4 412.9 296.2 416 288 416s-16.38-3.125-22.62-9.375L160 301.3 54.63 406.6C48.38 412.9 40.19 416 32 416S15.63 412.9 9.375 406.6c-12.5-12.5-12.5-32.75.0-45.25l105.4-105.4L9.375 150.6c-12.5-12.5-12.5-32.75.0-45.25s32.75-12.5 45.25.0L160 210.8l105.4-105.4c12.5-12.5 32.75-12.5 45.25.0s12.5 32.75.0 45.25l-105.4 105.4L310.6 361.4z"/></svg>
+</span>
+</span>
+</li>
+<li class=mb-1>
+<a class="decoration-primary-500 hover:underline hover:decoration-2 hover:underline-offset-2" href=/posts/ title=Posts>Blog</a>
+</li>
+<li class=mb-1>
+<a class="decoration-primary-500 hover:underline hover:decoration-2 hover:underline-offset-2" href=/tags/ title=Tags>Tags</a>
+</li>
+<li class=mb-1>
+<a class="decoration-primary-500 hover:underline hover:decoration-2 hover:underline-offset-2" href=https://github.com/yteraoka title>GitHub</a>
+</li>
+<li class=mb-1>
+<a class="decoration-primary-500 hover:underline hover:decoration-2 hover:underline-offset-2" href=https://twitter.com/yteraoka title>Twitter</a>
+</li>
+<li class=mb-1>
+<a class="decoration-primary-500 hover:underline hover:decoration-2 hover:underline-offset-2" href=https://qiita.com/yteraoka title>Qiita</a>
+</li>
+<li>
+<button id=search-button-mobile class="text-base hover:text-primary-600 dark:hover:text-primary-400">
+<span class="relative inline-block align-text-bottom icon"><svg aria-hidden="true" focusable="false" data-prefix="fas" data-icon="search" class="svg-inline--fa fa-search fa-w-16" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentcolor" d="M505 442.7 405.3 343c-4.5-4.5-10.6-7-17-7H372c27.6-35.3 44-79.7 44-128C416 93.1 322.9.0 208 0S0 93.1.0 208s93.1 208 208 208c48.3.0 92.7-16.4 128-44v16.3c0 6.4 2.5 12.5 7 17l99.7 99.7c9.4 9.4 24.6 9.4 33.9.0l28.3-28.3c9.4-9.4 9.4-24.6.1-34zM208 336c-70.7.0-128-57.2-128-128 0-70.7 57.2-128 128-128 70.7.0 128 57.2 128 128 0 70.7-57.2 128-128 128z"/></svg>
+</span>
+</button>
+</li>
+</ul>
+</div>
+<div class="relative flex flex-col grow">
+<main id=main-content class=grow>
+<article>
+<header class=max-w-prose>
+<ol class="text-sm text-neutral-500 dark:text-neutral-400 print:hidden">
+<li class="inline hidden">
+<a class="hover:underline decoration-neutral-300 dark:underline-neutral-600" href=/>1Q77</a><span class="px-1 text-primary-500">/</span>
+</li>
+<li class=inline>
+<a class="hover:underline decoration-neutral-300 dark:underline-neutral-600" href=/posts/>Posts</a><span class="px-1 text-primary-500">/</span>
+</li>
+<li class="inline hidden">
+<a class="hover:underline decoration-neutral-300 dark:underline-neutral-600" href=/2020/03/cert-manager/>cert-manager で証明書管理</a><span class="px-1 text-primary-500">/</span>
+</li>
+</ol>
+<h1 class="mt-0 text-4xl font-extrabold text-neutral-900 dark:text-neutral">
+cert-manager で証明書管理
+</h1>
+<div class="mt-8 mb-12 text-base text-neutral-500 dark:text-neutral-400 print:hidden">
+<div class="flex flex-row flex-wrap items-center">
+<time datetime="2020-03-28 14:02:59 +0000 UTC">2020年3月28日</time>
+</div>
+<div class="flex flex-row flex-wrap items-center">
+<span style=margin-top:.5rem class=mr-2 onclick='window.open("/tags/kubernetes/")'>
+<span class=flex>
+<span class="rounded-md border border-primary-400 px-1 py-[1px] text-xs font-normal text-primary-700 dark:border-primary-600 dark:text-primary-400">
+Kubernetes
+</span>
+</span>
+</span>
+<span style=margin-top:.5rem class=mr-2 onclick='window.open("/tags/cert-manager/")'>
+<span class=flex>
+<span class="rounded-md border border-primary-400 px-1 py-[1px] text-xs font-normal text-primary-700 dark:border-primary-600 dark:text-primary-400">
+cert-manager
+</span>
+</span>
+</span>
+</div>
+</div>
+</header>
+<section class="flex flex-col max-w-full mt-0 prose dark:prose-invert lg:flex-row">
+<div class="order-first px-0 lg:order-last lg:max-w-xs ltr:lg:pl-8 rtl:lg:pr-8">
+<div class="toc ltr:pl-5 rtl:pr-5 print:hidden lg:sticky lg:top-10">
+<details open class="mt-0 overflow-hidden rounded-lg ltr:-ml-5 ltr:pl-5 rtl:-mr-5 rtl:pr-5 hidden lg:block">
+<summary class="block py-1 text-lg font-semibold cursor-pointer bg-neutral-100 text-neutral-800 ltr:-ml-5 ltr:pl-5 rtl:-mr-5 rtl:pr-5 dark:bg-neutral-700 dark:text-neutral-100 lg:hidden">
+目次
+</summary>
+<div class="py-2 border-dotted border-neutral-300 ltr:-ml-5 ltr:border-l ltr:pl-5 rtl:-mr-5 rtl:border-r rtl:pr-5 dark:border-neutral-600">
+<nav id=TableOfContents>
+<ul>
+<li><a href=#cert-manager-のインストール>cert-manager のインストール</a></li>
+<li><a href=#リソースの登録>リソースの登録</a>
+<ul>
+<li><a href=#secret-access-key-を-k8s-secret-に登録>Secret Access Key を K8s Secret に登録</a></li>
+<li><a href=#issuer-の登録>Issuer の登録</a></li>
+<li><a href=#certificate-の登録>Certificate の登録</a></li>
+</ul>
+</li>
+</ul>
+</nav>
+</div>
+</details>
+<details class="mt-0 overflow-hidden rounded-lg ltr:-ml-5 ltr:pl-5 rtl:-mr-5 rtl:pr-5 lg:hidden">
+<summary class="py-1 text-lg font-semibold cursor-pointer bg-neutral-100 text-neutral-800 ltr:-ml-5 ltr:pl-5 rtl:-mr-5 rtl:pr-5 dark:bg-neutral-700 dark:text-neutral-100 lg:hidden">
+目次
+</summary>
+<div class="py-2 border-dotted border-neutral-300 ltr:-ml-5 ltr:border-l ltr:pl-5 rtl:-mr-5 rtl:border-r rtl:pr-5 dark:border-neutral-600">
+<nav id=TableOfContents>
+<ul>
+<li><a href=#cert-manager-のインストール>cert-manager のインストール</a></li>
+<li><a href=#リソースの登録>リソースの登録</a>
+<ul>
+<li><a href=#secret-access-key-を-k8s-secret-に登録>Secret Access Key を K8s Secret に登録</a></li>
+<li><a href=#issuer-の登録>Issuer の登録</a></li>
+<li><a href=#certificate-の登録>Certificate の登録</a></li>
+</ul>
+</li>
+</ul>
+</nav>
+</div>
+</details>
+</div>
+</div>
+<div class="min-w-0 min-h-0 max-w-prose">
+<p>前回の「<a href=/2020/03/argocd-istio-ingress/>ArgoCD と Istio Ingress Gateway</a>」と、前々回の「 <a href=/2020/03/istio-part11/>Istio 導入への道 – Ingress Gateway で TLS Termination 編</a> 」で TLS の証明書を手動で取得して Secret として登録したが、登録もさることながら更新が大変です。これを <a href=https://cert-manager.io/>cert-manager</a> にやってもらうことにします。</p>
+<h2 id=cert-manager-のインストール class="relative group">cert-manager のインストール <span class="absolute top-0 w-6 transition-opacity opacity-0 ltr:-left-6 rtl:-right-6 not-prose group-hover:opacity-100"><a class="group-hover:text-primary-300 dark:group-hover:text-neutral-700" style=text-decoration-line:none!important href=#cert-manager-%e3%81%ae%e3%82%a4%e3%83%b3%e3%82%b9%e3%83%88%e3%83%bc%e3%83%ab aria-label=アンカー>#</a></span></h2>
+<p><a href=https://cert-manager.io/docs/installation/kubernetes/>ドキュメント</a>にある通りです。</p>
+<pre tabindex=0><code>$ kubectl apply -f [https://github.com/jetstack/cert-manager/releases/download/v0.14.1/cert-manager.yaml](https://github.com/jetstack/cert-manager/releases/download/v0.14.1/cert-manager.yaml)
+
+</code></pre><p>沢山のリソースが作成されます。</p>
+<pre tabindex=0><code>customresourcedefinition.apiextensions.k8s.io/certificaterequests.cert-manager.io created
+customresourcedefinition.apiextensions.k8s.io/certificates.cert-manager.io created
+customresourcedefinition.apiextensions.k8s.io/challenges.acme.cert-manager.io created
+customresourcedefinition.apiextensions.k8s.io/clusterissuers.cert-manager.io created
+customresourcedefinition.apiextensions.k8s.io/issuers.cert-manager.io created
+customresourcedefinition.apiextensions.k8s.io/orders.acme.cert-manager.io created
+namespace/cert-manager created
+serviceaccount/cert-manager-cainjector created
+serviceaccount/cert-manager created
+serviceaccount/cert-manager-webhook created
+clusterrole.rbac.authorization.k8s.io/cert-manager-cainjector created
+clusterrole.rbac.authorization.k8s.io/cert-manager-controller-certificates created
+clusterrole.rbac.authorization.k8s.io/cert-manager-controller-issuers created
+clusterrole.rbac.authorization.k8s.io/cert-manager-view created
+clusterrole.rbac.authorization.k8s.io/cert-manager-controller-orders created
+clusterrole.rbac.authorization.k8s.io/cert-manager-controller-challenges created
+clusterrole.rbac.authorization.k8s.io/cert-manager-controller-ingress-shim created
+clusterrole.rbac.authorization.k8s.io/cert-manager-controller-clusterissuers created
+clusterrole.rbac.authorization.k8s.io/cert-manager-edit created
+clusterrolebinding.rbac.authorization.k8s.io/cert-manager-cainjector created
+clusterrolebinding.rbac.authorization.k8s.io/cert-manager-controller-challenges created
+clusterrolebinding.rbac.authorization.k8s.io/cert-manager-controller-issuers created
+clusterrolebinding.rbac.authorization.k8s.io/cert-manager-controller-certificates created
+clusterrolebinding.rbac.authorization.k8s.io/cert-manager-controller-orders created
+clusterrolebinding.rbac.authorization.k8s.io/cert-manager-controller-clusterissuers created
+clusterrolebinding.rbac.authorization.k8s.io/cert-manager-controller-ingress-shim created
+role.rbac.authorization.k8s.io/cert-manager-cainjector:leaderelection created
+role.rbac.authorization.k8s.io/cert-manager:leaderelection created
+rolebinding.rbac.authorization.k8s.io/cert-manager-cainjector:leaderelection created
+rolebinding.rbac.authorization.k8s.io/cert-manager:leaderelection created
+service/cert-manager created
+service/cert-manager-webhook created
+deployment.apps/cert-manager-cainjector created
+deployment.apps/cert-manager created
+deployment.apps/cert-manager-webhook created
+mutatingwebhookconfiguration.admissionregistration.k8s.io/cert-manager-webhook created
+validatingwebhookconfiguration.admissionregistration.k8s.io/cert-manager-webhook created
+
+</code></pre><p><strong>cert-manager</strong> ネームスペースに <strong>cert-manager</strong>, <strong>cert-manager-cainjector</strong> (CA Injector), <strong>cert-manager-webhook</strong> Deployment がデプロイされています。</p>
+<pre tabindex=0><code>$ kubectl get pods --namespace cert-manager
+NAME                                       READY   STATUS    RESTARTS   AGE
+cert-manager-665f89d4d6-vfpdx              1/1     Running   0          83m
+cert-manager-cainjector-78c8947f5c-r8rsd   1/1     Running   0          83m
+cert-manager-webhook-84f59fdf49-l59ld      1/1     Running   0          83m
+
+</code></pre><h2 id=リソースの登録 class="relative group">リソースの登録 <span class="absolute top-0 w-6 transition-opacity opacity-0 ltr:-left-6 rtl:-right-6 not-prose group-hover:opacity-100"><a class="group-hover:text-primary-300 dark:group-hover:text-neutral-700" style=text-decoration-line:none!important href=#%e3%83%aa%e3%82%bd%e3%83%bc%e3%82%b9%e3%81%ae%e7%99%bb%e9%8c%b2 aria-label=アンカー>#</a></span></h2>
+<p>ここでは <a href=https://letsencrypt.org/>Let&rsquo;s Encrypt</a> の証明書を <a href=https://cert-manager.io/docs/configuration/acme/dns01/>dns01</a> で取得します。DNS には <a href=https://cert-manager.io/docs/configuration/acme/dns01/route53/>Route53</a> を使います。Kubernetes クラスタは相変わらず <a href=https://kubernetes.io/ja/docs/setup/learning-environment/minikube/>Minikube</a> なので IAM Role ではなく IAM User を作成して Access Key ID と Secret Access Key を使います。</p>
+<h3 id=secret-access-key-を-k8s-secret-に登録 class="relative group">Secret Access Key を K8s Secret に登録 <span class="absolute top-0 w-6 transition-opacity opacity-0 ltr:-left-6 rtl:-right-6 not-prose group-hover:opacity-100"><a class="group-hover:text-primary-300 dark:group-hover:text-neutral-700" style=text-decoration-line:none!important href=#secret-access-key-%e3%82%92-k8s-secret-%e3%81%ab%e7%99%bb%e9%8c%b2 aria-label=アンカー>#</a></span></h3>
+<p><code>route53-credentials-secret</code> という名前の Secret を cert-manager ネームスペースに登録します。キーは <code>secret-access-key</code> とします。</p>
+<pre tabindex=0><code>$ kubectl apply -f - &lt;&lt;EOF
+apiVersion: v1
+kind: Secret
+metadata:
+  name: route53-credentials-secret
+  namespace: cert-manager
+type: Opeque
+stringData:
+  secret-access-key: ai/Vdmhv2qhekGe1nE1u39HC48LIAwtBap+5TP81
+EOF
+
+</code></pre><h3 id=issuer-の登録 class="relative group">Issuer の登録 <span class="absolute top-0 w-6 transition-opacity opacity-0 ltr:-left-6 rtl:-right-6 not-prose group-hover:opacity-100"><a class="group-hover:text-primary-300 dark:group-hover:text-neutral-700" style=text-decoration-line:none!important href=#issuer-%e3%81%ae%e7%99%bb%e9%8c%b2 aria-label=アンカー>#</a></span></h3>
+<p><strong>Issuer</strong> と <strong>ClusterIssuer</strong> があり、Issuer は namespace に閉じたリソースです。ネームスペースを跨いで利用する場合は <strong>ClusterIssuer</strong> を使います。Issuer には Let&rsquo;s Encrypt などを使用するのに必要な情報をセットします。今回は <a href=https://letsencrypt.org/docs/challenge-types/#dns-01-challenge>Let&rsquo;s Encrypt の dns01</a> と <a href=https://cert-manager.io/docs/configuration/acme/dns01/route53/>Route53</a> ですから、</p>
+<p>Let&rsquo;s Encrypt 用に</p>
+<ul>
+<li>メールアドレス</li>
+<li>ACME サーバーの URL</li>
+<li>Private Key の保存先としての Secret 名</li>
+</ul>
+<p>Route53 用に</p>
+<ul>
+<li>Region 名</li>
+<li>Access Key ID</li>
+<li>Secret Access Key を登録した Secret 名</li>
+</ul>
+<p>を設定します。</p>
+<pre tabindex=0><code>$ kubectl apply -f - &lt;&lt;EOF
+apiVersion: cert-manager.io/v1alpha2
+kind: ClusterIssuer
+metadata:
+  name: letsencrypt
+  namespace: cert-manager
+spec:
+  acme:
+    # The ACME server URL
+    server: https://acme-v02.api.letsencrypt.org/directory
+    # Email address used for ACME registration
+    email: username@gmail.com
+    # Name of a secret used to store the ACME account private key
+    privateKeySecretRef:
+      name: letsencrypt
+    solvers:
+    - dns01:
+        route53:
+          region: ap-northeast-1
+          accessKeyID: AKIA5Z6TEOZE8VOPCH6K
+          secretAccessKeySecretRef:
+            name: route53-credentials-secret
+            key: secret-access-key
+EOF
+
+</code></pre><p><strong>solvers</strong> はリストで複数のプロバイダを登録できます。ドメインによって DNS プロバイダが違う場合や Route53 用の AWS Account が違う場合、または dns01 ではなく web01 を使う場合などの混在が可能です。</p>
+<h3 id=certificate-の登録 class="relative group">Certificate の登録 <span class="absolute top-0 w-6 transition-opacity opacity-0 ltr:-left-6 rtl:-right-6 not-prose group-hover:opacity-100"><a class="group-hover:text-primary-300 dark:group-hover:text-neutral-700" style=text-decoration-line:none!important href=#certificate-%e3%81%ae%e7%99%bb%e9%8c%b2 aria-label=アンカー>#</a></span></h3>
+<p><code>issuerRef</code> でどの <strong>Issuer</strong> を使うのかを指定します。ClusterIssuer を使ったため default ネームスペースからでも発行可能です。<code>secretName</code> で指定した Secret に秘密鍵と証明書が保存されます。</p>
+<pre tabindex=0><code>$ kubectl apply -f - &lt;&lt;EOF
+apiVersion: cert-manager.io/v1alpha2
+kind: Certificate
+metadata:
+  name: wildcard-local-1q77-com
+  namespace: default
+spec:
+  secretName: wildcard-local-1q77-com
+  dnsNames:
+  - '\*.local.1q77.com'
+  - local.1q77.com
+  issuerRef:
+    name: letsencrypt
+    kind: ClusterIssuer
+EOF
+
+</code></pre><p>これで次のような CommonName, SANs の証明書を取得することができます。</p>
+<pre tabindex=0><code>Certificate:
+    Data:
+        Version: 3 (0x2)
+        Serial Number:
+            04:94:64:04:e7:54:ba:6a:b5:cf:30:3a:fd:e3:d3:7f:95:af
+    Signature Algorithm: sha256WithRSAEncryption
+        Issuer: C=US, O=Let's Encrypt, CN=Let's Encrypt Authority X3
+        Validity
+            Not Before: Mar 28 08:21:40 2020 GMT
+            Not After : Jun 26 08:21:40 2020 GMT
+        Subject: CN=\*.local.1q77.com
+        Subject Public Key Info:
+            Public Key Algorithm: rsaEncryption
+                Public-Key: (2048 bit)
+                Modulus:
+                    00:c5:5f:18:bd:46:7e:91:6c:d3:0e:04:0e:fc:6c:
+                    ef:9d:25:98:10:e9:c1:a1:68:3c:23:5e:13:98💿
+                    2d:60:4e:5d:06:87:f3:10:c1:86:cb:4e:7d:cf:b4:
+                    fe:9f:20:3a:88:5a:4d:0a:ff:01:34:23:74:a4:22:
+                    a8:c3:32:74:b1:23:25:f2:f1:11:f1:7c:77:ee:7e:
+                    41:d9:7b:4f:ac:ca:ea:c0:6d:f1:46:bf:d1:c3:06:
+                    fa:45:66:dc:ee:03:e9:25:23:46:c9:54:57:88:eb:
+                    35:53:f5:ea:db:5c:09:d3:fa:a5:98:34:2d:c6:50:
+                    aa:80:ef:25:72:48:04:9b:48:4d:bb:dc:f8:9a:56:
+                    dc:f5:e4:f6:b4:34:d2:d0:a8:54:ce:77:4a:d5:83:
+                    60:e3:16:20:6e:12:6b:d5:0c:86:d2:3c:5a:ba:64:
+                    5f:cf:05:cb:db:0a:64:35:3d:e9:8d:18:65:2b:fd:
+                    11:fe:32:c5:5e:29:44:f6:85:61:4c:ae:9d:33:f6:
+                    e1:d8:9a:4c:2d:9e:fa:58:ff:0b:45:89:61:1c:3d:
+                    cf:8c:58:b5:c6:76:ca:95:e3:6d:14:ef:4e:81:8d:
+                    dd:a0:85:52:4b:b3:61:e4:c0:f5:be:12:c7:7e:35:
+                    ab:36:b7:ea:54:55:2d:8d:a5:3f:cc:3e:84:a5:84:
+                    4d:a1
+                Exponent: 65537 (0x10001)
+        X509v3 extensions:
+            X509v3 Key Usage: critical
+                Digital Signature, Key Encipherment
+            X509v3 Extended Key Usage: 
+                TLS Web Server Authentication, TLS Web Client Authentication
+            X509v3 Basic Constraints: critical
+                CA:FALSE
+            X509v3 Subject Key Identifier: 
+                A8:0D:95:E2:F2:CA:5A:11:4A:DD:83:70:A6:07:77:83:12:36:27:7A
+            X509v3 Authority Key Identifier: 
+                keyid:A8:4A:6A:63:04:7D:DD:BA:E6:D1:39:B7:A6:45:65:EF:F3:A8:EC:A1
+
+            Authority Information Access: 
+                OCSP - URI:http://ocsp.int-x3.letsencrypt.org
+                CA Issuers - URI:http://cert.int-x3.letsencrypt.org/
+
+            X509v3 Subject Alternative Name: 
+                DNS:\*.local.1q77.com, DNS:local.1q77.com
+            X509v3 Certificate Policies: 
+                Policy: 2.23.140.1.2.1
+                Policy: 1.3.6.1.4.1.44947.1.1.1
+                  CPS: http://cps.letsencrypt.org
+
+</code></pre><p><strong>Certificate</strong> リソースは次のような状態。</p>
+<pre tabindex=0><code>$ kubectl get certificate
+NAME                      READY   SECRET                    AGE
+wildcard-local-1q77-com   True    wildcard-local-1q77-com   4h36m
+
+</code></pre><p>$ kubectl describe certificate <br>
+Name: wildcard-local-1q77-com
+Namespace: default
+Labels: <none>
+Annotations: kubectl.kubernetes.io/last-applied-configuration:
+{&ldquo;apiVersion&rdquo;:&ldquo;cert-manager.io/v1alpha2&rdquo;,&ldquo;kind&rdquo;:&ldquo;Certificate&rdquo;,&ldquo;metadata&rdquo;:{&ldquo;annotations&rdquo;:{},&ldquo;name&rdquo;:&ldquo;wildcard-local-1q77-com&rdquo;,&ldquo;namespace&rdquo;:&ldquo;d&mldr;
+API Version: cert-manager.io/v1alpha3
+Kind: Certificate
+Metadata:
+Creation Timestamp: 2020-03-28T08:59:27Z
+Generation: 2
+Resource Version: 1027821
+Self Link: /apis/cert-manager.io/v1alpha3/namespaces/default/certificates/wildcard-local-1q77-com
+UID: f5e5d067-2fac-4fdd-8a4b-59ba26916137
+Spec:
+Dns Names:
+*.local.1q77.com
+local.1q77.com
+Issuer Ref:
+Kind: ClusterIssuer
+Name: letsencrypt
+Secret Name: wildcard-local-1q77-com
+Status:
+Conditions:
+Last Transition Time: 2020-03-28T09:21:41Z
+Message: Certificate is up to date and has not expired
+Reason: Ready
+Status: True
+Type: Ready
+Not After: 2020-06-26T08:21:40Z
+Events:</p>
+<pre tabindex=0><code>
+Certificate を作成すると CertificateRequest リソースが作成されます。何か問題がある場合はこの中身をみると原因が分かったりします。
+
+</code></pre><p>$ kubectl get certificaterequest
+NAME READY AGE
+wildcard-local-1q77-com-4173496889 True 4h17m</p>
+<pre tabindex=0><code>$ kubectl describe certificaterequest     
+Name:         wildcard-local-1q77-com-4173496889
+Namespace:    default
+Labels:       &lt;none&gt;
+Annotations:  cert-manager.io/certificate-name: wildcard-local-1q77-com
+              cert-manager.io/private-key-secret-name: wildcard-local-1q77-com
+              kubectl.kubernetes.io/last-applied-configuration:
+                {&quot;apiVersion&quot;:&quot;cert-manager.io/v1alpha2&quot;,&quot;kind&quot;:&quot;Certificate&quot;,&quot;metadata&quot;:{&quot;annotations&quot;:{},&quot;name&quot;:&quot;wildcard-local-1q77-com&quot;,&quot;namespace&quot;:&quot;d...
+API Version:  cert-manager.io/v1alpha3
+Kind:         CertificateRequest
+Metadata:
+  Creation Timestamp:  2020-03-28T09:17:50Z
+  Generation:          1
+  Owner References:
+    API Version:           cert-manager.io/v1alpha2
+    Block Owner Deletion:  true
+    Controller:            true
+    Kind:                  Certificate
+    Name:                  wildcard-local-1q77-com
+    UID:                   f5e5d067-2fac-4fdd-8a4b-59ba26916137
+  Resource Version:        1027815
+  Self Link:               /apis/cert-manager.io/v1alpha3/namespaces/default/certificaterequests/wildcard-local-1q77-com-4173496889
+  UID:                     8c73b0a5-172e-4fee-bed1-5208406d3e50
+Spec:
+  Csr:  LS0tLS1C (中略... PEM がさらに Base64 されて表示されている) U1QtLS0tLQo=
+  Issuer Ref:
+    Kind:  ClusterIssuer
+    Name:  letsencrypt
+Status:
+  Certificate:  LS0tLS1CRU (中略... PEM がさらに Base64 されて表示されている) LS0tLS0K
+  Conditions:
+    Last Transition Time:  2020-03-28T09:21:40Z
+    Message:               Certificate fetched from issuer successfully
+    Reason:                Issued
+    Status:                True
+    Type:                  Ready
+Events:                    &lt;none&gt;
+
+```
+
+**Certificate** リソースで指定した Secret に証明書と秘密鍵が入っています。
+
+```
+$ kubectl get secret wildcard-local-1q77-com
+NAME                      TYPE                DATA   AGE
+wildcard-local-1q77-com   kubernetes.io/tls   3      4h37m
+
+</code></pre><p>$ kubectl describe secret wildcard-local-1q77-com
+Name: wildcard-local-1q77-com
+Namespace: default
+Labels: <none>
+Annotations: cert-manager.io/alt-names: *.local.1q77.com,local.1q77.com
+cert-manager.io/certificate-name: wildcard-local-1q77-com
+cert-manager.io/common-name: *.local.1q77.com
+cert-manager.io/ip-sans:
+cert-manager.io/issuer-kind: ClusterIssuer
+cert-manager.io/issuer-name: letsencrypt
+cert-manager.io/uri-sans:</p>
+<p>Type: kubernetes.io/tls</p>
+<h1 id=data class="relative group">Data <span class="absolute top-0 w-6 transition-opacity opacity-0 ltr:-left-6 rtl:-right-6 not-prose group-hover:opacity-100"><a class="group-hover:text-primary-300 dark:group-hover:text-neutral-700" style=text-decoration-line:none!important href=#data aria-label=アンカー>#</a></span></h1>
+<p>ca.crt: 0 bytes
+tls.crt: 3582 bytes
+tls.key: 1675 bytes</p>
+<pre tabindex=0><code>
+**Certificate** 設定をミスってた時に **CertificateRequest** で確認されたメッセージです。
+
+</code></pre><p>status:
+conditions:</p>
+<ul>
+<li>lastTransitionTime: &ldquo;2020-03-28T08:59:27Z&rdquo;
+message: &lsquo;The CSR PEM requests a commonName that is not present in the list of
+dnsNames. If a commonName is set, ACME requires that the value is also present
+in the list of dnsNames: &ldquo;local.1q77.com&rdquo; does not exist in [*.local.1q77.com]&rsquo;
+reason: Failed
+status: &ldquo;False&rdquo;
+type: Ready
+failureTime: &ldquo;2020-03-28T08:59:27Z&rdquo;</li>
+</ul>
+<pre tabindex=0><code>
+自動更新
+----
+
+自動更新までは動作確認できていませんが、[ドキュメント](https://cert-manager.io/docs/tutorials/acme/dns-validation/)には次のように書いてあります。
+
+&gt; Once our certificate has been obtained, cert-manager will periodically check its validity and attempt to renew it if it gets close to expiry. cert-manager considers certificates to be close to expiry when the ‘Not After’ field on the certificate is less than the current time plus 30 days.
+
+証明書取得後、cert-manager は定期的に有効性を確認し、期限が近づくと更新を試みます。cert-manager は Not After フィールドの日付が現在時刻プラス30日よりも近い場合に期限切れ間近と判断する。</code></pre>
+</div>
+<script>var liked_article=!1,oid,id,viewed,oid_likes,id_likes,liked;typeof auth!='undefined'&&(oid="views_posts/cert-manager.md",id=oid&&oid.replaceAll("/","-"),viewed=localStorage.getItem(id),viewed||auth.signInAnonymously().then(()=>{var a=db.collection('views').doc(id);localStorage.setItem(id,!0),a.get().then(a=>{a.exists?db.collection('views').doc(id).update({views:firebase.firestore.FieldValue.increment(1)}):db.collection('views').doc(id).set({views:1})}).catch(a=>{console.log("Error getting document:",a)})}).catch(a=>{var b=a.code,c=a.message;console.error(b,c)}),oid_likes="likes_posts/cert-manager.md",id_likes=oid_likes&&oid_likes.replaceAll("/","-"),liked=localStorage.getItem(id_likes),liked&&(liked_article=!0,document.querySelectorAll("button[id='likes_button']")[0].innerText="Remove Like"));function like_article(a){console.log("add"),liked_article=!0,localStorage.setItem(a,!0),document.querySelectorAll("button[id='likes_button']")[0].innerText="Remove Like",auth.signInAnonymously().then(()=>{var b=db.collection('likes').doc(a);b.get().then(b=>{b.exists?db.collection('likes').doc(a).update({likes:firebase.firestore.FieldValue.increment(1)}):db.collection('likes').doc(a).set({likes:1})}).catch(a=>{console.log("Error getting document:",a)})}).catch(a=>{var b=a.code,c=a.message;console.error(b,c)})}function remove_like_article(a){console.log("remove"),liked_article=!1,localStorage.setItem(a,!1),document.querySelectorAll("button[id='likes_button']")[0].innerText="Like",auth.signInAnonymously().then(()=>{var b=db.collection('likes').doc(a);b.get().then(b=>{b.exists?db.collection('likes').doc(a).update({likes:firebase.firestore.FieldValue.increment(-1)}):db.collection('likes').doc(a).set({likes:0})}).catch(a=>{console.log("Error getting document:",a)})}).catch(a=>{var b=a.code,c=a.message;console.error(b,c)})}function process_article(){var a="likes_posts/cert-manager.md",b=a&&a.replaceAll("/","-");liked_article?remove_like_article(b):like_article(b)}</script>
+</section>
+<footer class="pt-8 max-w-prose print:hidden">
+<div class=flex>
+<div class=place-self-center>
+<div class="text-[0.6rem] uppercase leading-3 text-neutral-500 dark:text-neutral-400">
+著者
+</div>
+<div class="font-semibold leading-6 text-neutral-800 dark:text-neutral-300">
+Yoshinori Teraoka
+</div>
+<div class="text-2xl sm:text-lg">
+<div class="flex flex-wrap text-neutral-400 dark:text-neutral-500">
+<a class="px-1 hover:text-primary-700 dark:hover:text-primary-400" href=https://twitter.com/yteraoka target=_blank aria-label=Twitter rel="me noopener noreferrer">
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentcolor" d="M459.37 151.716c.325 4.548.325 9.097.325 13.645.0 138.72-105.583 298.558-298.558 298.558-59.452.0-114.68-17.219-161.137-47.106 8.447.974 16.568 1.299 25.34 1.299 49.055.0 94.213-16.568 130.274-44.832-46.132-.975-84.792-31.188-98.112-72.772 6.498.974 12.995 1.624 19.818 1.624 9.421.0 18.843-1.3 27.614-3.573-48.081-9.747-84.143-51.98-84.143-102.985v-1.299c13.969 7.797 30.214 12.67 47.431 13.319-28.264-18.843-46.781-51.005-46.781-87.391.0-19.492 5.197-37.36 14.294-52.954 51.655 63.675 129.3 105.258 216.365 109.807-1.624-7.797-2.599-15.918-2.599-24.04.0-57.828 46.782-104.934 104.934-104.934 30.213.0 57.502 12.67 76.67 33.137 23.715-4.548 46.456-13.32 66.599-25.34-7.798 24.366-24.366 44.833-46.132 57.827 21.117-2.273 41.584-8.122 60.426-16.243-14.292 20.791-32.161 39.308-52.628 54.253z"/></svg>
+</span>
+</a>
+<a class="px-1 hover:text-primary-700 dark:hover:text-primary-400" href=https://github.com/yteraoka target=_blank aria-label=Github rel="me noopener noreferrer">
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><path fill="currentcolor" d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6.0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6.0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3.0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1.0-6.2-.3-40.4-.3-61.4.0.0-70 15-84.7-29.8.0.0-11.4-29.1-27.8-36.6.0.0-22.9-15.7 1.6-15.4.0.0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5.0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9.0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4.0 33.7-.3 75.4-.3 83.6.0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6.0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9.0-6.2-1.4-2.3-4-3.3-5.6-2z"/></svg>
+</span>
+</a>
+<a class="px-1 hover:text-primary-700 dark:hover:text-primary-400" href=https://linkedin.com/in/fa5b66b7-9c77-4e1b-8b97-40ba4a5a2c13/ target=_blank aria-label=Linkedin rel="me noopener noreferrer">
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path fill="currentcolor" d="M416 32H31.9C14.3 32 0 46.5.0 64.3v383.4C0 465.5 14.3 480 31.9 480H416c17.6.0 32-14.5 32-32.3V64.3c0-17.8-14.4-32.3-32-32.3zM135.4 416H69V202.2h66.5V416zm-33.2-243c-21.3.0-38.5-17.3-38.5-38.5S80.9 96 102.2 96c21.2.0 38.5 17.3 38.5 38.5.0 21.3-17.2 38.5-38.5 38.5zm282.1 243h-66.4V312c0-24.8-.5-56.7-34.5-56.7-34.6.0-39.9 27-39.9 54.9V416h-66.4V202.2h63.7v29.2h.9c8.9-16.8 30.6-34.5 62.9-34.5 67.2.0 79.7 44.3 79.7 101.9V416z"/></svg>
+</span>
+</a>
+<a class="px-1 hover:text-primary-700 dark:hover:text-primary-400" href=https://medium.com/@yteraoka target=_blank aria-label=Medium rel="me noopener noreferrer">
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512"><path fill="currentcolor" d="M180.5 74.262C80.813 74.262.0 155.633.0 256S80.819 437.738 180.5 437.738 361 356.373 361 256 280.191 74.262 180.5 74.262zm288.25 10.646c-49.845.0-90.245 76.619-90.245 171.095s40.406 171.1 90.251 171.1 90.251-76.619 90.251-171.1H559C559 161.5 518.6 84.908 468.752 84.908zm139.506 17.821c-17.526.0-31.735 68.628-31.735 153.274s14.2 153.274 31.735 153.274S640 340.631 640 256c0-84.649-14.215-153.271-31.742-153.271z"/></svg>
+</span>
+</a>
+</div>
+</div>
+</div>
+</div>
+<section class="flex flex-row flex-wrap justify-center pt-4 text-xl">
+<a class="m-1 inline-block min-w-[2.4rem] rounded bg-neutral-300 p-1 text-center text-neutral-700 hover:bg-primary-500 hover:text-neutral dark:bg-neutral-700 dark:text-neutral-300 dark:hover:bg-primary-400 dark:hover:text-neutral-800" href="https://www.linkedin.com/shareArticle?mini=true&url=https://preview-blog.1q77.com/2020/03/cert-manager/&title=cert-manager%20%e3%81%a7%e8%a8%bc%e6%98%8e%e6%9b%b8%e7%ae%a1%e7%90%86" title=LinkedInでシェアする aria-label=LinkedInでシェアする>
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path fill="currentcolor" d="M416 32H31.9C14.3 32 0 46.5.0 64.3v383.4C0 465.5 14.3 480 31.9 480H416c17.6.0 32-14.5 32-32.3V64.3c0-17.8-14.4-32.3-32-32.3zM135.4 416H69V202.2h66.5V416zm-33.2-243c-21.3.0-38.5-17.3-38.5-38.5S80.9 96 102.2 96c21.2.0 38.5 17.3 38.5 38.5.0 21.3-17.2 38.5-38.5 38.5zm282.1 243h-66.4V312c0-24.8-.5-56.7-34.5-56.7-34.6.0-39.9 27-39.9 54.9V416h-66.4V202.2h63.7v29.2h.9c8.9-16.8 30.6-34.5 62.9-34.5 67.2.0 79.7 44.3 79.7 101.9V416z"/></svg>
+</span>
+</a>
+<a class="m-1 inline-block min-w-[2.4rem] rounded bg-neutral-300 p-1 text-center text-neutral-700 hover:bg-primary-500 hover:text-neutral dark:bg-neutral-700 dark:text-neutral-300 dark:hover:bg-primary-400 dark:hover:text-neutral-800" href="https://twitter.com/intent/tweet/?url=https://preview-blog.1q77.com/2020/03/cert-manager/&text=cert-manager%20%e3%81%a7%e8%a8%bc%e6%98%8e%e6%9b%b8%e7%ae%a1%e7%90%86" title=Twitterに投稿する aria-label=Twitterに投稿する>
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentcolor" d="M459.37 151.716c.325 4.548.325 9.097.325 13.645.0 138.72-105.583 298.558-298.558 298.558-59.452.0-114.68-17.219-161.137-47.106 8.447.974 16.568 1.299 25.34 1.299 49.055.0 94.213-16.568 130.274-44.832-46.132-.975-84.792-31.188-98.112-72.772 6.498.974 12.995 1.624 19.818 1.624 9.421.0 18.843-1.3 27.614-3.573-48.081-9.747-84.143-51.98-84.143-102.985v-1.299c13.969 7.797 30.214 12.67 47.431 13.319-28.264-18.843-46.781-51.005-46.781-87.391.0-19.492 5.197-37.36 14.294-52.954 51.655 63.675 129.3 105.258 216.365 109.807-1.624-7.797-2.599-15.918-2.599-24.04.0-57.828 46.782-104.934 104.934-104.934 30.213.0 57.502 12.67 76.67 33.137 23.715-4.548 46.456-13.32 66.599-25.34-7.798 24.366-24.366 44.833-46.132 57.827 21.117-2.273 41.584-8.122 60.426-16.243-14.292 20.791-32.161 39.308-52.628 54.253z"/></svg>
+</span>
+</a>
+</section>
+<div class=pt-8>
+<hr class="border-dotted border-neutral-300 dark:border-neutral-600">
+<div class="flex justify-between pt-3">
+<span>
+<a class="flex group" href=/2020/03/argocd-istio-ingress/>
+<span class="mr-3 text-neutral-700 group-hover:text-primary-600 ltr:inline rtl:hidden dark:text-neutral dark:group-hover:text-primary-400">&larr;</span>
+<span class="ml-3 text-neutral-700 group-hover:text-primary-600 ltr:hidden rtl:inline dark:text-neutral dark:group-hover:text-primary-400">&rarr;</span>
+<span class="flex flex-col">
+<span class="mt-[0.1rem] leading-6 group-hover:underline group-hover:decoration-primary-500">ArgoCD と Istio Ingress Gateway</span>
+<span class="mt-[0.1rem] text-xs text-neutral-500 dark:text-neutral-400">
+<time datetime="2020-03-21 16:55:00 +0000 UTC">2020年3月21日</time>
+</span>
+</span>
+</a>
+</span>
+<span>
+<a class="flex text-right group" href=/2020/03/istio-part12/>
+<span class="flex flex-col">
+<span class="mt-[0.1rem] leading-6 group-hover:underline group-hover:decoration-primary-500">Istio 導入への道 – sidecar の調整編</span>
+<span class="mt-[0.1rem] text-xs text-neutral-500 dark:text-neutral-400">
+<time datetime="2020-03-29 17:01:29 +0000 UTC">2020年3月29日</time>
+</span>
+</span>
+<span class="ml-3 text-neutral-700 group-hover:text-primary-600 ltr:inline rtl:hidden dark:text-neutral dark:group-hover:text-primary-400">&rarr;</span>
+<span class="mr-3 text-neutral-700 group-hover:text-primary-600 ltr:hidden rtl:inline dark:text-neutral dark:group-hover:text-primary-400">&larr;</span>
+</a>
+</span>
+</div>
+</div>
+</footer>
+</article>
+<div class="pointer-events-none absolute top-[100vh] bottom-0 w-12 ltr:right-0 rtl:left-0">
+<a href=#the-top class="pointer-events-auto sticky top-[calc(100vh-5.5rem)] flex h-12 w-12 items-center justify-center rounded-full bg-neutral/50 text-xl text-neutral-700 backdrop-blur hover:text-primary-600 dark:bg-neutral-800/50 dark:text-neutral dark:hover:text-primary-400" aria-label=TOPへスクロール title=TOPへスクロール>
+&uarr;
+</a>
+</div>
+</main><footer class="py-10 print:hidden">
+<div class="flex items-center justify-between">
+<p class="text-sm text-neutral-500 dark:text-neutral-400">
+&copy;
+2022
+Yoshinori Teraoka
+</p>
+</div>
+<script>mediumZoom(document.querySelectorAll("img:not(.nozoom)"),{margin:24,background:'rgba(0,0,0,0.5)',scrollOffset:0})</script>
+<script type=text/javascript src=/js/process.min.48d08339b8a087b59c7b8cb42b6717aeeed3e07bfc68b1654cac27f00583284dac59cae47fb686dd7c0e9ff1d2745689dc2071230dff432ca6d7fc24b9f2e036.js integrity="sha512-SNCDObigh7Wce4y0K2cXru7T4Hv8aLFlTKwn8AWDKE2sWcrkf7aG3XwOn/HSdFaJ3CBxIw3/Qyym1/wkufLgNg=="></script>
+</footer><div id=search-wrapper class="invisible fixed inset-0 z-50 flex h-screen w-screen cursor-default flex-col bg-neutral-500/50 p-4 backdrop-blur-sm dark:bg-neutral-900/50 sm:p-6 md:p-[10vh] lg:p-[12vh]" data-url=https://preview-blog.1q77.com/>
+<div id=search-modal class="flex flex-col w-full max-w-3xl min-h-0 mx-auto border rounded-md shadow-lg top-20 border-neutral-200 bg-neutral dark:border-neutral-700 dark:bg-neutral-800">
+<header class="relative z-10 flex items-center justify-between flex-none px-2">
+<form class="flex items-center flex-auto min-w-0">
+<div class="flex items-center justify-center w-8 h-8 text-neutral-400">
+<span class="relative inline-block align-text-bottom icon"><svg aria-hidden="true" focusable="false" data-prefix="fas" data-icon="search" class="svg-inline--fa fa-search fa-w-16" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentcolor" d="M505 442.7 405.3 343c-4.5-4.5-10.6-7-17-7H372c27.6-35.3 44-79.7 44-128C416 93.1 322.9.0 208 0S0 93.1.0 208s93.1 208 208 208c48.3.0 92.7-16.4 128-44v16.3c0 6.4 2.5 12.5 7 17l99.7 99.7c9.4 9.4 24.6 9.4 33.9.0l28.3-28.3c9.4-9.4 9.4-24.6.1-34zM208 336c-70.7.0-128-57.2-128-128 0-70.7 57.2-128 128-128 70.7.0 128 57.2 128 128 0 70.7-57.2 128-128 128z"/></svg>
+</span>
+</div>
+<input type=search id=search-query class="flex flex-auto h-12 mx-1 bg-transparent appearance-none focus:outline-dotted focus:outline-2 focus:outline-transparent" placeholder=Search tabindex=0>
+</form>
+<button id=close-search-button class="flex items-center justify-center w-8 h-8 text-neutral-700 hover:text-primary-600 dark:text-neutral dark:hover:text-primary-400" title="閉じる (Esc)">
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><path fill="currentcolor" d="M310.6 361.4c12.5 12.5 12.5 32.75.0 45.25C304.4 412.9 296.2 416 288 416s-16.38-3.125-22.62-9.375L160 301.3 54.63 406.6C48.38 412.9 40.19 416 32 416S15.63 412.9 9.375 406.6c-12.5-12.5-12.5-32.75.0-45.25l105.4-105.4L9.375 150.6c-12.5-12.5-12.5-32.75.0-45.25s32.75-12.5 45.25.0L160 210.8l105.4-105.4c12.5-12.5 32.75-12.5 45.25.0s12.5 32.75.0 45.25l-105.4 105.4L310.6 361.4z"/></svg>
+</span>
+</button>
+</header>
+<section class="flex-auto px-2 overflow-auto">
+<ul id=search-results>
+</ul>
+</section>
+</div>
+</div>
+</div>
+</body>
+</html>

@@ -1,0 +1,838 @@
+<!doctype html><html lang=ja dir=ltr class=scroll-smooth data-default-appearance=light data-auto-appearance=true><head>
+<meta charset=utf-8>
+<meta http-equiv=content-language content="ja">
+<meta name=viewport content="width=device-width,initial-scale=1">
+<meta http-equiv=x-ua-compatible content="ie=edge">
+<title>Slony-I の調査 &#183; 1Q77</title>
+<meta name=title content="Slony-I の調査 &#183; 1Q77">
+<link rel=canonical href=https://preview-blog.1q77.com/2018/12/what-is-slony-i/>
+<link type=text/css rel=stylesheet href=/css/main.bundle.min.a9d40529d239a91ecb75447e67ee6c80c1f1c28593904b4052651b12220121e13ec42904268b0193a6858f039cf8bfdd2b1331529ed341ddc7488cec3bdcbc2e.css integrity="sha512-qdQFKdI5qR7LdUR+Z+5sgMHxwoWTkEtAUmUbEiIBIeE+xCkEJosBk6aFjwOc+L/dKxMxUp7TQd3HSIzsO9y8Lg==">
+<script type=text/javascript src=/js/main.min.cf83e1357eefb8bdf1542850d66d8007d620e4050b5715dc83f4a921d36ce9ce47d0d13c5d85f2b0ff8318d2877eec2f63b931bd47417a81a538327af927da3e.js integrity="sha512-z4PhNX7vuL3xVChQ1m2AB9Yg5AULVxXcg/SpIdNs6c5H0NE8XYXysP+DGNKHfuwvY7kxvUdBeoGlODJ6+SfaPg=="></script>
+<script type=text/javascript src=/js/appearance.min.49025a779c36ad37a5bf9f1cc6bffd35ccb69ce15560ef1b10057ddf31576265b19f8bcc1733207336c9144926f7b18aea2e5895f29e858b24271332a2fa5cd5.js integrity="sha512-SQJad5w2rTelv58cxr/9Ncy2nOFVYO8bEAV93zFXYmWxn4vMFzMgczbJFEkm97GK6i5YlfKehYskJxMyovpc1Q=="></script>
+<script defer type=text/javascript id=script-bundle src=/js/main.bundle.min.34ee8372ff77835535e486c6ed01ff6993374a1cec8108898cad793fc6ae7520778e24db68e085c762d25af6fa7d00b57d7a791438dc68b676581f8c8344f6e0.js integrity="sha512-NO6Dcv93g1U15IbG7QH/aZM3ShzsgQiJjK15P8audSB3jiTbaOCFx2LSWvb6fQC1fXp5FDjcaLZ2WB+Mg0T24A==" data-copy data-copied></script>
+<script src=/js/zoom.min.js></script>
+<link rel=apple-touch-icon sizes=180x180 href=/apple-touch-icon.png>
+<link rel=icon type=image/png sizes=32x32 href=/favicon-32x32.png>
+<link rel=icon type=image/png sizes=16x16 href=/favicon-16x16.png>
+<link rel=manifest href=/site.webmanifest>
+<meta property="og:title" content="Slony-I の調査">
+<meta property="og:description" content="Slony-I 2.2.7 のドキュメントからの情報です 概要の確認とチュートリアルを試してみます。 Slony-I とは # Slony-I は PostgreSQL のレプリケーションシステムで、複数レプリカの作成、カ">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://preview-blog.1q77.com/2018/12/what-is-slony-i/"><meta property="article:section" content="posts">
+<meta property="article:published_time" content="2018-12-30T14:58:20+00:00">
+<meta property="article:modified_time" content="2018-12-30T14:58:20+00:00">
+<meta name=twitter:card content="summary">
+<meta name=twitter:title content="Slony-I の調査">
+<meta name=twitter:description content="Slony-I 2.2.7 のドキュメントからの情報です 概要の確認とチュートリアルを試してみます。 Slony-I とは # Slony-I は PostgreSQL のレプリケーションシステムで、複数レプリカの作成、カ">
+<script type=application/ld+json>[{"@context":"https://schema.org","@type":"Article","articleSection":"Posts","name":"Slony-I の調査","headline":"Slony-I の調査","abstract":"Slony-I 2.2.7 のドキュメントからの情報です 概要の確認とチュートリアルを試してみます。 Slony-I とは # Slony-I は PostgreSQL のレプリケーションシステムで、複数レプリカの作成、カ","inLanguage":"ja","url":"https:\/\/preview-blog.1q77.com\/2018\/12\/what-is-slony-i\/","author":{"@type":"Person","name":"Yoshinori Teraoka"},"copyrightYear":"2018","dateCreated":"2018-12-30T14:58:20\u002b00:00","datePublished":"2018-12-30T14:58:20\u002b00:00","dateModified":"2018-12-30T14:58:20\u002b00:00","keywords":["PostgreSQL","slony"],"mainEntityOfPage":"true","wordCount":"4093"}]</script>
+<meta name=author content="Yoshinori Teraoka">
+<link href=https://twitter.com/yteraoka rel=me>
+<link href=https://github.com/yteraoka rel=me>
+<link href=https://linkedin.com/in/fa5b66b7-9c77-4e1b-8b97-40ba4a5a2c13/ rel=me>
+<link href=https://medium.com/@yteraoka rel=me>
+<link rel=stylesheet href=https://rsms.me/inter/inter.css>
+</head><body class="flex flex-col h-screen px-6 m-auto text-lg leading-7 max-w-7xl bg-neutral text-neutral-900 dark:bg-neutral-800 dark:text-neutral sm:px-14 md:px-24 lg:px-32">
+<div id=the-top class="absolute flex self-center">
+<a class="px-3 py-1 text-sm -translate-y-8 rounded-b-lg bg-primary-200 focus:translate-y-0 dark:bg-neutral-600" href=#main-content><span class="font-bold text-primary-600 ltr:pr-2 rtl:pl-2 dark:text-primary-400">&darr;</span>メインコンテンツへスキップ</a>
+</div>
+<div style=padding-left:0;padding-right:0 class="flex items-center justify-between px-4 py-6 sm:px-6 md:justify-start space-x-3">
+<div class="flex flex-1 items-center justify-between">
+<nav class="flex space-x-3">
+<a href=/ class="text-base font-medium text-gray-500 hover:text-gray-900">1Q77</a>
+</nav>
+<div class="hidden md:flex items-center space-x-5 md:ml-12">
+<a href=/posts/ class="text-base font-medium text-gray-500 hover:text-gray-900" title=Posts>
+Blog
+</a>
+<a href=/tags/ class="text-base font-medium text-gray-500 hover:text-gray-900" title=Tags>
+Tags
+</a>
+<a href=https://github.com/yteraoka class="text-base font-medium text-gray-500 hover:text-gray-900" title>
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><path fill="currentcolor" d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6.0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6.0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3.0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1.0-6.2-.3-40.4-.3-61.4.0.0-70 15-84.7-29.8.0.0-11.4-29.1-27.8-36.6.0.0-22.9-15.7 1.6-15.4.0.0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5.0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9.0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4.0 33.7-.3 75.4-.3 83.6.0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6.0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9.0-6.2-1.4-2.3-4-3.3-5.6-2z"/></svg>
+</span>
+&nbsp;
+GitHub
+</a>
+<a href=https://twitter.com/yteraoka class="text-base font-medium text-gray-500 hover:text-gray-900" title>
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentcolor" d="M459.37 151.716c.325 4.548.325 9.097.325 13.645.0 138.72-105.583 298.558-298.558 298.558-59.452.0-114.68-17.219-161.137-47.106 8.447.974 16.568 1.299 25.34 1.299 49.055.0 94.213-16.568 130.274-44.832-46.132-.975-84.792-31.188-98.112-72.772 6.498.974 12.995 1.624 19.818 1.624 9.421.0 18.843-1.3 27.614-3.573-48.081-9.747-84.143-51.98-84.143-102.985v-1.299c13.969 7.797 30.214 12.67 47.431 13.319-28.264-18.843-46.781-51.005-46.781-87.391.0-19.492 5.197-37.36 14.294-52.954 51.655 63.675 129.3 105.258 216.365 109.807-1.624-7.797-2.599-15.918-2.599-24.04.0-57.828 46.782-104.934 104.934-104.934 30.213.0 57.502 12.67 76.67 33.137 23.715-4.548 46.456-13.32 66.599-25.34-7.798 24.366-24.366 44.833-46.132 57.827 21.117-2.273 41.584-8.122 60.426-16.243-14.292 20.791-32.161 39.308-52.628 54.253z"/></svg>
+</span>
+&nbsp;
+Twitter
+</a>
+<a href=https://qiita.com/yteraoka class="text-base font-medium text-gray-500 hover:text-gray-900" title>
+Qiita
+</a>
+<button id=search-button class="text-base hover:text-primary-600 dark:hover:text-primary-400" title>
+<span class="relative inline-block align-text-bottom icon"><svg aria-hidden="true" focusable="false" data-prefix="fas" data-icon="search" class="svg-inline--fa fa-search fa-w-16" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentcolor" d="M505 442.7 405.3 343c-4.5-4.5-10.6-7-17-7H372c27.6-35.3 44-79.7 44-128C416 93.1 322.9.0 208 0S0 93.1.0 208s93.1 208 208 208c48.3.0 92.7-16.4 128-44v16.3c0 6.4 2.5 12.5 7 17l99.7 99.7c9.4 9.4 24.6 9.4 33.9.0l28.3-28.3c9.4-9.4 9.4-24.6.1-34zM208 336c-70.7.0-128-57.2-128-128 0-70.7 57.2-128 128-128 70.7.0 128 57.2 128 128 0 70.7-57.2 128-128 128z"/></svg>
+</span>
+</button>
+<div class="ltr:mr-14 rtl:ml-14 cursor-pointer text-sm text-neutral-700 hover:text-primary-600 dark:text-neutral dark:hover:text-primary-400">
+<button id=appearance-switcher type=button>
+<div class="flex items-center justify-center h-12 dark:hidden">
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentcolor" d="M32 256C32 132.2 132.3 32 255.8 32c11.36.0 29.7 1.668 40.9 3.746 9.616 1.777 11.75 14.63 3.279 19.44C245 86.5 211.2 144.6 211.2 207.8c0 109.7 99.71 193 208.3 172.3 9.561-1.805 16.28 9.324 10.11 16.95C387.9 448.6 324.8 480 255.8 480 132.1 480 32 379.6 32 256z"/></svg>
+</span>
+</div>
+<div class="items-center justify-center hidden h-12 dark:flex">
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentcolor" d="M256 159.1c-53.02.0-95.1 42.98-95.1 95.1s41.2 96.9 95.1 96.9 95.1-42.98 95.1-95.1S309 159.1 256 159.1zM509.3 347l-63.2-91.9 63.15-91.01c6.332-9.125 1.104-21.74-9.826-23.72l-109-19.7-19.7-109c-1.975-10.93-14.59-16.16-23.72-9.824L256 65.89 164.1 2.736c-9.125-6.332-21.74-1.107-23.72 9.824L121.6 121.6 12.56 141.3C1.633 143.2-3.596 155.9 2.736 164.1L65.89 256 2.74 347.01c-6.332 9.125-1.105 21.74 9.824 23.72l109 19.7 19.7 109c1.975 10.93 14.59 16.16 23.72 9.824L256 446.1l91.01 63.15c9.127 6.334 21.75 1.107 23.72-9.822l19.7-109 109-19.7C510.4 368.8 515.6 356.1 509.3 347zM256 383.1c-70.69.0-127.1-57.31-127.1-127.1.0-70.69 57.31-127.1 127.1-127.1S383.1 186.2 383.1 256c0 70.7-56.4 127.1-127.1 127.1z"/></svg>
+</span>
+</div>
+</button>
+</div>
+</div>
+<div class="flex md:hidden items-center space-x-5 md:ml-12">
+<span></span>
+<button id=search-button-mobile class="text-base hover:text-primary-600 dark:hover:text-primary-400" title>
+<span class="relative inline-block align-text-bottom icon"><svg aria-hidden="true" focusable="false" data-prefix="fas" data-icon="search" class="svg-inline--fa fa-search fa-w-16" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentcolor" d="M505 442.7 405.3 343c-4.5-4.5-10.6-7-17-7H372c27.6-35.3 44-79.7 44-128C416 93.1 322.9.0 208 0S0 93.1.0 208s93.1 208 208 208c48.3.0 92.7-16.4 128-44v16.3c0 6.4 2.5 12.5 7 17l99.7 99.7c9.4 9.4 24.6 9.4 33.9.0l28.3-28.3c9.4-9.4 9.4-24.6.1-34zM208 336c-70.7.0-128-57.2-128-128 0-70.7 57.2-128 128-128 70.7.0 128 57.2 128 128 0 70.7-57.2 128-128 128z"/></svg>
+</span>
+</button>
+<button id=appearance-switcher-mobile type=button style=margin-right:5px>
+<div class="flex items-center justify-center h-12 dark:hidden">
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentcolor" d="M32 256C32 132.2 132.3 32 255.8 32c11.36.0 29.7 1.668 40.9 3.746 9.616 1.777 11.75 14.63 3.279 19.44C245 86.5 211.2 144.6 211.2 207.8c0 109.7 99.71 193 208.3 172.3 9.561-1.805 16.28 9.324 10.11 16.95C387.9 448.6 324.8 480 255.8 480 132.1 480 32 379.6 32 256z"/></svg>
+</span>
+</div>
+<div class="items-center justify-center hidden h-12 dark:flex">
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentcolor" d="M256 159.1c-53.02.0-95.1 42.98-95.1 95.1s41.2 96.9 95.1 96.9 95.1-42.98 95.1-95.1S309 159.1 256 159.1zM509.3 347l-63.2-91.9 63.15-91.01c6.332-9.125 1.104-21.74-9.826-23.72l-109-19.7-19.7-109c-1.975-10.93-14.59-16.16-23.72-9.824L256 65.89 164.1 2.736c-9.125-6.332-21.74-1.107-23.72 9.824L121.6 121.6 12.56 141.3C1.633 143.2-3.596 155.9 2.736 164.1L65.89 256 2.74 347.01c-6.332 9.125-1.105 21.74 9.824 23.72l109 19.7 19.7 109c1.975 10.93 14.59 16.16 23.72 9.824L256 446.1l91.01 63.15c9.127 6.334 21.75 1.107 23.72-9.822l19.7-109 109-19.7C510.4 368.8 515.6 356.1 509.3 347zM256 383.1c-70.69.0-127.1-57.31-127.1-127.1.0-70.69 57.31-127.1 127.1-127.1S383.1 186.2 383.1 256c0 70.7-56.4 127.1-127.1 127.1z"/></svg>
+</span>
+</div>
+</button>
+</div>
+</div>
+<div class="-my-2 -mr-2 md:hidden">
+<label id=menu-button for=menu-controller class=block>
+<input type=checkbox id=menu-controller class=hidden>
+<div class="cursor-pointer hover:text-primary-600 dark:hover:text-primary-400">
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path fill="currentcolor" d="M0 96C0 78.33 14.33 64 32 64H416c17.7.0 32 14.33 32 32 0 17.7-14.3 32-32 32H32C14.33 128 0 113.7.0 96zM0 256c0-17.7 14.33-32 32-32H416c17.7.0 32 14.3 32 32s-14.3 32-32 32H32c-17.67.0-32-14.3-32-32zM416 448H32c-17.67.0-32-14.3-32-32s14.33-32 32-32H416c17.7.0 32 14.3 32 32s-14.3 32-32 32z"/></svg>
+</span>
+</div>
+<div id=menu-wrapper style=padding-top:25px class="fixed inset-0 z-30 invisible w-screen h-screen m-auto overflow-auto transition-opacity opacity-0 cursor-default bg-neutral-100/50 backdrop-blur-sm dark:bg-neutral-900/50">
+<ul class="flex movedown flex-col w-full px-6 py-6 mx-auto overflow-visible list-none ltr:text-right rtl:text-left max-w-7xl sm:px-14 md:px-24 lg:px-32 sm:py-10 sm:pt-10">
+<li class=mb-1>
+<span class="cursor-pointer hover:text-primary-600 dark:hover:text-primary-400">
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><path fill="currentcolor" d="M310.6 361.4c12.5 12.5 12.5 32.75.0 45.25C304.4 412.9 296.2 416 288 416s-16.38-3.125-22.62-9.375L160 301.3 54.63 406.6C48.38 412.9 40.19 416 32 416S15.63 412.9 9.375 406.6c-12.5-12.5-12.5-32.75.0-45.25l105.4-105.4L9.375 150.6c-12.5-12.5-12.5-32.75.0-45.25s32.75-12.5 45.25.0L160 210.8l105.4-105.4c12.5-12.5 32.75-12.5 45.25.0s12.5 32.75.0 45.25l-105.4 105.4L310.6 361.4z"/></svg>
+</span>
+</span>
+</li>
+<li class=mb-1>
+<a class="decoration-primary-500 hover:underline hover:decoration-2 hover:underline-offset-2" href=/posts/ title=Posts>
+Blog
+</a>
+</li>
+<li class=mb-1>
+<a class="decoration-primary-500 hover:underline hover:decoration-2 hover:underline-offset-2" href=/tags/ title=Tags>
+Tags
+</a>
+</li>
+<li class=mb-1>
+<a class="decoration-primary-500 hover:underline hover:decoration-2 hover:underline-offset-2" href=https://github.com/yteraoka title>
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><path fill="currentcolor" d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6.0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6.0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3.0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1.0-6.2-.3-40.4-.3-61.4.0.0-70 15-84.7-29.8.0.0-11.4-29.1-27.8-36.6.0.0-22.9-15.7 1.6-15.4.0.0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5.0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9.0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4.0 33.7-.3 75.4-.3 83.6.0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6.0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9.0-6.2-1.4-2.3-4-3.3-5.6-2z"/></svg>
+</span>
+&nbsp;
+GitHub
+</a>
+</li>
+<li class=mb-1>
+<a class="decoration-primary-500 hover:underline hover:decoration-2 hover:underline-offset-2" href=https://twitter.com/yteraoka title>
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentcolor" d="M459.37 151.716c.325 4.548.325 9.097.325 13.645.0 138.72-105.583 298.558-298.558 298.558-59.452.0-114.68-17.219-161.137-47.106 8.447.974 16.568 1.299 25.34 1.299 49.055.0 94.213-16.568 130.274-44.832-46.132-.975-84.792-31.188-98.112-72.772 6.498.974 12.995 1.624 19.818 1.624 9.421.0 18.843-1.3 27.614-3.573-48.081-9.747-84.143-51.98-84.143-102.985v-1.299c13.969 7.797 30.214 12.67 47.431 13.319-28.264-18.843-46.781-51.005-46.781-87.391.0-19.492 5.197-37.36 14.294-52.954 51.655 63.675 129.3 105.258 216.365 109.807-1.624-7.797-2.599-15.918-2.599-24.04.0-57.828 46.782-104.934 104.934-104.934 30.213.0 57.502 12.67 76.67 33.137 23.715-4.548 46.456-13.32 66.599-25.34-7.798 24.366-24.366 44.833-46.132 57.827 21.117-2.273 41.584-8.122 60.426-16.243-14.292 20.791-32.161 39.308-52.628 54.253z"/></svg>
+</span>
+&nbsp;
+Twitter
+</a>
+</li>
+<li class=mb-1>
+<a class="decoration-primary-500 hover:underline hover:decoration-2 hover:underline-offset-2" href=https://qiita.com/yteraoka title>
+Qiita
+</a>
+</li>
+</ul>
+</div>
+</label>
+</div>
+</div>
+<div id=mobile-menu class="fixed inset-0 z-30 invisible w-screen h-screen m-auto overflow-auto transition-opacity opacity-0 cursor-default bg-neutral-100/50 backdrop-blur-sm dark:bg-neutral-900/50">
+<ul class="flex movedown flex-col w-full px-6 py-6 mx-auto overflow-visible list-none ltr:text-right rtl:text-left max-w-7xl sm:px-14 md:px-24 lg:px-32 sm:py-10 sm:pt-10">
+<li class=mb-1>
+<span class="cursor-pointer hover:text-primary-600 dark:hover:text-primary-400">
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><path fill="currentcolor" d="M310.6 361.4c12.5 12.5 12.5 32.75.0 45.25C304.4 412.9 296.2 416 288 416s-16.38-3.125-22.62-9.375L160 301.3 54.63 406.6C48.38 412.9 40.19 416 32 416S15.63 412.9 9.375 406.6c-12.5-12.5-12.5-32.75.0-45.25l105.4-105.4L9.375 150.6c-12.5-12.5-12.5-32.75.0-45.25s32.75-12.5 45.25.0L160 210.8l105.4-105.4c12.5-12.5 32.75-12.5 45.25.0s12.5 32.75.0 45.25l-105.4 105.4L310.6 361.4z"/></svg>
+</span>
+</span>
+</li>
+<li class=mb-1>
+<a class="decoration-primary-500 hover:underline hover:decoration-2 hover:underline-offset-2" href=/posts/ title=Posts>Blog</a>
+</li>
+<li class=mb-1>
+<a class="decoration-primary-500 hover:underline hover:decoration-2 hover:underline-offset-2" href=/tags/ title=Tags>Tags</a>
+</li>
+<li class=mb-1>
+<a class="decoration-primary-500 hover:underline hover:decoration-2 hover:underline-offset-2" href=https://github.com/yteraoka title>GitHub</a>
+</li>
+<li class=mb-1>
+<a class="decoration-primary-500 hover:underline hover:decoration-2 hover:underline-offset-2" href=https://twitter.com/yteraoka title>Twitter</a>
+</li>
+<li class=mb-1>
+<a class="decoration-primary-500 hover:underline hover:decoration-2 hover:underline-offset-2" href=https://qiita.com/yteraoka title>Qiita</a>
+</li>
+<li>
+<button id=search-button-mobile class="text-base hover:text-primary-600 dark:hover:text-primary-400">
+<span class="relative inline-block align-text-bottom icon"><svg aria-hidden="true" focusable="false" data-prefix="fas" data-icon="search" class="svg-inline--fa fa-search fa-w-16" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentcolor" d="M505 442.7 405.3 343c-4.5-4.5-10.6-7-17-7H372c27.6-35.3 44-79.7 44-128C416 93.1 322.9.0 208 0S0 93.1.0 208s93.1 208 208 208c48.3.0 92.7-16.4 128-44v16.3c0 6.4 2.5 12.5 7 17l99.7 99.7c9.4 9.4 24.6 9.4 33.9.0l28.3-28.3c9.4-9.4 9.4-24.6.1-34zM208 336c-70.7.0-128-57.2-128-128 0-70.7 57.2-128 128-128 70.7.0 128 57.2 128 128 0 70.7-57.2 128-128 128z"/></svg>
+</span>
+</button>
+</li>
+</ul>
+</div>
+<div class="relative flex flex-col grow">
+<main id=main-content class=grow>
+<article>
+<header class=max-w-prose>
+<ol class="text-sm text-neutral-500 dark:text-neutral-400 print:hidden">
+<li class="inline hidden">
+<a class="hover:underline decoration-neutral-300 dark:underline-neutral-600" href=/>1Q77</a><span class="px-1 text-primary-500">/</span>
+</li>
+<li class=inline>
+<a class="hover:underline decoration-neutral-300 dark:underline-neutral-600" href=/posts/>Posts</a><span class="px-1 text-primary-500">/</span>
+</li>
+<li class="inline hidden">
+<a class="hover:underline decoration-neutral-300 dark:underline-neutral-600" href=/2018/12/what-is-slony-i/>Slony-I の調査</a><span class="px-1 text-primary-500">/</span>
+</li>
+</ol>
+<h1 class="mt-0 text-4xl font-extrabold text-neutral-900 dark:text-neutral">
+Slony-I の調査
+</h1>
+<div class="mt-8 mb-12 text-base text-neutral-500 dark:text-neutral-400 print:hidden">
+<div class="flex flex-row flex-wrap items-center">
+<time datetime="2018-12-30 14:58:20 +0000 UTC">2018年12月30日</time>
+</div>
+<div class="flex flex-row flex-wrap items-center">
+<span style=margin-top:.5rem class=mr-2 onclick='window.open("/tags/postgresql/")'>
+<span class=flex>
+<span class="rounded-md border border-primary-400 px-1 py-[1px] text-xs font-normal text-primary-700 dark:border-primary-600 dark:text-primary-400">
+PostgreSQL
+</span>
+</span>
+</span>
+<span style=margin-top:.5rem class=mr-2 onclick='window.open("/tags/slony/")'>
+<span class=flex>
+<span class="rounded-md border border-primary-400 px-1 py-[1px] text-xs font-normal text-primary-700 dark:border-primary-600 dark:text-primary-400">
+slony
+</span>
+</span>
+</span>
+</div>
+</div>
+</header>
+<section class="flex flex-col max-w-full mt-0 prose dark:prose-invert lg:flex-row">
+<div class="order-first px-0 lg:order-last lg:max-w-xs ltr:lg:pl-8 rtl:lg:pr-8">
+<div class="toc ltr:pl-5 rtl:pr-5 print:hidden lg:sticky lg:top-10">
+<details open class="mt-0 overflow-hidden rounded-lg ltr:-ml-5 ltr:pl-5 rtl:-mr-5 rtl:pr-5 hidden lg:block">
+<summary class="block py-1 text-lg font-semibold cursor-pointer bg-neutral-100 text-neutral-800 ltr:-ml-5 ltr:pl-5 rtl:-mr-5 rtl:pr-5 dark:bg-neutral-700 dark:text-neutral-100 lg:hidden">
+目次
+</summary>
+<div class="py-2 border-dotted border-neutral-300 ltr:-ml-5 ltr:border-l ltr:pl-5 rtl:-mr-5 rtl:border-r rtl:pr-5 dark:border-neutral-600">
+<nav id=TableOfContents>
+<ul>
+<li><a href=#slony-i-とは>Slony-I とは</a></li>
+<li><a href=#system-requirements>System Requirements</a></li>
+<li><a href=#slony-i-concepts>Slony-I Concepts</a>
+<ul>
+<li><a href=#cluster>Cluster</a></li>
+<li><a href=#node>Node</a></li>
+<li><a href=#replication-set>Replication Set</a></li>
+<li><a href=#origin-providers-and-subscribers>Origin, Providers and Subscribers</a></li>
+<li><a href=#slon-daemons>slon daemons</a></li>
+<li><a href=#slonik-configuration-processor>slonik configuration processor</a></li>
+</ul>
+</li>
+<li><a href=#current-limitations>Current Limitations</a></li>
+<li><a href=#tutorial>Tutorial</a>
+<ul>
+<li><a href=#replicating-your-first-database>Replicating Your First Database</a>
+<ul>
+<li><a href=#pg1>pg1</a></li>
+<li><a href=#pg2>pg2</a></li>
+</ul>
+</li>
+<li><a href=#creating-the-pgbench-user>Creating the pgbench User</a></li>
+<li><a href=#preparing-the-databases>Preparing the Databases</a></li>
+<li><a href=#configuring-the-database-for-replication>Configuring the Database For Replication</a>
+<ul>
+<li><a href=#using-slonik-command-directly>Using slonik Command Directly</a></li>
+<li><a href=#using-the-altperl-scripts>Using the altperl Scripts</a></li>
+</ul>
+</li>
+<li><a href=#テーブル--レコードの比較>テーブル / レコードの比較</a></li>
+</ul>
+</li>
+<li><a href=#conclusion>Conclusion</a></li>
+</ul>
+</nav>
+</div>
+</details>
+<details class="mt-0 overflow-hidden rounded-lg ltr:-ml-5 ltr:pl-5 rtl:-mr-5 rtl:pr-5 lg:hidden">
+<summary class="py-1 text-lg font-semibold cursor-pointer bg-neutral-100 text-neutral-800 ltr:-ml-5 ltr:pl-5 rtl:-mr-5 rtl:pr-5 dark:bg-neutral-700 dark:text-neutral-100 lg:hidden">
+目次
+</summary>
+<div class="py-2 border-dotted border-neutral-300 ltr:-ml-5 ltr:border-l ltr:pl-5 rtl:-mr-5 rtl:border-r rtl:pr-5 dark:border-neutral-600">
+<nav id=TableOfContents>
+<ul>
+<li><a href=#slony-i-とは>Slony-I とは</a></li>
+<li><a href=#system-requirements>System Requirements</a></li>
+<li><a href=#slony-i-concepts>Slony-I Concepts</a>
+<ul>
+<li><a href=#cluster>Cluster</a></li>
+<li><a href=#node>Node</a></li>
+<li><a href=#replication-set>Replication Set</a></li>
+<li><a href=#origin-providers-and-subscribers>Origin, Providers and Subscribers</a></li>
+<li><a href=#slon-daemons>slon daemons</a></li>
+<li><a href=#slonik-configuration-processor>slonik configuration processor</a></li>
+</ul>
+</li>
+<li><a href=#current-limitations>Current Limitations</a></li>
+<li><a href=#tutorial>Tutorial</a>
+<ul>
+<li><a href=#replicating-your-first-database>Replicating Your First Database</a>
+<ul>
+<li><a href=#pg1>pg1</a></li>
+<li><a href=#pg2>pg2</a></li>
+</ul>
+</li>
+<li><a href=#creating-the-pgbench-user>Creating the pgbench User</a></li>
+<li><a href=#preparing-the-databases>Preparing the Databases</a></li>
+<li><a href=#configuring-the-database-for-replication>Configuring the Database For Replication</a>
+<ul>
+<li><a href=#using-slonik-command-directly>Using slonik Command Directly</a></li>
+<li><a href=#using-the-altperl-scripts>Using the altperl Scripts</a></li>
+</ul>
+</li>
+<li><a href=#テーブル--レコードの比較>テーブル / レコードの比較</a></li>
+</ul>
+</li>
+<li><a href=#conclusion>Conclusion</a></li>
+</ul>
+</nav>
+</div>
+</details>
+</div>
+</div>
+<div class="min-w-0 min-h-0 max-w-prose">
+<p><a href=http://www.slony.info/documentation/2.2/index.html>Slony-I 2.2.7 のドキュメント</a>からの情報です</p>
+<p>概要の確認とチュートリアルを試してみます。</p>
+<h2 id=slony-i-とは class="relative group">Slony-I とは <span class="absolute top-0 w-6 transition-opacity opacity-0 ltr:-left-6 rtl:-right-6 not-prose group-hover:opacity-100"><a class="group-hover:text-primary-300 dark:group-hover:text-neutral-700" style=text-decoration-line:none!important href=#slony-i-%e3%81%a8%e3%81%af aria-label=アンカー>#</a></span></h2>
+<p><a href=http://www.slony.info/>Slony-I</a> は PostgreSQL のレプリケーションシステムで、複数レプリカの作成、カスケードレプリケーション、プロモーションをサポートしており、次の特徴を持つ</p>
+<ul>
+<li>異なるメジャーバージョン間でもレプリケーション可能</li>
+<li>異なるハードウェアアーキテクチャ、OSの間でもレプリケーション可能</li>
+<li>一部のテーブルだけをレプリケーションすることが可能</li>
+<li>あるテーブルをレプリカ(A)に、別のテーブルをレプリカ(B)にレプリケーションといったことが可能</li>
+<li>テーブル毎にレプリカ元のデータベースサーバーが異なっていてもレプリケーション可能</li>
+</ul>
+<p>PostgreSQL は version 10 から <a href=https://www.postgresql.jp/document/10/html/logical-replication.html>logical replication</a> に対応し、今後のバージョンアップにはこれが使えますが、旧バージョンから 10 に上げるには当然ながら使えません(9.4 から <a href=https://www.postgresql.org/docs/9.4/logicaldecoding.html>logical decoding</a> が使えるようになっているので追加の何かで logical replication できるような気もします)。ということで旧バージョンからの更新を短いダウンタイムで行うための手段として Slony-I は候補となります。</p>
+<ul>
+<li><a href=https://www.sraoss.co.jp/technology/postgresql/3rdparty/slony-I.php>Slony-I (トリガーによる行単位レプリケーションツール) - SRA OSS, Inc. 日本支社</a></li>
+<li><a href=http://www.intellilink.co.jp/article/column/oss-postgres03.html>第3回「ロジカルレプリケーション」 | NTTデータ先端技術株式会社</a></li>
+</ul>
+<h2 id=system-requirements class="relative group">System Requirements <span class="absolute top-0 w-6 transition-opacity opacity-0 ltr:-left-6 rtl:-right-6 not-prose group-hover:opacity-100"><a class="group-hover:text-primary-300 dark:group-hover:text-neutral-700" style=text-decoration-line:none!important href=#system-requirements aria-label=アンカー>#</a></span></h2>
+<ul>
+<li>PostgreSQL 8.3 以降 (8.3.x, 8.4.x , 9.0.x, 9.1.x, 9.2.x, 9.3.x,9.4.x, 9.5.x での動作が確認されている)。これより前のバージョンでは Slony-I 1.2.x を使う必要がある。2.2.6 の release note に Support for PG10 とあるので 10.x にも対応しているはず</li>
+</ul>
+<p>以降は推奨</p>
+<ul>
+<li>NTP などで時刻を同期すること、UTC や GMT といった安定したタイムゾーンを使うこと（夏時間のないタイムゾーン、PostgreSQL が認識できるタイムゾーンが好ましい）</li>
+<li>信頼性の高いネットワーク（WAN 越しにレプリケーションする場合、それぞれの slon プロセスはそれぞれのローカルネットワーク内で実行するべし）</li>
+<li>データベースのエンコーディングは揃えるべし</li>
+</ul>
+<h2 id=slony-i-concepts class="relative group">Slony-I Concepts <span class="absolute top-0 w-6 transition-opacity opacity-0 ltr:-left-6 rtl:-right-6 not-prose group-hover:opacity-100"><a class="group-hover:text-primary-300 dark:group-hover:text-neutral-700" style=text-decoration-line:none!important href=#slony-i-concepts aria-label=アンカー>#</a></span></h2>
+<p>セットアップするためには次の概念を理解する必要がある</p>
+<ul>
+<li>Cluster</li>
+<li>Node</li>
+<li>Replication Set</li>
+<li>Origin, Providers and Subscribers</li>
+<li>slon daemons</li>
+<li>slonik configuration processor</li>
+</ul>
+<p>ロシア語の意味も理解しておくと良い</p>
+<ul>
+<li><strong>slon</strong> は象 🐘</li>
+<li><strong>slony</strong> は象の複数形 🐘🐘🐘</li>
+<li><strong>slonik</strong> は小さな象</li>
+</ul>
+<h3 id=cluster class="relative group">Cluster <span class="absolute top-0 w-6 transition-opacity opacity-0 ltr:-left-6 rtl:-right-6 not-prose group-hover:opacity-100"><a class="group-hover:text-primary-300 dark:group-hover:text-neutral-700" style=text-decoration-line:none!important href=#cluster aria-label=アンカー>#</a></span></h3>
+<p><strong>Cluster</strong> はレプリケーションを組む PostgreSQL インスタンスの集合で、各 Slonik スクリプトで次のように定義する</p>
+<pre tabindex=0><code>cluster name = something;
+</code></pre><p><strong>Cluster</strong> 名が <code>something</code> だった場合、それぞれのデータベースに <code>_something</code> という schema が作成される</p>
+<h3 id=node class="relative group">Node <span class="absolute top-0 w-6 transition-opacity opacity-0 ltr:-left-6 rtl:-right-6 not-prose group-hover:opacity-100"><a class="group-hover:text-primary-300 dark:group-hover:text-neutral-700" style=text-decoration-line:none!important href=#node aria-label=アンカー>#</a></span></h3>
+<p>レプリケーションを構成するうちのひとつひとつのデータベースを <strong>Node</strong> と呼び、各 Slonik スクリプトの冒頭で次のように定義される</p>
+<pre tabindex=0><code>NODE 1 ADMIN CONNINFO = 'dbname=testdb host=server1 user=slony';
+</code></pre><p>この <a href=http://www.slony.info/documentation/2.2/admconninfo.html>ADMIN CONNINFO</a> は libpq の PQconnectdb() 関数に渡される</p>
+<h3 id=replication-set class="relative group">Replication Set <span class="absolute top-0 w-6 transition-opacity opacity-0 ltr:-left-6 rtl:-right-6 not-prose group-hover:opacity-100"><a class="group-hover:text-primary-300 dark:group-hover:text-neutral-700" style=text-decoration-line:none!important href=#replication-set aria-label=アンカー>#</a></span></h3>
+<p><strong>Node</strong> 間でレプリケーションされるテーブルとシーケンスのセット</p>
+<h3 id=origin-providers-and-subscribers class="relative group">Origin, Providers and Subscribers <span class="absolute top-0 w-6 transition-opacity opacity-0 ltr:-left-6 rtl:-right-6 not-prose group-hover:opacity-100"><a class="group-hover:text-primary-300 dark:group-hover:text-neutral-700" style=text-decoration-line:none!important href=#origin-providers-and-subscribers aria-label=アンカー>#</a></span></h3>
+<p>各 <strong>Replication Set</strong> には <strong>Origin</strong> node があり、それはアプリケーションによるレコードの変更が唯一許されている場所であり、Master <strong>provider</strong> とも呼ばれる。<strong>Replication Set</strong> の他の node は <strong>Subscriber</strong> となります。ただし、Slony-I はカスケードレプリケーションをサポートしているため、Subscriber が別の <strong>Replication set</strong> の <strong>Origin</strong> である可能性もあります</p>
+<h3 id=slon-daemons class="relative group">slon daemons <span class="absolute top-0 w-6 transition-opacity opacity-0 ltr:-left-6 rtl:-right-6 not-prose group-hover:opacity-100"><a class="group-hover:text-primary-300 dark:group-hover:text-neutral-700" style=text-decoration-line:none!important href=#slon-daemons aria-label=アンカー>#</a></span></h3>
+<p><strong>Cluster</strong> 内の各 <strong>Node</strong> ではレプリケーションイベントを処理する <a href=http://www.slony.info/documentation/2.2/slon.html>slon</a> プロセスが稼働している。C 言語で書かれており、処理する主な2つのイベントは次の通り</p>
+<ul>
+<li><strong>Configuration events</strong><br>
+Slonik スクリプトが実行された場合に発生し、クラスタ構成の変更が送られる</li>
+<li><strong>SYNC events</strong><br>
+レプリケーションされたテーブルへの変更が SYNC にまとめられて Subscriber に送られ、適用される</li>
+</ul>
+<h3 id=slonik-configuration-processor class="relative group">slonik configuration processor <span class="absolute top-0 w-6 transition-opacity opacity-0 ltr:-left-6 rtl:-right-6 not-prose group-hover:opacity-100"><a class="group-hover:text-primary-300 dark:group-hover:text-neutral-700" style=text-decoration-line:none!important href=#slonik-configuration-processor aria-label=アンカー>#</a></span></h3>
+<p><a href=http://www.slony.info/documentation/2.2/slonik.html>Slonik</a> コマンドは小さな言語となっているスクリプトを実行してクラスタの設定変更イベントを送る。このイベントには Node の追加や削除、通信 path の変更、Subscriber の追加、削除が含まれる</p>
+<h2 id=current-limitations class="relative group">Current Limitations <span class="absolute top-0 w-6 transition-opacity opacity-0 ltr:-left-6 rtl:-right-6 not-prose group-hover:opacity-100"><a class="group-hover:text-primary-300 dark:group-hover:text-neutral-700" style=text-decoration-line:none!important href=#current-limitations aria-label=アンカー>#</a></span></h2>
+<p>Slony-I は次の変更を自動でレプリケートしない</p>
+<ul>
+<li>Large objects (BLOBS)</li>
+<li>DDL</li>
+<li>Uses and Roles</li>
+</ul>
+<p>Slony-I は trigger によって変更を捉えているため、これらの変更を捉えることができませんが、<a href=http://www.slony.info/documentation/2.2/stmtddlscript.html>SLONIK EXECUTE SCRIPT</a> を使うことで DDL を各 Node で実行することができます</p>
+<h2 id=tutorial class="relative group">Tutorial <span class="absolute top-0 w-6 transition-opacity opacity-0 ltr:-left-6 rtl:-right-6 not-prose group-hover:opacity-100"><a class="group-hover:text-primary-300 dark:group-hover:text-neutral-700" style=text-decoration-line:none!important href=#tutorial aria-label=アンカー>#</a></span></h2>
+<h3 id=replicating-your-first-database class="relative group">Replicating Your First Database <span class="absolute top-0 w-6 transition-opacity opacity-0 ltr:-left-6 rtl:-right-6 not-prose group-hover:opacity-100"><a class="group-hover:text-primary-300 dark:group-hover:text-neutral-700" style=text-decoration-line:none!important href=#replicating-your-first-database aria-label=アンカー>#</a></span></h3>
+<p>pgbench を使ってレプリケーション設定を試します。PostgreSQL 9.3 から PostgreSQL 9.6 に同期させてみます。CentOS 7 のサーバー2台 (pg1, pg2) に PGDG リポジトリから PostgreSQL と Slony-I をインストールします。簡略化のために <code>pg_hba.conf</code> の認証設定は <code>trust</code> で。</p>
+<h4 id=pg1 class="relative group">pg1 <span class="absolute top-0 w-6 transition-opacity opacity-0 ltr:-left-6 rtl:-right-6 not-prose group-hover:opacity-100"><a class="group-hover:text-primary-300 dark:group-hover:text-neutral-700" style=text-decoration-line:none!important href=#pg1 aria-label=アンカー>#</a></span></h4>
+<div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash>sudo yum -y install yum install https://download.postgresql.org/pub/repos/yum/9.3/redhat/rhel-7-x86_64/pgdg-centos93-9.3-3.noarch.rpm
+sudo yum -y install perl
+sudo yum -y install postgresql93 postgresql93-contrib slony1-93
+sudo /usr/pgsql-9.3/bin/postgresql93-setup
+sudo /usr/pgsql-9.3/bin/postgresql93-setup initdb
+sudoedit /var/lib/pgsql/9.3/data/pg_hba.conf
+sudo systemctl <span class=nb>enable</span> postgresql-9.3
+sudo systemctl start postgresql-9.3
+</code></pre></div><h4 id=pg2 class="relative group">pg2 <span class="absolute top-0 w-6 transition-opacity opacity-0 ltr:-left-6 rtl:-right-6 not-prose group-hover:opacity-100"><a class="group-hover:text-primary-300 dark:group-hover:text-neutral-700" style=text-decoration-line:none!important href=#pg2 aria-label=アンカー>#</a></span></h4>
+<div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash>sudo yum -y install https://download.postgresql.org/pub/repos/yum/9.6/redhat/rhel-7-x86_64/pgdg-centos96-9.6-3.noarch.rpm
+sudo yum -y install perl
+sudo yum -y install postgresql96 postgresql96-contrib slony1-96
+sudo /usr/pgsql-9.6/bin/postgresql96-setup initdb
+sudoedit /var/lib/pgsql/9.6/data/pg_hba.conf
+sudo systemctl <span class=nb>enable</span> postgresql-9.6
+sudo systemctl start postgresql-9.6
+</code></pre></div><p>今後の手順で使う環境変数を次のように設定します</p>
+<div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=nb>export</span> <span class=nv>CLUSTERNAME</span><span class=o>=</span>slony_example
+<span class=nb>export</span> <span class=nv>MASTERDBNAME</span><span class=o>=</span>pgbench
+<span class=nb>export</span> <span class=nv>SLAVEDBNAME</span><span class=o>=</span>pgbench
+<span class=nb>export</span> <span class=nv>MASTERHOST</span><span class=o>=</span>pg1
+<span class=nb>export</span> <span class=nv>SLAVEHOST</span><span class=o>=</span>pg2
+<span class=nb>export</span> <span class=nv>REPLICATIONUSER</span><span class=o>=</span>postgres
+<span class=nb>export</span> <span class=nv>PGBENCHUSER</span><span class=o>=</span>pgbench
+</code></pre></div><h3 id=creating-the-pgbench-user class="relative group">Creating the pgbench User <span class="absolute top-0 w-6 transition-opacity opacity-0 ltr:-left-6 rtl:-right-6 not-prose group-hover:opacity-100"><a class="group-hover:text-primary-300 dark:group-hover:text-neutral-700" style=text-decoration-line:none!important href=#creating-the-pgbench-user aria-label=アンカー>#</a></span></h3>
+<p>pgbench 用ユーザーの作成</p>
+<div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash>sudo -iu postgres createuser -SRD <span class=nv>$PGBENCHUSER</span>
+</code></pre></div><h3 id=preparing-the-databases class="relative group">Preparing the Databases <span class="absolute top-0 w-6 transition-opacity opacity-0 ltr:-left-6 rtl:-right-6 not-prose group-hover:opacity-100"><a class="group-hover:text-primary-300 dark:group-hover:text-neutral-700" style=text-decoration-line:none!important href=#preparing-the-databases aria-label=アンカー>#</a></span></h3>
+<p>pgbench 用のデータベースを作成し、1度 pgbench を実行してテーブルを作成します</p>
+<div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash>sudo -iu postgres createdb -O <span class=nv>$PGBENCHUSER</span> <span class=nv>$MASTERDBNAME</span>
+/usr/pgsql-9.3/bin/pgbench -i -s <span class=m>1</span> -U <span class=nv>$PGBENCHUSER</span> <span class=nv>$MASTERDBNAME</span>
+</code></pre></div><pre tabindex=0><code>pgbench=# \d+
+                          List of relations
+ Schema |       Name       | Type  |  Owner  |  Size   | Description
+--------+------------------+-------+---------+---------+-------------
+ public | pgbench_accounts | table | pgbench | 13 MB   |
+ public | pgbench_branches | table | pgbench | 40 kB   |
+ public | pgbench_history  | table | pgbench | 0 bytes |
+ public | pgbench_tellers  | table | pgbench | 40 kB   |
+(4 rows)
+</code></pre><pre tabindex=0><code>pgbench=# \d pgbench_accounts
+   Table &quot;public.pgbench_accounts&quot;
+  Column  |     Type      | Modifiers
+----------+---------------+-----------
+ aid      | integer       | not null
+ bid      | integer       |
+ abalance | integer       |
+ filler   | character(84) |
+Indexes:
+    &quot;pgbench_accounts_pkey&quot; PRIMARY KEY, btree (aid)
+
+pgbench=# \d pgbench_branches
+   Table &quot;public.pgbench_branches&quot;
+  Column  |     Type      | Modifiers
+----------+---------------+-----------
+ bid      | integer       | not null
+ bbalance | integer       |
+ filler   | character(88) |
+Indexes:
+    &quot;pgbench_branches_pkey&quot; PRIMARY KEY, btree (bid)
+
+pgbench=# \d pgbench_tellers
+    Table &quot;public.pgbench_tellers&quot;
+  Column  |     Type      | Modifiers
+----------+---------------+-----------
+ tid      | integer       | not null
+ bid      | integer       |
+ tbalance | integer       |
+ filler   | character(84) |
+Indexes:
+    &quot;pgbench_tellers_pkey&quot; PRIMARY KEY, btree (tid)
+
+pgbench=#
+</code></pre><p><code>pgbench_history</code> テーブルには PRIMARY KEY が存在しないが、Slony は PRIMARY KEY またはそれ相当の INDEX を必要とするため PRIMARY KEY を追加する。</p>
+<pre tabindex=0><code>pgbench=# \d pgbench_history
+          Table &quot;public.pgbench_history&quot;
+ Column |            Type             | Modifiers
+--------+-----------------------------+-----------
+ tid    | integer                     |
+ bid    | integer                     |
+ aid    | integer                     |
+ delta  | integer                     |
+ mtime  | timestamp without time zone |
+ filler | character(22)               |
+
+pgbench=#
+</code></pre><div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash>psql -U <span class=nv>$PGBENCHUSER</span> -d <span class=nv>$MASTERDBNAME</span> -c <span class=s2>&#34;ALTER TABLE pgbench_history ADD COLUMN id serial&#34;</span>
+psql -U <span class=nv>$PGBENCHUSER</span> -d <span class=nv>$MASTERDBNAME</span> -c <span class=s2>&#34;ALTER TABLE pgbench_history ADD PRIMARY KEY(id)&#34;</span>
+</code></pre></div><p>Slony は PL/PGSQL を使うので createlang で作成する</p>
+<div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash>sudo -iu postgres createlang plpgsql <span class=nv>$MASTERDBNAME</span>
+</code></pre></div><p>pg2 に DB を作成する</p>
+<div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash>sudo -iu postgres createdb -O <span class=nv>$PGBENCHUSER</span> <span class=nv>$SLAVEDBNAME</span>
+</code></pre></div><p>pg1 から pg2 へスキーマをコピーする</p>
+<div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash>pg_dump -s -U <span class=nv>$REPLICATIONUSER</span> -h <span class=nv>$MASTERHOST</span> <span class=nv>$MASTERDBNAME</span> <span class=se>\
+</span><span class=se></span>  <span class=p>|</span> psql -U <span class=nv>$REPLICATIONUSER</span> -h <span class=nv>$SLAVEHOST</span> <span class=nv>$SLAVEDBNAME</span>
+</code></pre></div><h3 id=configuring-the-database-for-replication class="relative group">Configuring the Database For Replication <span class="absolute top-0 w-6 transition-opacity opacity-0 ltr:-left-6 rtl:-right-6 not-prose group-hover:opacity-100"><a class="group-hover:text-primary-300 dark:group-hover:text-neutral-700" style=text-decoration-line:none!important href=#configuring-the-database-for-replication aria-label=アンカー>#</a></span></h3>
+<p>設定テーブル、ストアド・プロシージャ、トリガーの作成と設定はすべて <a href=http://www.slony.info/documentation/2.2/slonik.html>slonik</a> コマンドをを使って行います</p>
+<h4 id=using-slonik-command-directly class="relative group">Using slonik Command Directly <span class="absolute top-0 w-6 transition-opacity opacity-0 ltr:-left-6 rtl:-right-6 not-prose group-hover:opacity-100"><a class="group-hover:text-primary-300 dark:group-hover:text-neutral-700" style=text-decoration-line:none!important href=#using-slonik-command-directly aria-label=アンカー>#</a></span></h4>
+<p>slonik コマンドへの入力を自分で用意する方法です。簡略化およびミスを減らすために後述の別のツールを使う方法もあります</p>
+<div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash>sudo /usr/pgsql-9.3/bin/slonik <span class=s>&lt;&lt;_EOF_
+</span><span class=s>	#--
+</span><span class=s>	# レプリケーションシステムのネームスペースを定義する
+</span><span class=s>	# この例では slony_example とする
+</span><span class=s>	#--
+</span><span class=s>	cluster name = $CLUSTERNAME;
+</span><span class=s>
+</span><span class=s>	#--
+</span><span class=s>	# admin conninfo で slonik が DB にログインするための情報を定義する
+</span><span class=s>	# 構文は C-API の PQconnectdb に渡すもの
+</span><span class=s>	# --
+</span><span class=s>	node 1 admin conninfo = &#39;dbname=$MASTERDBNAME host=$MASTERHOST user=$REPLICATIONUSER&#39;;
+</span><span class=s>	node 2 admin conninfo = &#39;dbname=$SLAVEDBNAME host=$SLAVEHOST user=$REPLICATIONUSER&#39;;
+</span><span class=s>
+</span><span class=s>	#--
+</span><span class=s>	# 最初のノードを初期化する
+</span><span class=s>	# これは _$CLUSTERNAME スキーマを作成する
+</span><span class=s>	#--
+</span><span class=s>	init cluster ( id=1, comment = &#39;Master Node&#39;);
+</span><span class=s> 
+</span><span class=s>	#--
+</span><span class=s>	# Slony-I はレプリケーションテーブルを set として定義する
+</span><span class=s>	# 次のコマンドは 4 つの pgbench 用テーブルを set (id = 1) としている
+</span><span class=s>	# master (origin) は node 1
+</span><span class=s>	#--
+</span><span class=s>	create set (id=1, origin=1, comment=&#39;All pgbench tables&#39;);
+</span><span class=s>	set add table (set id=1, origin=1, id=1, fully qualified name = &#39;public.pgbench_accounts&#39;, comment=&#39;accounts table&#39;);
+</span><span class=s>	set add table (set id=1, origin=1, id=2, fully qualified name = &#39;public.pgbench_branches&#39;, comment=&#39;branches table&#39;);
+</span><span class=s>	set add table (set id=1, origin=1, id=3, fully qualified name = &#39;public.pgbench_tellers&#39;, comment=&#39;tellers table&#39;);
+</span><span class=s>	set add table (set id=1, origin=1, id=4, fully qualified name = &#39;public.pgbench_history&#39;, comment=&#39;history table&#39;);
+</span><span class=s>
+</span><span class=s>	#--
+</span><span class=s>	# 2 番目の node (id = 2) を定義して node 間で接続するための情報 (path) を定義する
+</span><span class=s>	#--
+</span><span class=s>	store node (id=2, comment = &#39;Slave node&#39;, event node=1);
+</span><span class=s>	store path (server = 1, client = 2, conninfo=&#39;dbname=$MASTERDBNAME host=$MASTERHOST user=$REPLICATIONUSER&#39;);
+</span><span class=s>	store path (server = 2, client = 1, conninfo=&#39;dbname=$SLAVEDBNAME host=$SLAVEHOST user=$REPLICATIONUSER&#39;);
+</span><span class=s>_EOF_</span>
+</code></pre></div><p>これを実行すると pg1, pg2 の pgbench データベースの <code>_slony_example</code> スキーマに沢山の slony 用テーブルが作成され、レプリケーション対象テーブルに <code>trigger</code> が作成されています。</p>
+<pre tabindex=0><code>pgbench=# set search_path to public,_slony_example;
+SET
+pgbench=# \d
+                         List of relations
+     Schema     |            Name            |   Type   |  Owner
+----------------+----------------------------+----------+----------
+ _slony_example | sl_action_seq              | sequence | postgres
+ _slony_example | sl_apply_stats             | table    | postgres
+ _slony_example | sl_archive_counter         | table    | postgres
+ _slony_example | sl_components              | table    | postgres
+ _slony_example | sl_config_lock             | table    | postgres
+ _slony_example | sl_confirm                 | table    | postgres
+ _slony_example | sl_event                   | table    | postgres
+ _slony_example | sl_event_lock              | table    | postgres
+ _slony_example | sl_event_seq               | sequence | postgres
+ _slony_example | sl_failover_targets        | view     | postgres
+ _slony_example | sl_listen                  | table    | postgres
+ _slony_example | sl_local_node_id           | sequence | postgres
+ _slony_example | sl_log_1                   | table    | postgres
+ _slony_example | sl_log_2                   | table    | postgres
+ _slony_example | sl_log_script              | table    | postgres
+ _slony_example | sl_log_status              | sequence | postgres
+ _slony_example | sl_node                    | table    | postgres
+ _slony_example | sl_nodelock                | table    | postgres
+ _slony_example | sl_nodelock_nl_conncnt_seq | sequence | postgres
+ _slony_example | sl_path                    | table    | postgres
+ _slony_example | sl_registry                | table    | postgres
+ _slony_example | sl_seqlastvalue            | view     | postgres
+ _slony_example | sl_seqlog                  | table    | postgres
+ _slony_example | sl_sequence                | table    | postgres
+ _slony_example | sl_set                     | table    | postgres
+ _slony_example | sl_setsync                 | table    | postgres
+ _slony_example | sl_status                  | view     | postgres
+ _slony_example | sl_subscribe               | table    | postgres
+ _slony_example | sl_table                   | table    | postgres
+ public         | pgbench_accounts           | table    | pgbench
+ public         | pgbench_branches           | table    | pgbench
+ public         | pgbench_history            | table    | pgbench
+ public         | pgbench_history_id_seq     | sequence | pgbench
+ public         | pgbench_tellers            | table    | pgbench
+(34 rows)
+</code></pre><pre tabindex=0><code>pgbench=# \d pgbench_accounts
+   Table &quot;public.pgbench_accounts&quot;
+  Column  |     Type      | Modifiers
+----------+---------------+-----------
+ aid      | integer       | not null
+ bid      | integer       |
+ abalance | integer       |
+ filler   | character(84) |
+Indexes:
+    &quot;pgbench_accounts_pkey&quot; PRIMARY KEY, btree (aid)
+Triggers:
+    _slony_example_logtrigger AFTER INSERT OR DELETE OR UPDATE ON pgbench_accounts FOR EACH ROW EXECUTE PROCEDURE _slony_example.logtrigger('_slony_example', '1', 'k')
+    _slony_example_truncatetrigger BEFORE TRUNCATE ON pgbench_accounts FOR EACH STATEMENT EXECUTE PROCEDURE _slony_example.log_truncate('1')
+Disabled triggers:
+    _slony_example_denyaccess BEFORE INSERT OR DELETE OR UPDATE ON pgbench_accounts FOR EACH ROW EXECUTE PROCEDURE _slony_example.denyaccess('_slony_example')
+    _slony_example_truncatedeny BEFORE TRUNCATE ON pgbench_accounts FOR EACH STATEMENT EXECUTE PROCEDURE _slony_example.deny_truncate()
+
+pgbench=# \d pgbench_branches
+   Table &quot;public.pgbench_branches&quot;
+  Column  |     Type      | Modifiers
+----------+---------------+-----------
+ bid      | integer       | not null
+ bbalance | integer       |
+ filler   | character(88) |
+Indexes:
+    &quot;pgbench_branches_pkey&quot; PRIMARY KEY, btree (bid)
+Triggers:
+    _slony_example_logtrigger AFTER INSERT OR DELETE OR UPDATE ON pgbench_branches FOR EACH ROW EXECUTE PROCEDURE _slony_example.logtrigger('_slony_example', '2', 'k')
+    _slony_example_truncatetrigger BEFORE TRUNCATE ON pgbench_branches FOR EACH STATEMENT EXECUTE PROCEDURE _slony_example.log_truncate('2')
+Disabled triggers:
+    _slony_example_denyaccess BEFORE INSERT OR DELETE OR UPDATE ON pgbench_branches FOR EACH ROW EXECUTE PROCEDURE _slony_example.denyaccess('_slony_example')
+    _slony_example_truncatedeny BEFORE TRUNCATE ON pgbench_branches FOR EACH STATEMENT EXECUTE PROCEDURE _slony_example.deny_truncate()
+
+pgbench=# \d pgbench_history
+                                   Table &quot;public.pgbench_history&quot;
+ Column |            Type             |                          Modifiers
+--------+-----------------------------+--------------------------------------------------------------
+ tid    | integer                     |
+ bid    | integer                     |
+ aid    | integer                     |
+ delta  | integer                     |
+ mtime  | timestamp without time zone |
+ filler | character(22)               |
+ id     | integer                     | not null default nextval('pgbench_history_id_seq'::regclass)
+Indexes:
+    &quot;pgbench_history_pkey&quot; PRIMARY KEY, btree (id)
+Triggers:
+    _slony_example_logtrigger AFTER INSERT OR DELETE OR UPDATE ON pgbench_history FOR EACH ROW EXECUTE PROCEDURE _slony_example.logtrigger('_slony_example', '4', 'vvvvvvk')
+    _slony_example_truncatetrigger BEFORE TRUNCATE ON pgbench_history FOR EACH STATEMENT EXECUTE PROCEDURE _slony_example.log_truncate('4')
+Disabled triggers:
+    _slony_example_denyaccess BEFORE INSERT OR DELETE OR UPDATE ON pgbench_history FOR EACH ROW EXECUTE PROCEDURE _slony_example.denyaccess('_slony_example')
+    _slony_example_truncatedeny BEFORE TRUNCATE ON pgbench_history FOR EACH STATEMENT EXECUTE PROCEDURE _slony_example.deny_truncate()
+
+pgbench=# \d pgbench_tellers
+    Table &quot;public.pgbench_tellers&quot;
+  Column  |     Type      | Modifiers
+----------+---------------+-----------
+ tid      | integer       | not null
+ bid      | integer       |
+ tbalance | integer       |
+ filler   | character(84) |
+Indexes:
+    &quot;pgbench_tellers_pkey&quot; PRIMARY KEY, btree (tid)
+Triggers:
+    _slony_example_logtrigger AFTER INSERT OR DELETE OR UPDATE ON pgbench_tellers FOR EACH ROW EXECUTE PROCEDURE _slony_example.logtrigger('_slony_example', '3', 'k')
+    _slony_example_truncatetrigger BEFORE TRUNCATE ON pgbench_tellers FOR EACH STATEMENT EXECUTE PROCEDURE _slony_example.log_truncate('3')
+Disabled triggers:
+    _slony_example_denyaccess BEFORE INSERT OR DELETE OR UPDATE ON pgbench_tellers FOR EACH ROW EXECUTE PROCEDURE _slony_example.denyaccess('_slony_example')
+    _slony_example_truncatedeny BEFORE TRUNCATE ON pgbench_tellers FOR EACH STATEMENT EXECUTE PROCEDURE _slony_example.deny_truncate()
+
+pgbench=#
+</code></pre><p>pg1 (origin) で slon を起動</p>
+<div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash>/usr/pgsql-9.3/bin/slon <span class=nv>$CLUSTERNAME</span> <span class=s2>&#34;dbname=</span><span class=nv>$MASTERDBNAME</span><span class=s2> user=</span><span class=nv>$REPLICATIONUSER</span><span class=s2> host=</span><span class=nv>$MASTERHOST</span><span class=s2>&#34;</span>
+</code></pre></div><p>pg2 (subscriber) で slon を起動</p>
+<div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash>/usr/pgsql-9.6/bin/slon <span class=nv>$CLUSTERNAME</span> <span class=s2>&#34;dbname=</span><span class=nv>$SLAVEDBNAME</span><span class=s2> user=</span><span class=nv>$REPLICATIONUSER</span><span class=s2> host=</span><span class=nv>$SLAVEHOST</span><span class=s2>&#34;</span>
+</code></pre></div><p>pg2 で <code>pg_stat_activity</code> を見ると次のようなプロセスからの接続がありました</p>
+<pre tabindex=0><code>slon.local_cleanup
+slon.local_listen
+slon.local_monitor
+slon.local_sync
+slon.node_2_listen
+slon.origin_2_provider_2
+slon.remoteWorkerThread_1
+</code></pre><p>slon プロセスがなにやら SYNC してそうな出力をしますが、ここまでではまだ同期が始まっていません</p>
+<p>ここで再度 pgbench を実行してみます。今度は <code>-T 300</code> で5分間実行されるようにしています。これの実行中に次の subscribe 設定を行うことで、更新中の同期開始を試みます</p>
+<div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash>/usr/pgsql-9.3/bin/pgbench -s <span class=m>1</span> -c <span class=m>5</span> -T <span class=m>300</span> -U <span class=nv>$PGBENCHUSER</span> -h <span class=nv>$MASTERHOST</span> <span class=nv>$MASTERDBNAME</span>
+</code></pre></div><p>次のようにして slonik で <a href=http://www.slony.info/documentation/2.2/stmtsubscribeset.html>subscribe</a> 指示を出します</p>
+<div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash>sudo /usr/pgsql-9.3/bin/slonik <span class=s>&lt;&lt;_EOF_
+</span><span class=s>	 # ----
+</span><span class=s>	 # This defines which namespace the replication system uses
+</span><span class=s>	 # ----
+</span><span class=s>	 cluster name = $CLUSTERNAME;
+</span><span class=s>
+</span><span class=s>	 # ----
+</span><span class=s>	 # 各 node への接続情報
+</span><span class=s>	 # ----
+</span><span class=s>	 node 1 admin conninfo = &#39;dbname=$MASTERDBNAME host=$MASTERHOST user=$REPLICATIONUSER&#39;;
+</span><span class=s>	 node 2 admin conninfo = &#39;dbname=$SLAVEDBNAME host=$SLAVEHOST user=$REPLICATIONUSER&#39;;
+</span><span class=s>
+</span><span class=s>	 # ----
+</span><span class=s>	 # Node 2 subscribes set 1
+</span><span class=s>	 # Subscriber が cascade や failover で provider になるのであれば forward は yes とします
+</span><span class=s>	 # ----
+</span><span class=s>	 subscribe set ( id = 1, provider = 1, receiver = 2, forward = no);
+</span><span class=s>_EOF_</span>
+</code></pre></div><p>これによって origin テーブルのレコードをコピーし、完了後、コピー開始時からの変更を反映していきます</p>
+<h4 id=using-the-altperl-scripts class="relative group">Using the altperl Scripts <span class="absolute top-0 w-6 transition-opacity opacity-0 ltr:-left-6 rtl:-right-6 not-prose group-hover:opacity-100"><a class="group-hover:text-primary-300 dark:group-hover:text-neutral-700" style=text-decoration-line:none!important href=#using-the-altperl-scripts aria-label=アンカー>#</a></span></h4>
+<p><code>cluster name</code> や <code>admin conninfo</code> など slonik のへの入力を毎度生成するのは大変なので <code>/etc/slony1-93/slon_tools.conf</code> の設定を元に生成してくれるツールがあります。 次のようにして pipe で slonik に渡すことで初期化や起動、Subscribe などの指示を出せます。</p>
+<pre tabindex=0><code># Initialize cluster:
+$ slonik_init_cluster  | slonik 
+
+# Start slon  (here 1 and 2 are node numbers)
+$ slon_start 1    
+$ slon_start 2
+
+# Create Sets (here 1 is a set number)
+$ slonik_create_set 1 | slonik             
+
+# subscribe set to second node (1= set ID, 2= node ID)
+$ slonik_subscribe_set 1 2 | slonik
+</code></pre><h3 id=テーブル--レコードの比較 class="relative group">テーブル / レコードの比較 <span class="absolute top-0 w-6 transition-opacity opacity-0 ltr:-left-6 rtl:-right-6 not-prose group-hover:opacity-100"><a class="group-hover:text-primary-300 dark:group-hover:text-neutral-700" style=text-decoration-line:none!important href=#%e3%83%86%e3%83%bc%e3%83%96%e3%83%ab--%e3%83%ac%e3%82%b3%e3%83%bc%e3%83%89%e3%81%ae%e6%af%94%e8%bc%83 aria-label=アンカー>#</a></span></h3>
+<p>正しく同期できているかどうか、次のスクリプトで確認することができます。<code>order by</code> つきでそれぞれのデータベースからレコードを取得して diff で比較しています</p>
+<div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=cp>#!/bin/sh
+</span><span class=cp></span><span class=nb>echo</span> -n <span class=s2>&#34;**** comparing sample1 ... &#34;</span>
+psql -U <span class=nv>$REPLICATIONUSER</span> -h <span class=nv>$MASTERHOST</span> <span class=nv>$MASTERDBNAME</span> &gt;dump.tmp.1.<span class=nv>$$</span> <span class=s>&lt;&lt;_EOF_
+</span><span class=s>         select &#39;accounts:&#39;::text, aid, bid, abalance, filler
+</span><span class=s>                  from pgbench_accounts order by aid;
+</span><span class=s>         select &#39;branches:&#39;::text, bid, bbalance, filler
+</span><span class=s>                  from pgbench_branches order by bid;
+</span><span class=s>         select &#39;tellers:&#39;::text, tid, bid, tbalance, filler
+</span><span class=s>                  from pgbench_tellers order by tid;
+</span><span class=s>         select &#39;history:&#39;::text, tid, bid, aid, delta, mtime, filler, id
+</span><span class=s>                  from pgbench_history order by id;
+</span><span class=s>_EOF_</span>
+psql -U <span class=nv>$REPLICATIONUSER</span> -h <span class=nv>$SLAVEHOST</span> <span class=nv>$SLAVEDBNAME</span> &gt;dump.tmp.2.<span class=nv>$$</span> <span class=s>&lt;&lt;_EOF_
+</span><span class=s>         select &#39;accounts:&#39;::text, aid, bid, abalance, filler
+</span><span class=s>                  from pgbench_accounts order by aid;
+</span><span class=s>         select &#39;branches:&#39;::text, bid, bbalance, filler
+</span><span class=s>                  from pgbench_branches order by bid;
+</span><span class=s>         select &#39;tellers:&#39;::text, tid, bid, tbalance, filler
+</span><span class=s>                  from pgbench_tellers order by tid;
+</span><span class=s>         select &#39;history:&#39;::text, tid, bid, aid, delta, mtime, filler, id
+</span><span class=s>                  from pgbench_history order by id;
+</span><span class=s>_EOF_</span>
+
+<span class=k>if</span> diff dump.tmp.1.<span class=nv>$$</span> dump.tmp.2.<span class=nv>$$</span> &gt;<span class=nv>$CLUSTERNAME</span>.diff <span class=p>;</span> <span class=k>then</span>
+         <span class=nb>echo</span> <span class=s2>&#34;success - databases are equal.&#34;</span>
+         rm dump.tmp.?.<span class=nv>$$</span>
+         rm <span class=nv>$CLUSTERNAME</span>.diff
+<span class=k>else</span>
+         <span class=nb>echo</span> <span class=s2>&#34;FAILED - see </span><span class=nv>$CLUSTERNAME</span><span class=s2>.diff for database differences&#34;</span>
+<span class=k>fi</span>
+</code></pre></div><h2 id=conclusion class="relative group">Conclusion <span class="absolute top-0 w-6 transition-opacity opacity-0 ltr:-left-6 rtl:-right-6 not-prose group-hover:opacity-100"><a class="group-hover:text-primary-300 dark:group-hover:text-neutral-700" style=text-decoration-line:none!important href=#conclusion aria-label=アンカー>#</a></span></h2>
+<p>リアルワールドでは pgbench の用な単純な構成ではないため、実際にこれを使ってデータベースのアップグレードを行うにはより詳しく調査する必要がありますが、なんとなく概要がわかりました</p>
+</div>
+<script>var liked_article=!1,oid,id,viewed,oid_likes,id_likes,liked;typeof auth!='undefined'&&(oid="views_posts/what-is-slony-i.md",id=oid&&oid.replaceAll("/","-"),viewed=localStorage.getItem(id),viewed||auth.signInAnonymously().then(()=>{var a=db.collection('views').doc(id);localStorage.setItem(id,!0),a.get().then(a=>{a.exists?db.collection('views').doc(id).update({views:firebase.firestore.FieldValue.increment(1)}):db.collection('views').doc(id).set({views:1})}).catch(a=>{console.log("Error getting document:",a)})}).catch(a=>{var b=a.code,c=a.message;console.error(b,c)}),oid_likes="likes_posts/what-is-slony-i.md",id_likes=oid_likes&&oid_likes.replaceAll("/","-"),liked=localStorage.getItem(id_likes),liked&&(liked_article=!0,document.querySelectorAll("button[id='likes_button']")[0].innerText="Remove Like"));function like_article(a){console.log("add"),liked_article=!0,localStorage.setItem(a,!0),document.querySelectorAll("button[id='likes_button']")[0].innerText="Remove Like",auth.signInAnonymously().then(()=>{var b=db.collection('likes').doc(a);b.get().then(b=>{b.exists?db.collection('likes').doc(a).update({likes:firebase.firestore.FieldValue.increment(1)}):db.collection('likes').doc(a).set({likes:1})}).catch(a=>{console.log("Error getting document:",a)})}).catch(a=>{var b=a.code,c=a.message;console.error(b,c)})}function remove_like_article(a){console.log("remove"),liked_article=!1,localStorage.setItem(a,!1),document.querySelectorAll("button[id='likes_button']")[0].innerText="Like",auth.signInAnonymously().then(()=>{var b=db.collection('likes').doc(a);b.get().then(b=>{b.exists?db.collection('likes').doc(a).update({likes:firebase.firestore.FieldValue.increment(-1)}):db.collection('likes').doc(a).set({likes:0})}).catch(a=>{console.log("Error getting document:",a)})}).catch(a=>{var b=a.code,c=a.message;console.error(b,c)})}function process_article(){var a="likes_posts/what-is-slony-i.md",b=a&&a.replaceAll("/","-");liked_article?remove_like_article(b):like_article(b)}</script>
+</section>
+<footer class="pt-8 max-w-prose print:hidden">
+<div class=flex>
+<div class=place-self-center>
+<div class="text-[0.6rem] uppercase leading-3 text-neutral-500 dark:text-neutral-400">
+著者
+</div>
+<div class="font-semibold leading-6 text-neutral-800 dark:text-neutral-300">
+Yoshinori Teraoka
+</div>
+<div class="text-2xl sm:text-lg">
+<div class="flex flex-wrap text-neutral-400 dark:text-neutral-500">
+<a class="px-1 hover:text-primary-700 dark:hover:text-primary-400" href=https://twitter.com/yteraoka target=_blank aria-label=Twitter rel="me noopener noreferrer">
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentcolor" d="M459.37 151.716c.325 4.548.325 9.097.325 13.645.0 138.72-105.583 298.558-298.558 298.558-59.452.0-114.68-17.219-161.137-47.106 8.447.974 16.568 1.299 25.34 1.299 49.055.0 94.213-16.568 130.274-44.832-46.132-.975-84.792-31.188-98.112-72.772 6.498.974 12.995 1.624 19.818 1.624 9.421.0 18.843-1.3 27.614-3.573-48.081-9.747-84.143-51.98-84.143-102.985v-1.299c13.969 7.797 30.214 12.67 47.431 13.319-28.264-18.843-46.781-51.005-46.781-87.391.0-19.492 5.197-37.36 14.294-52.954 51.655 63.675 129.3 105.258 216.365 109.807-1.624-7.797-2.599-15.918-2.599-24.04.0-57.828 46.782-104.934 104.934-104.934 30.213.0 57.502 12.67 76.67 33.137 23.715-4.548 46.456-13.32 66.599-25.34-7.798 24.366-24.366 44.833-46.132 57.827 21.117-2.273 41.584-8.122 60.426-16.243-14.292 20.791-32.161 39.308-52.628 54.253z"/></svg>
+</span>
+</a>
+<a class="px-1 hover:text-primary-700 dark:hover:text-primary-400" href=https://github.com/yteraoka target=_blank aria-label=Github rel="me noopener noreferrer">
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><path fill="currentcolor" d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6.0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6.0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3.0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1.0-6.2-.3-40.4-.3-61.4.0.0-70 15-84.7-29.8.0.0-11.4-29.1-27.8-36.6.0.0-22.9-15.7 1.6-15.4.0.0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5.0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9.0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4.0 33.7-.3 75.4-.3 83.6.0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6.0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9.0-6.2-1.4-2.3-4-3.3-5.6-2z"/></svg>
+</span>
+</a>
+<a class="px-1 hover:text-primary-700 dark:hover:text-primary-400" href=https://linkedin.com/in/fa5b66b7-9c77-4e1b-8b97-40ba4a5a2c13/ target=_blank aria-label=Linkedin rel="me noopener noreferrer">
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path fill="currentcolor" d="M416 32H31.9C14.3 32 0 46.5.0 64.3v383.4C0 465.5 14.3 480 31.9 480H416c17.6.0 32-14.5 32-32.3V64.3c0-17.8-14.4-32.3-32-32.3zM135.4 416H69V202.2h66.5V416zm-33.2-243c-21.3.0-38.5-17.3-38.5-38.5S80.9 96 102.2 96c21.2.0 38.5 17.3 38.5 38.5.0 21.3-17.2 38.5-38.5 38.5zm282.1 243h-66.4V312c0-24.8-.5-56.7-34.5-56.7-34.6.0-39.9 27-39.9 54.9V416h-66.4V202.2h63.7v29.2h.9c8.9-16.8 30.6-34.5 62.9-34.5 67.2.0 79.7 44.3 79.7 101.9V416z"/></svg>
+</span>
+</a>
+<a class="px-1 hover:text-primary-700 dark:hover:text-primary-400" href=https://medium.com/@yteraoka target=_blank aria-label=Medium rel="me noopener noreferrer">
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512"><path fill="currentcolor" d="M180.5 74.262C80.813 74.262.0 155.633.0 256S80.819 437.738 180.5 437.738 361 356.373 361 256 280.191 74.262 180.5 74.262zm288.25 10.646c-49.845.0-90.245 76.619-90.245 171.095s40.406 171.1 90.251 171.1 90.251-76.619 90.251-171.1H559C559 161.5 518.6 84.908 468.752 84.908zm139.506 17.821c-17.526.0-31.735 68.628-31.735 153.274s14.2 153.274 31.735 153.274S640 340.631 640 256c0-84.649-14.215-153.271-31.742-153.271z"/></svg>
+</span>
+</a>
+</div>
+</div>
+</div>
+</div>
+<section class="flex flex-row flex-wrap justify-center pt-4 text-xl">
+<a class="m-1 inline-block min-w-[2.4rem] rounded bg-neutral-300 p-1 text-center text-neutral-700 hover:bg-primary-500 hover:text-neutral dark:bg-neutral-700 dark:text-neutral-300 dark:hover:bg-primary-400 dark:hover:text-neutral-800" href="https://www.linkedin.com/shareArticle?mini=true&url=https://preview-blog.1q77.com/2018/12/what-is-slony-i/&title=Slony-I%20%e3%81%ae%e8%aa%bf%e6%9f%bb" title=LinkedInでシェアする aria-label=LinkedInでシェアする>
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path fill="currentcolor" d="M416 32H31.9C14.3 32 0 46.5.0 64.3v383.4C0 465.5 14.3 480 31.9 480H416c17.6.0 32-14.5 32-32.3V64.3c0-17.8-14.4-32.3-32-32.3zM135.4 416H69V202.2h66.5V416zm-33.2-243c-21.3.0-38.5-17.3-38.5-38.5S80.9 96 102.2 96c21.2.0 38.5 17.3 38.5 38.5.0 21.3-17.2 38.5-38.5 38.5zm282.1 243h-66.4V312c0-24.8-.5-56.7-34.5-56.7-34.6.0-39.9 27-39.9 54.9V416h-66.4V202.2h63.7v29.2h.9c8.9-16.8 30.6-34.5 62.9-34.5 67.2.0 79.7 44.3 79.7 101.9V416z"/></svg>
+</span>
+</a>
+<a class="m-1 inline-block min-w-[2.4rem] rounded bg-neutral-300 p-1 text-center text-neutral-700 hover:bg-primary-500 hover:text-neutral dark:bg-neutral-700 dark:text-neutral-300 dark:hover:bg-primary-400 dark:hover:text-neutral-800" href="https://twitter.com/intent/tweet/?url=https://preview-blog.1q77.com/2018/12/what-is-slony-i/&text=Slony-I%20%e3%81%ae%e8%aa%bf%e6%9f%bb" title=Twitterに投稿する aria-label=Twitterに投稿する>
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentcolor" d="M459.37 151.716c.325 4.548.325 9.097.325 13.645.0 138.72-105.583 298.558-298.558 298.558-59.452.0-114.68-17.219-161.137-47.106 8.447.974 16.568 1.299 25.34 1.299 49.055.0 94.213-16.568 130.274-44.832-46.132-.975-84.792-31.188-98.112-72.772 6.498.974 12.995 1.624 19.818 1.624 9.421.0 18.843-1.3 27.614-3.573-48.081-9.747-84.143-51.98-84.143-102.985v-1.299c13.969 7.797 30.214 12.67 47.431 13.319-28.264-18.843-46.781-51.005-46.781-87.391.0-19.492 5.197-37.36 14.294-52.954 51.655 63.675 129.3 105.258 216.365 109.807-1.624-7.797-2.599-15.918-2.599-24.04.0-57.828 46.782-104.934 104.934-104.934 30.213.0 57.502 12.67 76.67 33.137 23.715-4.548 46.456-13.32 66.599-25.34-7.798 24.366-24.366 44.833-46.132 57.827 21.117-2.273 41.584-8.122 60.426-16.243-14.292 20.791-32.161 39.308-52.628 54.253z"/></svg>
+</span>
+</a>
+</section>
+<div class=pt-8>
+<hr class="border-dotted border-neutral-300 dark:border-neutral-600">
+<div class="flex justify-between pt-3">
+<span>
+<a class="flex group" href=/2018/12/building-wrodpress-site-on-lightsail-with-cloudfront/>
+<span class="mr-3 text-neutral-700 group-hover:text-primary-600 ltr:inline rtl:hidden dark:text-neutral dark:group-hover:text-primary-400">&larr;</span>
+<span class="ml-3 text-neutral-700 group-hover:text-primary-600 ltr:hidden rtl:inline dark:text-neutral dark:group-hover:text-primary-400">&rarr;</span>
+<span class="flex flex-col">
+<span class="mt-[0.1rem] leading-6 group-hover:underline group-hover:decoration-primary-500">WrodPress を Lightsail + CloudFront で構築する</span>
+<span class="mt-[0.1rem] text-xs text-neutral-500 dark:text-neutral-400">
+<time datetime="2018-12-29 03:16:30 +0000 UTC">2018年12月29日</time>
+</span>
+</span>
+</a>
+</span>
+<span>
+<a class="flex text-right group" href=/2019/01/creating-highly-available-1-13-clusters-with-kubeadm/>
+<span class="flex flex-col">
+<span class="mt-[0.1rem] leading-6 group-hover:underline group-hover:decoration-primary-500">kubeadm で kubernetes 1.13 の HA 環境を構築</span>
+<span class="mt-[0.1rem] text-xs text-neutral-500 dark:text-neutral-400">
+<time datetime="2019-01-05 16:54:22 +0000 UTC">2019年1月5日</time>
+</span>
+</span>
+<span class="ml-3 text-neutral-700 group-hover:text-primary-600 ltr:inline rtl:hidden dark:text-neutral dark:group-hover:text-primary-400">&rarr;</span>
+<span class="mr-3 text-neutral-700 group-hover:text-primary-600 ltr:hidden rtl:inline dark:text-neutral dark:group-hover:text-primary-400">&larr;</span>
+</a>
+</span>
+</div>
+</div>
+</footer>
+</article>
+<div class="pointer-events-none absolute top-[100vh] bottom-0 w-12 ltr:right-0 rtl:left-0">
+<a href=#the-top class="pointer-events-auto sticky top-[calc(100vh-5.5rem)] flex h-12 w-12 items-center justify-center rounded-full bg-neutral/50 text-xl text-neutral-700 backdrop-blur hover:text-primary-600 dark:bg-neutral-800/50 dark:text-neutral dark:hover:text-primary-400" aria-label=TOPへスクロール title=TOPへスクロール>
+&uarr;
+</a>
+</div>
+</main><footer class="py-10 print:hidden">
+<div class="flex items-center justify-between">
+<p class="text-sm text-neutral-500 dark:text-neutral-400">
+&copy;
+2022
+Yoshinori Teraoka
+</p>
+</div>
+<script>mediumZoom(document.querySelectorAll("img:not(.nozoom)"),{margin:24,background:'rgba(0,0,0,0.5)',scrollOffset:0})</script>
+<script type=text/javascript src=/js/process.min.48d08339b8a087b59c7b8cb42b6717aeeed3e07bfc68b1654cac27f00583284dac59cae47fb686dd7c0e9ff1d2745689dc2071230dff432ca6d7fc24b9f2e036.js integrity="sha512-SNCDObigh7Wce4y0K2cXru7T4Hv8aLFlTKwn8AWDKE2sWcrkf7aG3XwOn/HSdFaJ3CBxIw3/Qyym1/wkufLgNg=="></script>
+</footer><div id=search-wrapper class="invisible fixed inset-0 z-50 flex h-screen w-screen cursor-default flex-col bg-neutral-500/50 p-4 backdrop-blur-sm dark:bg-neutral-900/50 sm:p-6 md:p-[10vh] lg:p-[12vh]" data-url=https://preview-blog.1q77.com/>
+<div id=search-modal class="flex flex-col w-full max-w-3xl min-h-0 mx-auto border rounded-md shadow-lg top-20 border-neutral-200 bg-neutral dark:border-neutral-700 dark:bg-neutral-800">
+<header class="relative z-10 flex items-center justify-between flex-none px-2">
+<form class="flex items-center flex-auto min-w-0">
+<div class="flex items-center justify-center w-8 h-8 text-neutral-400">
+<span class="relative inline-block align-text-bottom icon"><svg aria-hidden="true" focusable="false" data-prefix="fas" data-icon="search" class="svg-inline--fa fa-search fa-w-16" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentcolor" d="M505 442.7 405.3 343c-4.5-4.5-10.6-7-17-7H372c27.6-35.3 44-79.7 44-128C416 93.1 322.9.0 208 0S0 93.1.0 208s93.1 208 208 208c48.3.0 92.7-16.4 128-44v16.3c0 6.4 2.5 12.5 7 17l99.7 99.7c9.4 9.4 24.6 9.4 33.9.0l28.3-28.3c9.4-9.4 9.4-24.6.1-34zM208 336c-70.7.0-128-57.2-128-128 0-70.7 57.2-128 128-128 70.7.0 128 57.2 128 128 0 70.7-57.2 128-128 128z"/></svg>
+</span>
+</div>
+<input type=search id=search-query class="flex flex-auto h-12 mx-1 bg-transparent appearance-none focus:outline-dotted focus:outline-2 focus:outline-transparent" placeholder=Search tabindex=0>
+</form>
+<button id=close-search-button class="flex items-center justify-center w-8 h-8 text-neutral-700 hover:text-primary-600 dark:text-neutral dark:hover:text-primary-400" title="閉じる (Esc)">
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><path fill="currentcolor" d="M310.6 361.4c12.5 12.5 12.5 32.75.0 45.25C304.4 412.9 296.2 416 288 416s-16.38-3.125-22.62-9.375L160 301.3 54.63 406.6C48.38 412.9 40.19 416 32 416S15.63 412.9 9.375 406.6c-12.5-12.5-12.5-32.75.0-45.25l105.4-105.4L9.375 150.6c-12.5-12.5-12.5-32.75.0-45.25s32.75-12.5 45.25.0L160 210.8l105.4-105.4c12.5-12.5 32.75-12.5 45.25.0s12.5 32.75.0 45.25l-105.4 105.4L310.6 361.4z"/></svg>
+</span>
+</button>
+</header>
+<section class="flex-auto px-2 overflow-auto">
+<ul id=search-results>
+</ul>
+</section>
+</div>
+</div>
+</div>
+</body>
+</html>

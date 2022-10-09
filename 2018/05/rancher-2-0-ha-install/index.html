@@ -1,0 +1,788 @@
+<!doctype html><html lang=ja dir=ltr class=scroll-smooth data-default-appearance=light data-auto-appearance=true><head>
+<meta charset=utf-8>
+<meta http-equiv=content-language content="ja">
+<meta name=viewport content="width=device-width,initial-scale=1">
+<meta http-equiv=x-ua-compatible content="ie=edge">
+<title>Rancher 2.0 の HA 構成を試す &#183; 1Q77</title>
+<meta name=title content="Rancher 2.0 の HA 構成を試す &#183; 1Q77">
+<link rel=canonical href=https://preview-blog.1q77.com/2018/05/rancher-2-0-ha-install/>
+<link type=text/css rel=stylesheet href=/css/main.bundle.min.a9d40529d239a91ecb75447e67ee6c80c1f1c28593904b4052651b12220121e13ec42904268b0193a6858f039cf8bfdd2b1331529ed341ddc7488cec3bdcbc2e.css integrity="sha512-qdQFKdI5qR7LdUR+Z+5sgMHxwoWTkEtAUmUbEiIBIeE+xCkEJosBk6aFjwOc+L/dKxMxUp7TQd3HSIzsO9y8Lg==">
+<script type=text/javascript src=/js/main.min.cf83e1357eefb8bdf1542850d66d8007d620e4050b5715dc83f4a921d36ce9ce47d0d13c5d85f2b0ff8318d2877eec2f63b931bd47417a81a538327af927da3e.js integrity="sha512-z4PhNX7vuL3xVChQ1m2AB9Yg5AULVxXcg/SpIdNs6c5H0NE8XYXysP+DGNKHfuwvY7kxvUdBeoGlODJ6+SfaPg=="></script>
+<script type=text/javascript src=/js/appearance.min.49025a779c36ad37a5bf9f1cc6bffd35ccb69ce15560ef1b10057ddf31576265b19f8bcc1733207336c9144926f7b18aea2e5895f29e858b24271332a2fa5cd5.js integrity="sha512-SQJad5w2rTelv58cxr/9Ncy2nOFVYO8bEAV93zFXYmWxn4vMFzMgczbJFEkm97GK6i5YlfKehYskJxMyovpc1Q=="></script>
+<script defer type=text/javascript id=script-bundle src=/js/main.bundle.min.34ee8372ff77835535e486c6ed01ff6993374a1cec8108898cad793fc6ae7520778e24db68e085c762d25af6fa7d00b57d7a791438dc68b676581f8c8344f6e0.js integrity="sha512-NO6Dcv93g1U15IbG7QH/aZM3ShzsgQiJjK15P8audSB3jiTbaOCFx2LSWvb6fQC1fXp5FDjcaLZ2WB+Mg0T24A==" data-copy data-copied></script>
+<script src=/js/zoom.min.js></script>
+<link rel=apple-touch-icon sizes=180x180 href=/apple-touch-icon.png>
+<link rel=icon type=image/png sizes=32x32 href=/favicon-32x32.png>
+<link rel=icon type=image/png sizes=16x16 href=/favicon-16x16.png>
+<link rel=manifest href=/site.webmanifest>
+<meta property="og:title" content="Rancher 2.0 の HA 構成を試す">
+<meta property="og:description" content="Beta を試すシリーズ（その1、その2）を書いていましたがついに 5月1日に Rancher 2.0 が GA になりました Announcing Rancher 2.0 GA! (Docker Hub にある image の tag はまだ preview でした) 今回は High Availability 構">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://preview-blog.1q77.com/2018/05/rancher-2-0-ha-install/"><meta property="article:section" content="posts">
+<meta property="article:published_time" content="2018-05-13T15:11:32+00:00">
+<meta property="article:modified_time" content="2018-05-13T15:11:32+00:00">
+<meta name=twitter:card content="summary">
+<meta name=twitter:title content="Rancher 2.0 の HA 構成を試す">
+<meta name=twitter:description content="Beta を試すシリーズ（その1、その2）を書いていましたがついに 5月1日に Rancher 2.0 が GA になりました Announcing Rancher 2.0 GA! (Docker Hub にある image の tag はまだ preview でした) 今回は High Availability 構">
+<script type=application/ld+json>[{"@context":"https://schema.org","@type":"Article","articleSection":"Posts","name":"Rancher 2.0 の HA 構成を試す","headline":"Rancher 2.0 の HA 構成を試す","abstract":"Beta を試すシリーズ（その1、その2）を書いていましたがついに 5月1日に Rancher 2.0 が GA になりました Announcing Rancher 2.0 GA! (Docker Hub にある image の tag はまだ preview でした) 今回は High Availability 構","inLanguage":"ja","url":"https:\/\/preview-blog.1q77.com\/2018\/05\/rancher-2-0-ha-install\/","author":{"@type":"Person","name":"Yoshinori Teraoka"},"copyrightYear":"2018","dateCreated":"2018-05-13T15:11:32\u002b00:00","datePublished":"2018-05-13T15:11:32\u002b00:00","dateModified":"2018-05-13T15:11:32\u002b00:00","keywords":["Kubernetes","Let's Encrypt","Rancher","Lego"],"mainEntityOfPage":"true","wordCount":"3937"}]</script>
+<meta name=author content="Yoshinori Teraoka">
+<link href=https://twitter.com/yteraoka rel=me>
+<link href=https://github.com/yteraoka rel=me>
+<link href=https://linkedin.com/in/fa5b66b7-9c77-4e1b-8b97-40ba4a5a2c13/ rel=me>
+<link href=https://medium.com/@yteraoka rel=me>
+<link rel=stylesheet href=https://rsms.me/inter/inter.css>
+</head><body class="flex flex-col h-screen px-6 m-auto text-lg leading-7 max-w-7xl bg-neutral text-neutral-900 dark:bg-neutral-800 dark:text-neutral sm:px-14 md:px-24 lg:px-32">
+<div id=the-top class="absolute flex self-center">
+<a class="px-3 py-1 text-sm -translate-y-8 rounded-b-lg bg-primary-200 focus:translate-y-0 dark:bg-neutral-600" href=#main-content><span class="font-bold text-primary-600 ltr:pr-2 rtl:pl-2 dark:text-primary-400">&darr;</span>メインコンテンツへスキップ</a>
+</div>
+<div style=padding-left:0;padding-right:0 class="flex items-center justify-between px-4 py-6 sm:px-6 md:justify-start space-x-3">
+<div class="flex flex-1 items-center justify-between">
+<nav class="flex space-x-3">
+<a href=/ class="text-base font-medium text-gray-500 hover:text-gray-900">1Q77</a>
+</nav>
+<div class="hidden md:flex items-center space-x-5 md:ml-12">
+<a href=/posts/ class="text-base font-medium text-gray-500 hover:text-gray-900" title=Posts>
+Blog
+</a>
+<a href=/tags/ class="text-base font-medium text-gray-500 hover:text-gray-900" title=Tags>
+Tags
+</a>
+<a href=https://github.com/yteraoka class="text-base font-medium text-gray-500 hover:text-gray-900" title>
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><path fill="currentcolor" d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6.0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6.0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3.0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1.0-6.2-.3-40.4-.3-61.4.0.0-70 15-84.7-29.8.0.0-11.4-29.1-27.8-36.6.0.0-22.9-15.7 1.6-15.4.0.0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5.0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9.0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4.0 33.7-.3 75.4-.3 83.6.0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6.0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9.0-6.2-1.4-2.3-4-3.3-5.6-2z"/></svg>
+</span>
+&nbsp;
+GitHub
+</a>
+<a href=https://twitter.com/yteraoka class="text-base font-medium text-gray-500 hover:text-gray-900" title>
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentcolor" d="M459.37 151.716c.325 4.548.325 9.097.325 13.645.0 138.72-105.583 298.558-298.558 298.558-59.452.0-114.68-17.219-161.137-47.106 8.447.974 16.568 1.299 25.34 1.299 49.055.0 94.213-16.568 130.274-44.832-46.132-.975-84.792-31.188-98.112-72.772 6.498.974 12.995 1.624 19.818 1.624 9.421.0 18.843-1.3 27.614-3.573-48.081-9.747-84.143-51.98-84.143-102.985v-1.299c13.969 7.797 30.214 12.67 47.431 13.319-28.264-18.843-46.781-51.005-46.781-87.391.0-19.492 5.197-37.36 14.294-52.954 51.655 63.675 129.3 105.258 216.365 109.807-1.624-7.797-2.599-15.918-2.599-24.04.0-57.828 46.782-104.934 104.934-104.934 30.213.0 57.502 12.67 76.67 33.137 23.715-4.548 46.456-13.32 66.599-25.34-7.798 24.366-24.366 44.833-46.132 57.827 21.117-2.273 41.584-8.122 60.426-16.243-14.292 20.791-32.161 39.308-52.628 54.253z"/></svg>
+</span>
+&nbsp;
+Twitter
+</a>
+<a href=https://qiita.com/yteraoka class="text-base font-medium text-gray-500 hover:text-gray-900" title>
+Qiita
+</a>
+<button id=search-button class="text-base hover:text-primary-600 dark:hover:text-primary-400" title>
+<span class="relative inline-block align-text-bottom icon"><svg aria-hidden="true" focusable="false" data-prefix="fas" data-icon="search" class="svg-inline--fa fa-search fa-w-16" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentcolor" d="M505 442.7 405.3 343c-4.5-4.5-10.6-7-17-7H372c27.6-35.3 44-79.7 44-128C416 93.1 322.9.0 208 0S0 93.1.0 208s93.1 208 208 208c48.3.0 92.7-16.4 128-44v16.3c0 6.4 2.5 12.5 7 17l99.7 99.7c9.4 9.4 24.6 9.4 33.9.0l28.3-28.3c9.4-9.4 9.4-24.6.1-34zM208 336c-70.7.0-128-57.2-128-128 0-70.7 57.2-128 128-128 70.7.0 128 57.2 128 128 0 70.7-57.2 128-128 128z"/></svg>
+</span>
+</button>
+<div class="ltr:mr-14 rtl:ml-14 cursor-pointer text-sm text-neutral-700 hover:text-primary-600 dark:text-neutral dark:hover:text-primary-400">
+<button id=appearance-switcher type=button>
+<div class="flex items-center justify-center h-12 dark:hidden">
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentcolor" d="M32 256C32 132.2 132.3 32 255.8 32c11.36.0 29.7 1.668 40.9 3.746 9.616 1.777 11.75 14.63 3.279 19.44C245 86.5 211.2 144.6 211.2 207.8c0 109.7 99.71 193 208.3 172.3 9.561-1.805 16.28 9.324 10.11 16.95C387.9 448.6 324.8 480 255.8 480 132.1 480 32 379.6 32 256z"/></svg>
+</span>
+</div>
+<div class="items-center justify-center hidden h-12 dark:flex">
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentcolor" d="M256 159.1c-53.02.0-95.1 42.98-95.1 95.1s41.2 96.9 95.1 96.9 95.1-42.98 95.1-95.1S309 159.1 256 159.1zM509.3 347l-63.2-91.9 63.15-91.01c6.332-9.125 1.104-21.74-9.826-23.72l-109-19.7-19.7-109c-1.975-10.93-14.59-16.16-23.72-9.824L256 65.89 164.1 2.736c-9.125-6.332-21.74-1.107-23.72 9.824L121.6 121.6 12.56 141.3C1.633 143.2-3.596 155.9 2.736 164.1L65.89 256 2.74 347.01c-6.332 9.125-1.105 21.74 9.824 23.72l109 19.7 19.7 109c1.975 10.93 14.59 16.16 23.72 9.824L256 446.1l91.01 63.15c9.127 6.334 21.75 1.107 23.72-9.822l19.7-109 109-19.7C510.4 368.8 515.6 356.1 509.3 347zM256 383.1c-70.69.0-127.1-57.31-127.1-127.1.0-70.69 57.31-127.1 127.1-127.1S383.1 186.2 383.1 256c0 70.7-56.4 127.1-127.1 127.1z"/></svg>
+</span>
+</div>
+</button>
+</div>
+</div>
+<div class="flex md:hidden items-center space-x-5 md:ml-12">
+<span></span>
+<button id=search-button-mobile class="text-base hover:text-primary-600 dark:hover:text-primary-400" title>
+<span class="relative inline-block align-text-bottom icon"><svg aria-hidden="true" focusable="false" data-prefix="fas" data-icon="search" class="svg-inline--fa fa-search fa-w-16" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentcolor" d="M505 442.7 405.3 343c-4.5-4.5-10.6-7-17-7H372c27.6-35.3 44-79.7 44-128C416 93.1 322.9.0 208 0S0 93.1.0 208s93.1 208 208 208c48.3.0 92.7-16.4 128-44v16.3c0 6.4 2.5 12.5 7 17l99.7 99.7c9.4 9.4 24.6 9.4 33.9.0l28.3-28.3c9.4-9.4 9.4-24.6.1-34zM208 336c-70.7.0-128-57.2-128-128 0-70.7 57.2-128 128-128 70.7.0 128 57.2 128 128 0 70.7-57.2 128-128 128z"/></svg>
+</span>
+</button>
+<button id=appearance-switcher-mobile type=button style=margin-right:5px>
+<div class="flex items-center justify-center h-12 dark:hidden">
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentcolor" d="M32 256C32 132.2 132.3 32 255.8 32c11.36.0 29.7 1.668 40.9 3.746 9.616 1.777 11.75 14.63 3.279 19.44C245 86.5 211.2 144.6 211.2 207.8c0 109.7 99.71 193 208.3 172.3 9.561-1.805 16.28 9.324 10.11 16.95C387.9 448.6 324.8 480 255.8 480 132.1 480 32 379.6 32 256z"/></svg>
+</span>
+</div>
+<div class="items-center justify-center hidden h-12 dark:flex">
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentcolor" d="M256 159.1c-53.02.0-95.1 42.98-95.1 95.1s41.2 96.9 95.1 96.9 95.1-42.98 95.1-95.1S309 159.1 256 159.1zM509.3 347l-63.2-91.9 63.15-91.01c6.332-9.125 1.104-21.74-9.826-23.72l-109-19.7-19.7-109c-1.975-10.93-14.59-16.16-23.72-9.824L256 65.89 164.1 2.736c-9.125-6.332-21.74-1.107-23.72 9.824L121.6 121.6 12.56 141.3C1.633 143.2-3.596 155.9 2.736 164.1L65.89 256 2.74 347.01c-6.332 9.125-1.105 21.74 9.824 23.72l109 19.7 19.7 109c1.975 10.93 14.59 16.16 23.72 9.824L256 446.1l91.01 63.15c9.127 6.334 21.75 1.107 23.72-9.822l19.7-109 109-19.7C510.4 368.8 515.6 356.1 509.3 347zM256 383.1c-70.69.0-127.1-57.31-127.1-127.1.0-70.69 57.31-127.1 127.1-127.1S383.1 186.2 383.1 256c0 70.7-56.4 127.1-127.1 127.1z"/></svg>
+</span>
+</div>
+</button>
+</div>
+</div>
+<div class="-my-2 -mr-2 md:hidden">
+<label id=menu-button for=menu-controller class=block>
+<input type=checkbox id=menu-controller class=hidden>
+<div class="cursor-pointer hover:text-primary-600 dark:hover:text-primary-400">
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path fill="currentcolor" d="M0 96C0 78.33 14.33 64 32 64H416c17.7.0 32 14.33 32 32 0 17.7-14.3 32-32 32H32C14.33 128 0 113.7.0 96zM0 256c0-17.7 14.33-32 32-32H416c17.7.0 32 14.3 32 32s-14.3 32-32 32H32c-17.67.0-32-14.3-32-32zM416 448H32c-17.67.0-32-14.3-32-32s14.33-32 32-32H416c17.7.0 32 14.3 32 32s-14.3 32-32 32z"/></svg>
+</span>
+</div>
+<div id=menu-wrapper style=padding-top:25px class="fixed inset-0 z-30 invisible w-screen h-screen m-auto overflow-auto transition-opacity opacity-0 cursor-default bg-neutral-100/50 backdrop-blur-sm dark:bg-neutral-900/50">
+<ul class="flex movedown flex-col w-full px-6 py-6 mx-auto overflow-visible list-none ltr:text-right rtl:text-left max-w-7xl sm:px-14 md:px-24 lg:px-32 sm:py-10 sm:pt-10">
+<li class=mb-1>
+<span class="cursor-pointer hover:text-primary-600 dark:hover:text-primary-400">
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><path fill="currentcolor" d="M310.6 361.4c12.5 12.5 12.5 32.75.0 45.25C304.4 412.9 296.2 416 288 416s-16.38-3.125-22.62-9.375L160 301.3 54.63 406.6C48.38 412.9 40.19 416 32 416S15.63 412.9 9.375 406.6c-12.5-12.5-12.5-32.75.0-45.25l105.4-105.4L9.375 150.6c-12.5-12.5-12.5-32.75.0-45.25s32.75-12.5 45.25.0L160 210.8l105.4-105.4c12.5-12.5 32.75-12.5 45.25.0s12.5 32.75.0 45.25l-105.4 105.4L310.6 361.4z"/></svg>
+</span>
+</span>
+</li>
+<li class=mb-1>
+<a class="decoration-primary-500 hover:underline hover:decoration-2 hover:underline-offset-2" href=/posts/ title=Posts>
+Blog
+</a>
+</li>
+<li class=mb-1>
+<a class="decoration-primary-500 hover:underline hover:decoration-2 hover:underline-offset-2" href=/tags/ title=Tags>
+Tags
+</a>
+</li>
+<li class=mb-1>
+<a class="decoration-primary-500 hover:underline hover:decoration-2 hover:underline-offset-2" href=https://github.com/yteraoka title>
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><path fill="currentcolor" d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6.0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6.0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3.0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1.0-6.2-.3-40.4-.3-61.4.0.0-70 15-84.7-29.8.0.0-11.4-29.1-27.8-36.6.0.0-22.9-15.7 1.6-15.4.0.0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5.0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9.0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4.0 33.7-.3 75.4-.3 83.6.0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6.0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9.0-6.2-1.4-2.3-4-3.3-5.6-2z"/></svg>
+</span>
+&nbsp;
+GitHub
+</a>
+</li>
+<li class=mb-1>
+<a class="decoration-primary-500 hover:underline hover:decoration-2 hover:underline-offset-2" href=https://twitter.com/yteraoka title>
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentcolor" d="M459.37 151.716c.325 4.548.325 9.097.325 13.645.0 138.72-105.583 298.558-298.558 298.558-59.452.0-114.68-17.219-161.137-47.106 8.447.974 16.568 1.299 25.34 1.299 49.055.0 94.213-16.568 130.274-44.832-46.132-.975-84.792-31.188-98.112-72.772 6.498.974 12.995 1.624 19.818 1.624 9.421.0 18.843-1.3 27.614-3.573-48.081-9.747-84.143-51.98-84.143-102.985v-1.299c13.969 7.797 30.214 12.67 47.431 13.319-28.264-18.843-46.781-51.005-46.781-87.391.0-19.492 5.197-37.36 14.294-52.954 51.655 63.675 129.3 105.258 216.365 109.807-1.624-7.797-2.599-15.918-2.599-24.04.0-57.828 46.782-104.934 104.934-104.934 30.213.0 57.502 12.67 76.67 33.137 23.715-4.548 46.456-13.32 66.599-25.34-7.798 24.366-24.366 44.833-46.132 57.827 21.117-2.273 41.584-8.122 60.426-16.243-14.292 20.791-32.161 39.308-52.628 54.253z"/></svg>
+</span>
+&nbsp;
+Twitter
+</a>
+</li>
+<li class=mb-1>
+<a class="decoration-primary-500 hover:underline hover:decoration-2 hover:underline-offset-2" href=https://qiita.com/yteraoka title>
+Qiita
+</a>
+</li>
+</ul>
+</div>
+</label>
+</div>
+</div>
+<div id=mobile-menu class="fixed inset-0 z-30 invisible w-screen h-screen m-auto overflow-auto transition-opacity opacity-0 cursor-default bg-neutral-100/50 backdrop-blur-sm dark:bg-neutral-900/50">
+<ul class="flex movedown flex-col w-full px-6 py-6 mx-auto overflow-visible list-none ltr:text-right rtl:text-left max-w-7xl sm:px-14 md:px-24 lg:px-32 sm:py-10 sm:pt-10">
+<li class=mb-1>
+<span class="cursor-pointer hover:text-primary-600 dark:hover:text-primary-400">
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><path fill="currentcolor" d="M310.6 361.4c12.5 12.5 12.5 32.75.0 45.25C304.4 412.9 296.2 416 288 416s-16.38-3.125-22.62-9.375L160 301.3 54.63 406.6C48.38 412.9 40.19 416 32 416S15.63 412.9 9.375 406.6c-12.5-12.5-12.5-32.75.0-45.25l105.4-105.4L9.375 150.6c-12.5-12.5-12.5-32.75.0-45.25s32.75-12.5 45.25.0L160 210.8l105.4-105.4c12.5-12.5 32.75-12.5 45.25.0s12.5 32.75.0 45.25l-105.4 105.4L310.6 361.4z"/></svg>
+</span>
+</span>
+</li>
+<li class=mb-1>
+<a class="decoration-primary-500 hover:underline hover:decoration-2 hover:underline-offset-2" href=/posts/ title=Posts>Blog</a>
+</li>
+<li class=mb-1>
+<a class="decoration-primary-500 hover:underline hover:decoration-2 hover:underline-offset-2" href=/tags/ title=Tags>Tags</a>
+</li>
+<li class=mb-1>
+<a class="decoration-primary-500 hover:underline hover:decoration-2 hover:underline-offset-2" href=https://github.com/yteraoka title>GitHub</a>
+</li>
+<li class=mb-1>
+<a class="decoration-primary-500 hover:underline hover:decoration-2 hover:underline-offset-2" href=https://twitter.com/yteraoka title>Twitter</a>
+</li>
+<li class=mb-1>
+<a class="decoration-primary-500 hover:underline hover:decoration-2 hover:underline-offset-2" href=https://qiita.com/yteraoka title>Qiita</a>
+</li>
+<li>
+<button id=search-button-mobile class="text-base hover:text-primary-600 dark:hover:text-primary-400">
+<span class="relative inline-block align-text-bottom icon"><svg aria-hidden="true" focusable="false" data-prefix="fas" data-icon="search" class="svg-inline--fa fa-search fa-w-16" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentcolor" d="M505 442.7 405.3 343c-4.5-4.5-10.6-7-17-7H372c27.6-35.3 44-79.7 44-128C416 93.1 322.9.0 208 0S0 93.1.0 208s93.1 208 208 208c48.3.0 92.7-16.4 128-44v16.3c0 6.4 2.5 12.5 7 17l99.7 99.7c9.4 9.4 24.6 9.4 33.9.0l28.3-28.3c9.4-9.4 9.4-24.6.1-34zM208 336c-70.7.0-128-57.2-128-128 0-70.7 57.2-128 128-128 70.7.0 128 57.2 128 128 0 70.7-57.2 128-128 128z"/></svg>
+</span>
+</button>
+</li>
+</ul>
+</div>
+<div class="relative flex flex-col grow">
+<main id=main-content class=grow>
+<article>
+<header class=max-w-prose>
+<ol class="text-sm text-neutral-500 dark:text-neutral-400 print:hidden">
+<li class="inline hidden">
+<a class="hover:underline decoration-neutral-300 dark:underline-neutral-600" href=/>1Q77</a><span class="px-1 text-primary-500">/</span>
+</li>
+<li class=inline>
+<a class="hover:underline decoration-neutral-300 dark:underline-neutral-600" href=/posts/>Posts</a><span class="px-1 text-primary-500">/</span>
+</li>
+<li class="inline hidden">
+<a class="hover:underline decoration-neutral-300 dark:underline-neutral-600" href=/2018/05/rancher-2-0-ha-install/>Rancher 2.0 の HA 構成を試す</a><span class="px-1 text-primary-500">/</span>
+</li>
+</ol>
+<h1 class="mt-0 text-4xl font-extrabold text-neutral-900 dark:text-neutral">
+Rancher 2.0 の HA 構成を試す
+</h1>
+<div class="mt-8 mb-12 text-base text-neutral-500 dark:text-neutral-400 print:hidden">
+<div class="flex flex-row flex-wrap items-center">
+<time datetime="2018-05-13 15:11:32 +0000 UTC">2018年5月13日</time>
+</div>
+<div class="flex flex-row flex-wrap items-center">
+<span style=margin-top:.5rem class=mr-2 onclick='window.open("/tags/kubernetes/")'>
+<span class=flex>
+<span class="rounded-md border border-primary-400 px-1 py-[1px] text-xs font-normal text-primary-700 dark:border-primary-600 dark:text-primary-400">
+Kubernetes
+</span>
+</span>
+</span>
+<span style=margin-top:.5rem class=mr-2 onclick='window.open("/tags/lets-encrypt/")'>
+<span class=flex>
+<span class="rounded-md border border-primary-400 px-1 py-[1px] text-xs font-normal text-primary-700 dark:border-primary-600 dark:text-primary-400">
+Let's Encrypt
+</span>
+</span>
+</span>
+<span style=margin-top:.5rem class=mr-2 onclick='window.open("/tags/rancher/")'>
+<span class=flex>
+<span class="rounded-md border border-primary-400 px-1 py-[1px] text-xs font-normal text-primary-700 dark:border-primary-600 dark:text-primary-400">
+Rancher
+</span>
+</span>
+</span>
+<span style=margin-top:.5rem class=mr-2 onclick='window.open("/tags/lego/")'>
+<span class=flex>
+<span class="rounded-md border border-primary-400 px-1 py-[1px] text-xs font-normal text-primary-700 dark:border-primary-600 dark:text-primary-400">
+Lego
+</span>
+</span>
+</span>
+</div>
+</div>
+</header>
+<section class="flex flex-col max-w-full mt-0 prose dark:prose-invert lg:flex-row">
+<div class="order-first px-0 lg:order-last lg:max-w-xs ltr:lg:pl-8 rtl:lg:pr-8">
+<div class="toc ltr:pl-5 rtl:pr-5 print:hidden lg:sticky lg:top-10">
+<details open class="mt-0 overflow-hidden rounded-lg ltr:-ml-5 ltr:pl-5 rtl:-mr-5 rtl:pr-5 hidden lg:block">
+<summary class="block py-1 text-lg font-semibold cursor-pointer bg-neutral-100 text-neutral-800 ltr:-ml-5 ltr:pl-5 rtl:-mr-5 rtl:pr-5 dark:bg-neutral-700 dark:text-neutral-100 lg:hidden">
+目次
+</summary>
+<div class="py-2 border-dotted border-neutral-300 ltr:-ml-5 ltr:border-l ltr:pl-5 rtl:-mr-5 rtl:border-r rtl:pr-5 dark:border-neutral-600">
+<nav id=TableOfContents>
+<ul>
+<li>
+<ul>
+<li><a href=#ドメインを決めて-ssltls-署名書を用意する>ドメインを決めて SSL/TLS 署名書を用意する</a></li>
+<li><a href=#docker-入りの-ubuntu-1604-を-3-台用意する>Docker 入りの Ubuntu 16.04 を 3 台用意する</a></li>
+<li><a href=#dns-登録>DNS 登録</a></li>
+<li><a href=#rke-バイナリのダウンロード>rke バイナリのダウンロード</a></li>
+<li><a href=#template-のダウンロード>Template のダウンロード</a>
+<ul>
+<li><a href=#nodes-セクションの置換>Nodes セクションの置換</a></li>
+<li><a href=#証明書の置換>証明書の置換</a></li>
+<li><a href=#fqdn-の置換>FQDN の置換</a></li>
+</ul>
+</li>
+<li><a href=#rke-コマンドの実行>rke コマンドの実行</a></li>
+<li><a href=#ブラウザで-rancher-にアクセス>ブラウザで Rancher にアクセス</a></li>
+<li><a href=#kubectl-で-rke-にアクセスしてみる>kubectl で RKE にアクセスしてみる</a></li>
+</ul>
+</li>
+</ul>
+</nav>
+</div>
+</details>
+<details class="mt-0 overflow-hidden rounded-lg ltr:-ml-5 ltr:pl-5 rtl:-mr-5 rtl:pr-5 lg:hidden">
+<summary class="py-1 text-lg font-semibold cursor-pointer bg-neutral-100 text-neutral-800 ltr:-ml-5 ltr:pl-5 rtl:-mr-5 rtl:pr-5 dark:bg-neutral-700 dark:text-neutral-100 lg:hidden">
+目次
+</summary>
+<div class="py-2 border-dotted border-neutral-300 ltr:-ml-5 ltr:border-l ltr:pl-5 rtl:-mr-5 rtl:border-r rtl:pr-5 dark:border-neutral-600">
+<nav id=TableOfContents>
+<ul>
+<li>
+<ul>
+<li><a href=#ドメインを決めて-ssltls-署名書を用意する>ドメインを決めて SSL/TLS 署名書を用意する</a></li>
+<li><a href=#docker-入りの-ubuntu-1604-を-3-台用意する>Docker 入りの Ubuntu 16.04 を 3 台用意する</a></li>
+<li><a href=#dns-登録>DNS 登録</a></li>
+<li><a href=#rke-バイナリのダウンロード>rke バイナリのダウンロード</a></li>
+<li><a href=#template-のダウンロード>Template のダウンロード</a>
+<ul>
+<li><a href=#nodes-セクションの置換>Nodes セクションの置換</a></li>
+<li><a href=#証明書の置換>証明書の置換</a></li>
+<li><a href=#fqdn-の置換>FQDN の置換</a></li>
+</ul>
+</li>
+<li><a href=#rke-コマンドの実行>rke コマンドの実行</a></li>
+<li><a href=#ブラウザで-rancher-にアクセス>ブラウザで Rancher にアクセス</a></li>
+<li><a href=#kubectl-で-rke-にアクセスしてみる>kubectl で RKE にアクセスしてみる</a></li>
+</ul>
+</li>
+</ul>
+</nav>
+</div>
+</details>
+</div>
+</div>
+<div class="min-w-0 min-h-0 max-w-prose">
+<p>Beta を試すシリーズ（<a href=/2018/04/rancher-2-0-beta2-part1/>その1</a>、<a href=/2018/04/rancher-2-0-beta-part2/>その2</a>）を書いていましたがついに 5月1日に Rancher 2.0 が GA になりました <a href=https://rancher.com/blog/2018/2018-05-01-rancher-ga-announcement-sheng-liang/>Announcing Rancher 2.0 GA!</a> (Docker Hub にある image の tag はまだ <code>preview</code> でした)</p>
+<p>今回は High Availability 構成をどうやって構築するかを確認してみます</p>
+<p><a href=https://rancher.com/docs/rancher/v2.x/en/installation/ha-server-install/>High Availability Installation</a></p>
+<p>にドキュメントがあります。</p>
+<p>Rancher 1.x では Rancher server + MySQL という構成で、MySQL をなんらかの方法で冗長構成として Rancher server を単純に複数用意すれば良かった（<a href=/2017/01/rancher-on-digitalocean-part2/>DigitalOcean にて Rancher を試す – その2 (HA構成)</a>）のですが、Rancher 2.0 では Kubernetes に Rancher server を deploy するということになっています。Kubernetes を管理する Rancher を別の Kubernetes に入れないと行けないというのは gcc を gcc でコンパイルする的な感じで？？</p>
+<p>さて、Rancher を使えば簡単に構築できる Kubernetes をどうやって構築するのか？<a href=/2018/04/create-kubernetes-using-kubeadm/>先日試した</a> <a href=https://kubernetes.io/docs/reference/setup-tools/kubeadm/kubeadm/>kubeadm</a> か？ いいえ、RKE (Rancher Kubernetes Engine) というものがあるようです</p>
+<p><a href=https://rancher.com/an-introduction-to-rke/>An Introduction To Rancher Kubernetes Engine (RKE)</a></p>
+<p>次のような構成を作るみたいです。Rancher server は1個だけで kubernetes による healthcheck と再起動頼みってことでしょうか。内蔵 etcd のデータはどうなるんだろう？</p>
+<p>
+<figure>
+<img class="my-0 rounded-md" src=https://rancher.com/docs/img/rancher/ha/rancher2ha.svg alt>
+</figure>
+</p>
+<p>それでは手順にそって進めてみましょう。今回も <a href=https://m.do.co/c/97e74a2e7336>DigitalOcean</a> で試します。サブドメイン切って DigitalOcean でレコード管理することにしてみました。これは無料らしい。 クライアント環境は Windows ですが、コマンドは go 製ばかりだし git-bash で作業してるのでほぼ Linux でも mac でも同じかな。</p>
+<h3 id=ドメインを決めて-ssltls-署名書を用意する class="relative group">ドメインを決めて SSL/TLS 署名書を用意する <span class="absolute top-0 w-6 transition-opacity opacity-0 ltr:-left-6 rtl:-right-6 not-prose group-hover:opacity-100"><a class="group-hover:text-primary-300 dark:group-hover:text-neutral-700" style=text-decoration-line:none!important href=#%e3%83%89%e3%83%a1%e3%82%a4%e3%83%b3%e3%82%92%e6%b1%ba%e3%82%81%e3%81%a6-ssltls-%e7%bd%b2%e5%90%8d%e6%9b%b8%e3%82%92%e7%94%a8%e6%84%8f%e3%81%99%e3%82%8b aria-label=アンカー>#</a></span></h3>
+<p><a href=https://letsencrypt.org/>Let&rsquo;s Encrypt</a> で証明書を取得します DigitalOcean で管理しているドメインで、サーバー3台にインストールするので <a href=https://tools.ietf.org/html/draft-ietf-acme-acme-01>ACME の DNS-01</a> が簡単に使える <a href=https://github.com/xenolf/lego>lego</a> を使います。（<a href=/2016/07/auto-update-certificate-with-lego/>lego についての過去の投稿</a>）</p>
+<pre tabindex=0><code>$ curl -LO https://github.com/xenolf/lego/releases/download/v0.4.1/lego_windows_amd64.zip
+$ unzip lego_windows_amd64.zip
+$ mv lego_windows_amd64.exe ~/bin/lego
+</code></pre><p>DigitalOcean の DNS レコードをいじるために DO_AUTH_TOKEN 環境変数に API Token をセットする必要があります</p>
+<pre tabindex=0><code>$ export DO_AUTH_TOKEN=0123456789abcdef0123456789abcdef012346789abcdef012346789abcdef01
+$ lego --domains rancher.mydomain.example.com --email メールアドレス --accept-tos --dns digitalocean run
+</code></pre><p>これで .lego/certificates/ ディレクトリに DOMAIN.crt, DOMAIN.issuer.crt, DOMAIN.json, DOMAIN.key が作成されます</p>
+<h3 id=docker-入りの-ubuntu-1604-を-3-台用意する class="relative group">Docker 入りの Ubuntu 16.04 を 3 台用意する <span class="absolute top-0 w-6 transition-opacity opacity-0 ltr:-left-6 rtl:-right-6 not-prose group-hover:opacity-100"><a class="group-hover:text-primary-300 dark:group-hover:text-neutral-700" style=text-decoration-line:none!important href=#docker-%e5%85%a5%e3%82%8a%e3%81%ae-ubuntu-1604-%e3%82%92-3-%e5%8f%b0%e7%94%a8%e6%84%8f%e3%81%99%e3%82%8b aria-label=アンカー>#</a></span></h3>
+<p>Kubernetes でサポートされている Docker をインストールするスクリプトを user-data として渡します</p>
+<pre tabindex=0><code>$ cat &gt; userdata.txt &lt;&lt;EOD
+#!/bin/bash
+curl https://releases.rancher.com/install-docker/17.03.sh | sh
+EOD
+
+$ for i in 1 2 3; do
+  doctl compute droplet create rke-node${i} \
+    --image ubuntu-16-04-x64 \
+    --region sgp1 \
+    --size s-1vcpu-2gb \
+    --ssh-keys 16797382 \
+    --user-data-file userdata.txt \
+    --enable-monitoring
+done
+</code></pre><pre tabindex=0><code>$ doctl compute droplet list
+ID          Name         Public IPv4       Private IPv4    Public IPv6    Memory    VCPUs    Disk    Region    Image                 Status    Tags    Features      Volumes
+93518929    rke-node1    188.166.xxx.111                                  2048      1        50      sgp1      Ubuntu 16.04.4 x64    active            monitoring
+93518934    rke-node2    188.166.xxx.222                                  2048      1        50      sgp1      Ubuntu 16.04.4 x64    active            monitoring
+93518938    rke-node3    188.166.xxx.333                                  2048      1        50      sgp1      Ubuntu 16.04.4 x64    active            monitoring
+</code></pre><h3 id=dns-登録 class="relative group">DNS 登録 <span class="absolute top-0 w-6 transition-opacity opacity-0 ltr:-left-6 rtl:-right-6 not-prose group-hover:opacity-100"><a class="group-hover:text-primary-300 dark:group-hover:text-neutral-700" style=text-decoration-line:none!important href=#dns-%e7%99%bb%e9%8c%b2 aria-label=アンカー>#</a></span></h3>
+<p>3台の node の IP アドレスを rancher.mydomain.example.com として登録します</p>
+<pre tabindex=0><code>$ doctl compute domain records create mydomain.example.com --record-name rancher --record-type A --record-data 188.166.xxx.111 --record-ttl 300
+$ doctl compute domain records create mydomain.example.com --record-name rancher --record-type A --record-data 188.166.xxx.222 --record-ttl 300
+$ doctl compute domain records create mydomain.example.com --record-name rancher --record-type A --record-data 188.166.xxx.333 --record-ttl 300
+</code></pre><p>list コマンドで確認します</p>
+<pre tabindex=0><code>$ doctl compute domain records list mydomain.example.com
+</code></pre><h3 id=rke-バイナリのダウンロード class="relative group">rke バイナリのダウンロード <span class="absolute top-0 w-6 transition-opacity opacity-0 ltr:-left-6 rtl:-right-6 not-prose group-hover:opacity-100"><a class="group-hover:text-primary-300 dark:group-hover:text-neutral-700" style=text-decoration-line:none!important href=#rke-%e3%83%90%e3%82%a4%e3%83%8a%e3%83%aa%e3%81%ae%e3%83%80%e3%82%a6%e3%83%b3%e3%83%ad%e3%83%bc%e3%83%89 aria-label=アンカー>#</a></span></h3>
+<p><a href=https://github.com/rancher/rke>github.com/rancher/rke</a> の <a href=https://github.com/rancher/rke/releases>releases</a> ページからバイナリをダウンロードします</p>
+<pre tabindex=0><code>curl -Lo ~/bin/rke https://github.com/rancher/rke/releases/download/v0.1.7-rc2/rke_windows-amd64.exe
+</code></pre><pre tabindex=0><code>$ rke -version
+rke version v0.1.7-rc2
+</code></pre><h3 id=template-のダウンロード class="relative group">Template のダウンロード <span class="absolute top-0 w-6 transition-opacity opacity-0 ltr:-left-6 rtl:-right-6 not-prose group-hover:opacity-100"><a class="group-hover:text-primary-300 dark:group-hover:text-neutral-700" style=text-decoration-line:none!important href=#template-%e3%81%ae%e3%83%80%e3%82%a6%e3%83%b3%e3%83%ad%e3%83%bc%e3%83%89 aria-label=アンカー>#</a></span></h3>
+<p>rke 用のテンプレートをダウンロードします。自己署名の証明書を使うか、公の証明機関の証明書を使うかによって2種類あります。今回は Let&rsquo;s Encrypt を使うので <code>3-node-certificate-recognizedca.yml</code> の方を使います</p>
+<ul>
+<li><a href=https://raw.githubusercontent.com/rancher/rancher/master/rke-templates/3-node-certificate.yml>Template for using Self Signed Certificate (3-node-certificate.yml)</a></li>
+<li><a href=https://raw.githubusercontent.com/rancher/rancher/master/rke-templates/3-node-certificate-recognizedca.yml>Template for using Certificate Signed By A Recognized Certificate Authority (3-node-certificate-recognizedca.yml)</a></li>
+</ul>
+<p>テンプレートなので必要な箇所を置換する必要があります</p>
+<h4 id=nodes-セクションの置換 class="relative group">Nodes セクションの置換 <span class="absolute top-0 w-6 transition-opacity opacity-0 ltr:-left-6 rtl:-right-6 not-prose group-hover:opacity-100"><a class="group-hover:text-primary-300 dark:group-hover:text-neutral-700" style=text-decoration-line:none!important href=#nodes-%e3%82%bb%e3%82%af%e3%82%b7%e3%83%a7%e3%83%b3%e3%81%ae%e7%bd%ae%e6%8f%9b aria-label=アンカー>#</a></span></h4>
+<p><code>nodes</code> にある <code>&lt;IP></code> を各サーバーの IP アドレスに、<code>&lt;USER></code> を ssh でログインするユーザー名（DigitalOcean ではデフォルトが <code>root</code>）、<code>&lt;SSHKEY_FILE></code> を ssh に使う private key のファイル（一般的には <code>~/.ssh/id_rsa</code> かな）に置換します</p>
+<h4 id=証明書の置換 class="relative group">証明書の置換 <span class="absolute top-0 w-6 transition-opacity opacity-0 ltr:-left-6 rtl:-right-6 not-prose group-hover:opacity-100"><a class="group-hover:text-primary-300 dark:group-hover:text-neutral-700" style=text-decoration-line:none!important href=#%e8%a8%bc%e6%98%8e%e6%9b%b8%e3%81%ae%e7%bd%ae%e6%8f%9b aria-label=アンカー>#</a></span></h4>
+<pre tabindex=0><code>$ cat .lego/certificates/rancher.mydomain.example.com.crt .lego/certificates/rancher.mydomain.example.com.issuer.crt &gt; crt.pem
+$ base64 -w 0 crt.pem
+</code></pre><p>で <code>&lt;BASE64_CRT></code> を</p>
+<pre tabindex=0><code>$ base64 -w 0 .lego/certificates/rancher.mydomain.example.com.key
+</code></pre><p>で <code>&lt;BASE64_KEY></code> を置換します</p>
+<h4 id=fqdn-の置換 class="relative group">FQDN の置換 <span class="absolute top-0 w-6 transition-opacity opacity-0 ltr:-left-6 rtl:-right-6 not-prose group-hover:opacity-100"><a class="group-hover:text-primary-300 dark:group-hover:text-neutral-700" style=text-decoration-line:none!important href=#fqdn-%e3%81%ae%e7%bd%ae%e6%8f%9b aria-label=アンカー>#</a></span></h4>
+<p><code>&lt;FQDN></code> を rancher.mydomain.example.com に置換します。2箇所あります。</p>
+<h3 id=rke-コマンドの実行 class="relative group">rke コマンドの実行 <span class="absolute top-0 w-6 transition-opacity opacity-0 ltr:-left-6 rtl:-right-6 not-prose group-hover:opacity-100"><a class="group-hover:text-primary-300 dark:group-hover:text-neutral-700" style=text-decoration-line:none!important href=#rke-%e3%82%b3%e3%83%9e%e3%83%b3%e3%83%89%e3%81%ae%e5%ae%9f%e8%a1%8c aria-label=アンカー>#</a></span></h3>
+<pre tabindex=0><code>$ rke up --config 3-node-certificate-recognizedca.yml
+</code></pre><pre tabindex=0><code>$ rke up --config 3-node-certificate-recognizedca.yml
+time=&quot;2018-05-13T22:46:38+09:00&quot; level=info msg=&quot;Building Kubernetes cluster&quot;
+time=&quot;2018-05-13T22:46:38+09:00&quot; level=info msg=&quot;[dialer] Setup tunnel for host [188.166.xxx.111]&quot;
+time=&quot;2018-05-13T22:46:39+09:00&quot; level=info msg=&quot;[dialer] Setup tunnel for host [188.166.xxx.222]&quot;
+time=&quot;2018-05-13T22:46:41+09:00&quot; level=info msg=&quot;[dialer] Setup tunnel for host [188.166.xxx.333]&quot;
+time=&quot;2018-05-13T22:46:42+09:00&quot; level=info msg=&quot;[network] Deploying port listener containers&quot;
+time=&quot;2018-05-13T22:46:42+09:00&quot; level=info msg=&quot;[network] Pulling image [rancher/rke-tools:v0.1.6] on host [188.166.xxx.222]&quot;
+time=&quot;2018-05-13T22:46:42+09:00&quot; level=info msg=&quot;[network] Pulling image [rancher/rke-tools:v0.1.6] on host [188.166.xxx.333]&quot;
+time=&quot;2018-05-13T22:46:42+09:00&quot; level=info msg=&quot;[network] Pulling image [rancher/rke-tools:v0.1.6] on host [188.166.xxx.111]&quot;
+time=&quot;2018-05-13T22:47:01+09:00&quot; level=info msg=&quot;[network] Successfully pulled image [rancher/rke-tools:v0.1.6] on host [188.166.xxx.222]&quot;
+time=&quot;2018-05-13T22:47:01+09:00&quot; level=info msg=&quot;[network] Successfully pulled image [rancher/rke-tools:v0.1.6] on host [188.166.xxx.111]&quot;
+time=&quot;2018-05-13T22:47:01+09:00&quot; level=info msg=&quot;[network] Successfully pulled image [rancher/rke-tools:v0.1.6] on host [188.166.xxx.333]&quot;
+time=&quot;2018-05-13T22:47:01+09:00&quot; level=info msg=&quot;[network] Successfully started [rke-etcd-port-listener] container on host [188.166.xxx.222]&quot;
+time=&quot;2018-05-13T22:47:02+09:00&quot; level=info msg=&quot;[network] Successfully started [rke-etcd-port-listener] container on host [188.166.xxx.111]&quot;
+time=&quot;2018-05-13T22:47:02+09:00&quot; level=info msg=&quot;[network] Successfully started [rke-etcd-port-listener] container on host [188.166.xxx.333]&quot;
+time=&quot;2018-05-13T22:47:03+09:00&quot; level=info msg=&quot;[network] Successfully started [rke-cp-port-listener] container on host [188.166.xxx.111]&quot;
+time=&quot;2018-05-13T22:47:03+09:00&quot; level=info msg=&quot;[network] Successfully started [rke-cp-port-listener] container on host [188.166.xxx.222]&quot;
+time=&quot;2018-05-13T22:47:03+09:00&quot; level=info msg=&quot;[network] Successfully started [rke-cp-port-listener] container on host [188.166.xxx.333]&quot;
+time=&quot;2018-05-13T22:47:03+09:00&quot; level=info msg=&quot;[network] Successfully started [rke-worker-port-listener] container on host [188.166.xxx.222]&quot;
+time=&quot;2018-05-13T22:47:03+09:00&quot; level=info msg=&quot;[network] Successfully started [rke-worker-port-listener] container on host [188.166.xxx.111]&quot;
+time=&quot;2018-05-13T22:47:04+09:00&quot; level=info msg=&quot;[network] Successfully started [rke-worker-port-listener] container on host [188.166.xxx.333]&quot;
+time=&quot;2018-05-13T22:47:04+09:00&quot; level=info msg=&quot;[network] Port listener containers deployed successfully&quot;
+time=&quot;2018-05-13T22:47:04+09:00&quot; level=info msg=&quot;[network] Running etcd &lt;-&gt; etcd port checks&quot;
+time=&quot;2018-05-13T22:47:04+09:00&quot; level=info msg=&quot;[network] Successfully started [rke-port-checker] container on host [188.166.xxx.111]&quot;
+time=&quot;2018-05-13T22:47:04+09:00&quot; level=info msg=&quot;[network] Successfully started [rke-port-checker] container on host [188.166.xxx.222]&quot;
+time=&quot;2018-05-13T22:47:05+09:00&quot; level=info msg=&quot;[network] Successfully started [rke-port-checker] container on host [188.166.xxx.333]&quot;
+time=&quot;2018-05-13T22:47:05+09:00&quot; level=info msg=&quot;[network] Running control plane -&gt; etcd port checks&quot;
+time=&quot;2018-05-13T22:47:05+09:00&quot; level=info msg=&quot;[network] Successfully started [rke-port-checker] container on host [188.166.xxx.111]&quot;
+time=&quot;2018-05-13T22:47:06+09:00&quot; level=info msg=&quot;[network] Successfully started [rke-port-checker] container on host [188.166.xxx.222]&quot;
+time=&quot;2018-05-13T22:47:06+09:00&quot; level=info msg=&quot;[network] Successfully started [rke-port-checker] container on host [188.166.xxx.333]&quot;
+time=&quot;2018-05-13T22:47:06+09:00&quot; level=info msg=&quot;[network] Running control plane -&gt; worker port checks&quot;
+time=&quot;2018-05-13T22:47:07+09:00&quot; level=info msg=&quot;[network] Successfully started [rke-port-checker] container on host [188.166.xxx.222]&quot;
+time=&quot;2018-05-13T22:47:07+09:00&quot; level=info msg=&quot;[network] Successfully started [rke-port-checker] container on host [188.166.xxx.111]&quot;
+time=&quot;2018-05-13T22:47:07+09:00&quot; level=info msg=&quot;[network] Successfully started [rke-port-checker] container on host [188.166.xxx.333]&quot;
+time=&quot;2018-05-13T22:47:07+09:00&quot; level=info msg=&quot;[network] Running workers -&gt; control plane port checks&quot;
+time=&quot;2018-05-13T22:47:08+09:00&quot; level=info msg=&quot;[network] Successfully started [rke-port-checker] container on host [188.166.xxx.111]&quot;
+time=&quot;2018-05-13T22:47:08+09:00&quot; level=info msg=&quot;[network] Successfully started [rke-port-checker] container on host [188.166.xxx.222]&quot;
+time=&quot;2018-05-13T22:47:08+09:00&quot; level=info msg=&quot;[network] Successfully started [rke-port-checker] container on host [188.166.xxx.333]&quot;
+time=&quot;2018-05-13T22:47:08+09:00&quot; level=info msg=&quot;[network] Checking KubeAPI port Control Plane hosts&quot;
+time=&quot;2018-05-13T22:47:08+09:00&quot; level=info msg=&quot;[network] Removing port listener containers&quot;
+time=&quot;2018-05-13T22:47:09+09:00&quot; level=info msg=&quot;[remove/rke-etcd-port-listener] Successfully removed container on host [188.166.xxx.222]&quot;
+time=&quot;2018-05-13T22:47:09+09:00&quot; level=info msg=&quot;[remove/rke-etcd-port-listener] Successfully removed container on host [188.166.xxx.111]&quot;
+time=&quot;2018-05-13T22:47:09+09:00&quot; level=info msg=&quot;[remove/rke-etcd-port-listener] Successfully removed container on host [188.166.xxx.333]&quot;
+time=&quot;2018-05-13T22:47:09+09:00&quot; level=info msg=&quot;[remove/rke-cp-port-listener] Successfully removed container on host [188.166.xxx.333]&quot;
+time=&quot;2018-05-13T22:47:09+09:00&quot; level=info msg=&quot;[remove/rke-cp-port-listener] Successfully removed container on host [188.166.xxx.111]&quot;
+time=&quot;2018-05-13T22:47:09+09:00&quot; level=info msg=&quot;[remove/rke-cp-port-listener] Successfully removed container on host [188.166.xxx.222]&quot;
+time=&quot;2018-05-13T22:47:10+09:00&quot; level=info msg=&quot;[remove/rke-worker-port-listener] Successfully removed container on host [188.166.xxx.111]&quot;
+time=&quot;2018-05-13T22:47:10+09:00&quot; level=info msg=&quot;[remove/rke-worker-port-listener] Successfully removed container on host [188.166.xxx.333]&quot;
+time=&quot;2018-05-13T22:47:10+09:00&quot; level=info msg=&quot;[remove/rke-worker-port-listener] Successfully removed container on host [188.166.xxx.222]&quot;
+time=&quot;2018-05-13T22:47:10+09:00&quot; level=info msg=&quot;[network] Port listener containers removed successfully&quot;
+time=&quot;2018-05-13T22:47:10+09:00&quot; level=info msg=&quot;[certificates] Attempting to recover certificates from backup on [etcd] hosts&quot;
+time=&quot;2018-05-13T22:47:11+09:00&quot; level=info msg=&quot;[certificates] Successfully started [cert-fetcher] container on host [188.166.xxx.111]&quot;
+time=&quot;2018-05-13T22:47:11+09:00&quot; level=info msg=&quot;[certificates] Successfully started [cert-fetcher] container on host [188.166.xxx.222]&quot;
+time=&quot;2018-05-13T22:47:13+09:00&quot; level=info msg=&quot;[certificates] Successfully started [cert-fetcher] container on host [188.166.xxx.333]&quot;
+time=&quot;2018-05-13T22:47:13+09:00&quot; level=info msg=&quot;[certificates] No Certificate backup found on [etcd] hosts&quot;
+time=&quot;2018-05-13T22:47:13+09:00&quot; level=info msg=&quot;[certificates] Generating CA kubernetes certificates&quot;
+time=&quot;2018-05-13T22:47:13+09:00&quot; level=info msg=&quot;[certificates] Generating Kubernetes API server certificates&quot;
+time=&quot;2018-05-13T22:47:14+09:00&quot; level=info msg=&quot;[certificates] Generating Kube Controller certificates&quot;
+time=&quot;2018-05-13T22:47:14+09:00&quot; level=info msg=&quot;[certificates] Generating Kube Scheduler certificates&quot;
+time=&quot;2018-05-13T22:47:15+09:00&quot; level=info msg=&quot;[certificates] Generating Kube Proxy certificates&quot;
+time=&quot;2018-05-13T22:47:16+09:00&quot; level=info msg=&quot;[certificates] Generating Node certificate&quot;
+time=&quot;2018-05-13T22:47:16+09:00&quot; level=info msg=&quot;[certificates] Generating admin certificates and kubeconfig&quot;
+time=&quot;2018-05-13T22:47:17+09:00&quot; level=info msg=&quot;[certificates] Generating etcd-188.166.xxx.111 certificate and key&quot;
+time=&quot;2018-05-13T22:47:18+09:00&quot; level=info msg=&quot;[certificates] Generating etcd-188.166.xxx.222 certificate and key&quot;
+time=&quot;2018-05-13T22:47:18+09:00&quot; level=info msg=&quot;[certificates] Generating etcd-188.166.xxx.333 certificate and key&quot;
+time=&quot;2018-05-13T22:47:18+09:00&quot; level=info msg=&quot;[certificates] Temporarily saving certs to [etcd] hosts&quot;
+time=&quot;2018-05-13T22:47:25+09:00&quot; level=info msg=&quot;[certificates] Saved certs to [etcd] hosts&quot;
+time=&quot;2018-05-13T22:47:25+09:00&quot; level=info msg=&quot;[reconcile] Reconciling cluster state&quot;
+time=&quot;2018-05-13T22:47:25+09:00&quot; level=info msg=&quot;[reconcile] This is newly generated cluster&quot;
+time=&quot;2018-05-13T22:47:25+09:00&quot; level=info msg=&quot;[certificates] Deploying kubernetes certificates to Cluster nodes&quot;
+time=&quot;2018-05-13T22:47:32+09:00&quot; level=info msg=&quot;Successfully Deployed local admin kubeconfig at [./kube_config_3-node-certificate-recognizedca.yml]&quot;
+time=&quot;2018-05-13T22:47:32+09:00&quot; level=info msg=&quot;[certificates] Successfully deployed kubernetes certificates to Cluster nodes&quot;
+time=&quot;2018-05-13T22:47:32+09:00&quot; level=info msg=&quot;Pre-pulling kubernetes images&quot;
+time=&quot;2018-05-13T22:47:32+09:00&quot; level=info msg=&quot;[pre-deploy] Pulling image [rancher/hyperkube:v1.10.1-rancher2] on host [188.166.xxx.222]&quot;
+time=&quot;2018-05-13T22:47:32+09:00&quot; level=info msg=&quot;[pre-deploy] Pulling image [rancher/hyperkube:v1.10.1-rancher2] on host [188.166.xxx.333]&quot;
+time=&quot;2018-05-13T22:47:32+09:00&quot; level=info msg=&quot;[pre-deploy] Pulling image [rancher/hyperkube:v1.10.1-rancher2] on host [188.166.xxx.111]&quot;
+time=&quot;2018-05-13T22:48:21+09:00&quot; level=info msg=&quot;[pre-deploy] Successfully pulled image [rancher/hyperkube:v1.10.1-rancher2] on host [188.166.xxx.111]&quot;
+time=&quot;2018-05-13T22:48:24+09:00&quot; level=info msg=&quot;[pre-deploy] Successfully pulled image [rancher/hyperkube:v1.10.1-rancher2] on host [188.166.xxx.222]&quot;
+time=&quot;2018-05-13T22:48:34+09:00&quot; level=info msg=&quot;[pre-deploy] Successfully pulled image [rancher/hyperkube:v1.10.1-rancher2] on host [188.166.xxx.333]&quot;
+time=&quot;2018-05-13T22:48:34+09:00&quot; level=info msg=&quot;Kubernetes images pulled successfully&quot;
+time=&quot;2018-05-13T22:48:34+09:00&quot; level=info msg=&quot;[etcd] Building up etcd plane..&quot;
+time=&quot;2018-05-13T22:48:34+09:00&quot; level=info msg=&quot;[etcd] Pulling image [rancher/coreos-etcd:v3.1.12] on host [188.166.xxx.111]&quot;
+time=&quot;2018-05-13T22:48:40+09:00&quot; level=info msg=&quot;[etcd] Successfully pulled image [rancher/coreos-etcd:v3.1.12] on host [188.166.xxx.111]&quot;
+time=&quot;2018-05-13T22:48:40+09:00&quot; level=info msg=&quot;[etcd] Successfully started [etcd] container on host [188.166.xxx.111]&quot;
+time=&quot;2018-05-13T22:48:41+09:00&quot; level=info msg=&quot;[etcd] Successfully started [rke-log-linker] container on host [188.166.xxx.111]&quot;
+time=&quot;2018-05-13T22:48:41+09:00&quot; level=info msg=&quot;[remove/rke-log-linker] Successfully removed container on host [188.166.xxx.111]&quot;
+time=&quot;2018-05-13T22:48:42+09:00&quot; level=info msg=&quot;[etcd] Pulling image [rancher/coreos-etcd:v3.1.12] on host [188.166.xxx.222]&quot;
+time=&quot;2018-05-13T22:48:48+09:00&quot; level=info msg=&quot;[etcd] Successfully pulled image [rancher/coreos-etcd:v3.1.12] on host [188.166.xxx.222]&quot;
+time=&quot;2018-05-13T22:48:48+09:00&quot; level=info msg=&quot;[etcd] Successfully started [etcd] container on host [188.166.xxx.222]&quot;
+time=&quot;2018-05-13T22:48:49+09:00&quot; level=info msg=&quot;[etcd] Successfully started [rke-log-linker] container on host [188.166.xxx.222]&quot;
+time=&quot;2018-05-13T22:48:49+09:00&quot; level=info msg=&quot;[remove/rke-log-linker] Successfully removed container on host [188.166.xxx.222]&quot;
+time=&quot;2018-05-13T22:48:50+09:00&quot; level=info msg=&quot;[etcd] Pulling image [rancher/coreos-etcd:v3.1.12] on host [188.166.xxx.333]&quot;
+time=&quot;2018-05-13T22:48:56+09:00&quot; level=info msg=&quot;[etcd] Successfully pulled image [rancher/coreos-etcd:v3.1.12] on host [188.166.xxx.333]&quot;
+time=&quot;2018-05-13T22:48:56+09:00&quot; level=info msg=&quot;[etcd] Successfully started [etcd] container on host [188.166.xxx.333]&quot;
+time=&quot;2018-05-13T22:48:57+09:00&quot; level=info msg=&quot;[etcd] Successfully started [rke-log-linker] container on host [188.166.xxx.333]&quot;
+time=&quot;2018-05-13T22:48:57+09:00&quot; level=info msg=&quot;[remove/rke-log-linker] Successfully removed container on host [188.166.xxx.333]&quot;
+time=&quot;2018-05-13T22:48:57+09:00&quot; level=info msg=&quot;[etcd] Successfully started etcd plane..&quot;
+time=&quot;2018-05-13T22:48:57+09:00&quot; level=info msg=&quot;[controlplane] Building up Controller Plane..&quot;
+time=&quot;2018-05-13T22:48:58+09:00&quot; level=info msg=&quot;[controlplane] Successfully started [kube-apiserver] container on host [188.166.xxx.111]&quot;
+time=&quot;2018-05-13T22:48:58+09:00&quot; level=info msg=&quot;[healthcheck] Start Healthcheck on service [kube-apiserver] on host [188.166.xxx.111]&quot;
+time=&quot;2018-05-13T22:48:58+09:00&quot; level=info msg=&quot;[controlplane] Successfully started [kube-apiserver] container on host [188.166.xxx.222]&quot;
+time=&quot;2018-05-13T22:48:58+09:00&quot; level=info msg=&quot;[healthcheck] Start Healthcheck on service [kube-apiserver] on host [188.166.xxx.222]&quot;
+time=&quot;2018-05-13T22:48:58+09:00&quot; level=info msg=&quot;[controlplane] Successfully started [kube-apiserver] container on host [188.166.xxx.333]&quot;
+time=&quot;2018-05-13T22:48:58+09:00&quot; level=info msg=&quot;[healthcheck] Start Healthcheck on service [kube-apiserver] on host [188.166.xxx.333]&quot;
+time=&quot;2018-05-13T22:49:15+09:00&quot; level=info msg=&quot;[healthcheck] service [kube-apiserver] on host [188.166.xxx.111] is healthy&quot;
+time=&quot;2018-05-13T22:49:15+09:00&quot; level=info msg=&quot;[healthcheck] service [kube-apiserver] on host [188.166.xxx.222] is healthy&quot;
+time=&quot;2018-05-13T22:49:16+09:00&quot; level=info msg=&quot;[controlplane] Successfully started [rke-log-linker] container on host [188.166.xxx.111]&quot;
+time=&quot;2018-05-13T22:49:16+09:00&quot; level=info msg=&quot;[remove/rke-log-linker] Successfully removed container on host [188.166.xxx.111]&quot;
+time=&quot;2018-05-13T22:49:16+09:00&quot; level=info msg=&quot;[controlplane] Successfully started [rke-log-linker] container on host [188.166.xxx.222]&quot;
+time=&quot;2018-05-13T22:49:16+09:00&quot; level=info msg=&quot;[controlplane] Successfully started [kube-controller-manager] container on host [188.166.xxx.111]&quot;
+time=&quot;2018-05-13T22:49:16+09:00&quot; level=info msg=&quot;[healthcheck] Start Healthcheck on service [kube-controller-manager] on host [188.166.xxx.111]&quot;
+time=&quot;2018-05-13T22:49:17+09:00&quot; level=info msg=&quot;[remove/rke-log-linker] Successfully removed container on host [188.166.xxx.222]&quot;
+time=&quot;2018-05-13T22:49:17+09:00&quot; level=info msg=&quot;[controlplane] Successfully started [kube-controller-manager] container on host [188.166.xxx.222]&quot;
+time=&quot;2018-05-13T22:49:17+09:00&quot; level=info msg=&quot;[healthcheck] Start Healthcheck on service [kube-controller-manager] on host [188.166.xxx.222]&quot;
+time=&quot;2018-05-13T22:49:17+09:00&quot; level=info msg=&quot;[healthcheck] service [kube-controller-manager] on host [188.166.xxx.111] is healthy&quot;
+time=&quot;2018-05-13T22:49:18+09:00&quot; level=info msg=&quot;[healthcheck] service [kube-apiserver] on host [188.166.xxx.333] is healthy&quot;
+time=&quot;2018-05-13T22:49:18+09:00&quot; level=info msg=&quot;[healthcheck] service [kube-controller-manager] on host [188.166.xxx.222] is healthy&quot;
+time=&quot;2018-05-13T22:49:18+09:00&quot; level=info msg=&quot;[controlplane] Successfully started [rke-log-linker] container on host [188.166.xxx.333]&quot;
+time=&quot;2018-05-13T22:49:18+09:00&quot; level=info msg=&quot;[controlplane] Successfully started [rke-log-linker] container on host [188.166.xxx.111]&quot;
+time=&quot;2018-05-13T22:49:19+09:00&quot; level=info msg=&quot;[remove/rke-log-linker] Successfully removed container on host [188.166.xxx.333]&quot;
+time=&quot;2018-05-13T22:49:19+09:00&quot; level=info msg=&quot;[remove/rke-log-linker] Successfully removed container on host [188.166.xxx.111]&quot;
+time=&quot;2018-05-13T22:49:19+09:00&quot; level=info msg=&quot;[controlplane] Successfully started [rke-log-linker] container on host [188.166.xxx.222]&quot;
+time=&quot;2018-05-13T22:49:19+09:00&quot; level=info msg=&quot;[controlplane] Successfully started [kube-scheduler] container on host [188.166.xxx.111]&quot;
+time=&quot;2018-05-13T22:49:19+09:00&quot; level=info msg=&quot;[healthcheck] Start Healthcheck on service [kube-scheduler] on host [188.166.xxx.111]&quot;
+time=&quot;2018-05-13T22:49:19+09:00&quot; level=info msg=&quot;[controlplane] Successfully started [kube-controller-manager] container on host [188.166.xxx.333]&quot;
+time=&quot;2018-05-13T22:49:19+09:00&quot; level=info msg=&quot;[healthcheck] Start Healthcheck on service [kube-controller-manager] on host [188.166.xxx.333]&quot;
+time=&quot;2018-05-13T22:49:19+09:00&quot; level=info msg=&quot;[remove/rke-log-linker] Successfully removed container on host [188.166.xxx.222]&quot;
+time=&quot;2018-05-13T22:49:20+09:00&quot; level=info msg=&quot;[controlplane] Successfully started [kube-scheduler] container on host [188.166.xxx.222]&quot;
+time=&quot;2018-05-13T22:49:20+09:00&quot; level=info msg=&quot;[healthcheck] Start Healthcheck on service [kube-scheduler] on host [188.166.xxx.222]&quot;
+time=&quot;2018-05-13T22:49:20+09:00&quot; level=info msg=&quot;[healthcheck] service [kube-scheduler] on host [188.166.xxx.111] is healthy&quot;
+time=&quot;2018-05-13T22:49:20+09:00&quot; level=info msg=&quot;[healthcheck] service [kube-controller-manager] on host [188.166.xxx.333] is healthy&quot;
+time=&quot;2018-05-13T22:49:21+09:00&quot; level=info msg=&quot;[healthcheck] service [kube-scheduler] on host [188.166.xxx.222] is healthy&quot;
+time=&quot;2018-05-13T22:49:21+09:00&quot; level=info msg=&quot;[controlplane] Successfully started [rke-log-linker] container on host [188.166.xxx.333]&quot;
+time=&quot;2018-05-13T22:49:21+09:00&quot; level=info msg=&quot;[controlplane] Successfully started [rke-log-linker] container on host [188.166.xxx.111]&quot;
+time=&quot;2018-05-13T22:49:22+09:00&quot; level=info msg=&quot;[remove/rke-log-linker] Successfully removed container on host [188.166.xxx.333]&quot;
+time=&quot;2018-05-13T22:49:22+09:00&quot; level=info msg=&quot;[remove/rke-log-linker] Successfully removed container on host [188.166.xxx.111]&quot;
+time=&quot;2018-05-13T22:49:22+09:00&quot; level=info msg=&quot;[controlplane] Successfully started [rke-log-linker] container on host [188.166.xxx.222]&quot;
+time=&quot;2018-05-13T22:49:22+09:00&quot; level=info msg=&quot;[remove/rke-log-linker] Successfully removed container on host [188.166.xxx.222]&quot;
+time=&quot;2018-05-13T22:49:22+09:00&quot; level=info msg=&quot;[controlplane] Successfully started [kube-scheduler] container on host [188.166.xxx.333]&quot;
+time=&quot;2018-05-13T22:49:22+09:00&quot; level=info msg=&quot;[healthcheck] Start Healthcheck on service [kube-scheduler] on host [188.166.xxx.333]&quot;
+time=&quot;2018-05-13T22:49:23+09:00&quot; level=info msg=&quot;[healthcheck] service [kube-scheduler] on host [188.166.xxx.333] is healthy&quot;
+time=&quot;2018-05-13T22:49:24+09:00&quot; level=info msg=&quot;[controlplane] Successfully started [rke-log-linker] container on host [188.166.xxx.333]&quot;
+time=&quot;2018-05-13T22:49:24+09:00&quot; level=info msg=&quot;[remove/rke-log-linker] Successfully removed container on host [188.166.xxx.333]&quot;
+time=&quot;2018-05-13T22:49:24+09:00&quot; level=info msg=&quot;[controlplane] Successfully started Controller Plane..&quot;
+time=&quot;2018-05-13T22:49:24+09:00&quot; level=info msg=&quot;[authz] Creating rke-job-deployer ServiceAccount&quot;
+time=&quot;2018-05-13T22:49:25+09:00&quot; level=info msg=&quot;[authz] rke-job-deployer ServiceAccount created successfully&quot;
+time=&quot;2018-05-13T22:49:25+09:00&quot; level=info msg=&quot;[authz] Creating system:node ClusterRoleBinding&quot;
+time=&quot;2018-05-13T22:49:25+09:00&quot; level=info msg=&quot;[authz] system:node ClusterRoleBinding created successfully&quot;
+time=&quot;2018-05-13T22:49:25+09:00&quot; level=info msg=&quot;[certificates] Save kubernetes certificates as secrets&quot;
+time=&quot;2018-05-13T22:49:26+09:00&quot; level=info msg=&quot;[certificates] Successfully saved certificates as kubernetes secret [k8s-certs]&quot;
+time=&quot;2018-05-13T22:49:26+09:00&quot; level=info msg=&quot;[state] Saving cluster state to Kubernetes&quot;
+time=&quot;2018-05-13T22:49:26+09:00&quot; level=info msg=&quot;[state] Successfully Saved cluster state to Kubernetes ConfigMap: cluster-state&quot;
+time=&quot;2018-05-13T22:49:26+09:00&quot; level=info msg=&quot;[worker] Building up Worker Plane..&quot;
+time=&quot;2018-05-13T22:49:27+09:00&quot; level=info msg=&quot;[sidekick] Sidekick container already created on host [188.166.xxx.222]&quot;
+time=&quot;2018-05-13T22:49:27+09:00&quot; level=info msg=&quot;[sidekick] Sidekick container already created on host [188.166.xxx.111]&quot;
+time=&quot;2018-05-13T22:49:27+09:00&quot; level=info msg=&quot;[sidekick] Sidekick container already created on host [188.166.xxx.333]&quot;
+time=&quot;2018-05-13T22:49:27+09:00&quot; level=info msg=&quot;[worker] Successfully started [kubelet] container on host [188.166.xxx.111]&quot;
+time=&quot;2018-05-13T22:49:27+09:00&quot; level=info msg=&quot;[healthcheck] Start Healthcheck on service [kubelet] on host [188.166.xxx.111]&quot;
+time=&quot;2018-05-13T22:49:27+09:00&quot; level=info msg=&quot;[worker] Successfully started [kubelet] container on host [188.166.xxx.222]&quot;
+time=&quot;2018-05-13T22:49:27+09:00&quot; level=info msg=&quot;[healthcheck] Start Healthcheck on service [kubelet] on host [188.166.xxx.222]&quot;
+time=&quot;2018-05-13T22:49:27+09:00&quot; level=info msg=&quot;[worker] Successfully started [kubelet] container on host [188.166.xxx.333]&quot;
+time=&quot;2018-05-13T22:49:27+09:00&quot; level=info msg=&quot;[healthcheck] Start Healthcheck on service [kubelet] on host [188.166.xxx.333]&quot;
+time=&quot;2018-05-13T22:49:34+09:00&quot; level=info msg=&quot;[healthcheck] service [kubelet] on host [188.166.xxx.111] is healthy&quot;
+time=&quot;2018-05-13T22:49:34+09:00&quot; level=info msg=&quot;[healthcheck] service [kubelet] on host [188.166.xxx.222] is healthy&quot;
+time=&quot;2018-05-13T22:49:34+09:00&quot; level=info msg=&quot;[healthcheck] service [kubelet] on host [188.166.xxx.333] is healthy&quot;
+time=&quot;2018-05-13T22:49:35+09:00&quot; level=info msg=&quot;[worker] Successfully started [rke-log-linker] container on host [188.166.xxx.222]&quot;
+time=&quot;2018-05-13T22:49:35+09:00&quot; level=info msg=&quot;[worker] Successfully started [rke-log-linker] container on host [188.166.xxx.111]&quot;
+time=&quot;2018-05-13T22:49:35+09:00&quot; level=info msg=&quot;[worker] Successfully started [rke-log-linker] container on host [188.166.xxx.333]&quot;
+time=&quot;2018-05-13T22:49:36+09:00&quot; level=info msg=&quot;[remove/rke-log-linker] Successfully removed container on host [188.166.xxx.222]&quot;
+time=&quot;2018-05-13T22:49:36+09:00&quot; level=info msg=&quot;[remove/rke-log-linker] Successfully removed container on host [188.166.xxx.111]&quot;
+time=&quot;2018-05-13T22:49:36+09:00&quot; level=info msg=&quot;[remove/rke-log-linker] Successfully removed container on host [188.166.xxx.333]&quot;
+time=&quot;2018-05-13T22:49:36+09:00&quot; level=info msg=&quot;[worker] Successfully started [kube-proxy] container on host [188.166.xxx.222]&quot;
+time=&quot;2018-05-13T22:49:36+09:00&quot; level=info msg=&quot;[healthcheck] Start Healthcheck on service [kube-proxy] on host [188.166.xxx.222]&quot;
+time=&quot;2018-05-13T22:49:36+09:00&quot; level=info msg=&quot;[worker] Successfully started [kube-proxy] container on host [188.166.xxx.111]&quot;
+time=&quot;2018-05-13T22:49:36+09:00&quot; level=info msg=&quot;[healthcheck] Start Healthcheck on service [kube-proxy] on host [188.166.xxx.111]&quot;
+time=&quot;2018-05-13T22:49:36+09:00&quot; level=info msg=&quot;[worker] Successfully started [kube-proxy] container on host [188.166.xxx.333]&quot;
+time=&quot;2018-05-13T22:49:36+09:00&quot; level=info msg=&quot;[healthcheck] Start Healthcheck on service [kube-proxy] on host [188.166.xxx.333]&quot;
+time=&quot;2018-05-13T22:49:37+09:00&quot; level=info msg=&quot;[healthcheck] service [kube-proxy] on host [188.166.xxx.111] is healthy&quot;
+time=&quot;2018-05-13T22:49:37+09:00&quot; level=info msg=&quot;[healthcheck] service [kube-proxy] on host [188.166.xxx.222] is healthy&quot;
+time=&quot;2018-05-13T22:49:38+09:00&quot; level=info msg=&quot;[healthcheck] service [kube-proxy] on host [188.166.xxx.333] is healthy&quot;
+time=&quot;2018-05-13T22:49:38+09:00&quot; level=info msg=&quot;[worker] Successfully started [rke-log-linker] container on host [188.166.xxx.222]&quot;
+time=&quot;2018-05-13T22:49:38+09:00&quot; level=info msg=&quot;[worker] Successfully started [rke-log-linker] container on host [188.166.xxx.111]&quot;
+time=&quot;2018-05-13T22:49:38+09:00&quot; level=info msg=&quot;[remove/rke-log-linker] Successfully removed container on host [188.166.xxx.222]&quot;
+time=&quot;2018-05-13T22:49:38+09:00&quot; level=info msg=&quot;[remove/rke-log-linker] Successfully removed container on host [188.166.xxx.111]&quot;
+time=&quot;2018-05-13T22:49:38+09:00&quot; level=info msg=&quot;[worker] Successfully started [rke-log-linker] container on host [188.166.xxx.333]&quot;
+time=&quot;2018-05-13T22:49:39+09:00&quot; level=info msg=&quot;[remove/rke-log-linker] Successfully removed container on host [188.166.xxx.333]&quot;
+time=&quot;2018-05-13T22:49:39+09:00&quot; level=info msg=&quot;[worker] Successfully started Worker Plane..&quot;
+time=&quot;2018-05-13T22:49:39+09:00&quot; level=info msg=&quot;[sync] Syncing nodes Labels and Taints&quot;
+time=&quot;2018-05-13T22:49:41+09:00&quot; level=info msg=&quot;[sync] Successfully synced nodes Labels and Taints&quot;
+time=&quot;2018-05-13T22:49:41+09:00&quot; level=info msg=&quot;[network] Setting up network plugin: canal&quot;
+time=&quot;2018-05-13T22:49:41+09:00&quot; level=info msg=&quot;[addons] Saving addon ConfigMap to Kubernetes&quot;
+time=&quot;2018-05-13T22:49:41+09:00&quot; level=info msg=&quot;[addons] Successfully Saved addon to Kubernetes ConfigMap: rke-network-plugin&quot;
+time=&quot;2018-05-13T22:49:41+09:00&quot; level=info msg=&quot;[addons] Executing deploy job..&quot;
+time=&quot;2018-05-13T22:49:51+09:00&quot; level=info msg=&quot;[addons] Setting up KubeDNS&quot;
+time=&quot;2018-05-13T22:49:51+09:00&quot; level=info msg=&quot;[addons] Saving addon ConfigMap to Kubernetes&quot;
+time=&quot;2018-05-13T22:49:52+09:00&quot; level=info msg=&quot;[addons] Successfully Saved addon to Kubernetes ConfigMap: rke-kubedns-addon&quot;
+time=&quot;2018-05-13T22:49:52+09:00&quot; level=info msg=&quot;[addons] Executing deploy job..&quot;
+time=&quot;2018-05-13T22:49:57+09:00&quot; level=info msg=&quot;[addons] KubeDNS deployed successfully..&quot;
+time=&quot;2018-05-13T22:49:57+09:00&quot; level=info msg=&quot;[ingress] Setting up nginx ingress controller&quot;
+time=&quot;2018-05-13T22:49:57+09:00&quot; level=info msg=&quot;[addons] Saving addon ConfigMap to Kubernetes&quot;
+time=&quot;2018-05-13T22:49:57+09:00&quot; level=info msg=&quot;[addons] Successfully Saved addon to Kubernetes ConfigMap: rke-ingress-controller&quot;
+time=&quot;2018-05-13T22:49:57+09:00&quot; level=info msg=&quot;[addons] Executing deploy job..&quot;
+time=&quot;2018-05-13T22:50:08+09:00&quot; level=info msg=&quot;[ingress] ingress controller nginx is successfully deployed&quot;
+time=&quot;2018-05-13T22:50:08+09:00&quot; level=info msg=&quot;[addons] Setting up user addons&quot;
+time=&quot;2018-05-13T22:50:08+09:00&quot; level=info msg=&quot;[addons] Saving addon ConfigMap to Kubernetes&quot;
+time=&quot;2018-05-13T22:50:08+09:00&quot; level=info msg=&quot;[addons] Successfully Saved addon to Kubernetes ConfigMap: rke-user-addon&quot;
+time=&quot;2018-05-13T22:50:08+09:00&quot; level=info msg=&quot;[addons] Executing deploy job..&quot;
+time=&quot;2018-05-13T22:50:13+09:00&quot; level=info msg=&quot;[addons] User addons deployed successfully&quot;
+time=&quot;2018-05-13T22:50:13+09:00&quot; level=info msg=&quot;Finished building Kubernetes cluster successfully&quot;
+</code></pre><h3 id=ブラウザで-rancher-にアクセス class="relative group">ブラウザで Rancher にアクセス <span class="absolute top-0 w-6 transition-opacity opacity-0 ltr:-left-6 rtl:-right-6 not-prose group-hover:opacity-100"><a class="group-hover:text-primary-300 dark:group-hover:text-neutral-700" style=text-decoration-line:none!important href=#%e3%83%96%e3%83%a9%e3%82%a6%e3%82%b6%e3%81%a7-rancher-%e3%81%ab%e3%82%a2%e3%82%af%e3%82%bb%e3%82%b9 aria-label=アンカー>#</a></span></h3>
+<p><code>Finished building Kubernetes cluster successfully</code> なので Rancher の Web UI にアクセスできるはずですが&mldr;</p>
+<p><code>"503 Service Temporarily Unavailable"</code> ありゃ？？</p>
+<p>サーバーにログインして docker logs してみると</p>
+<pre tabindex=0><code>Incorrect Usage. flag provided but not defined: -advertise-address
+
+NAME:
+   rancher - A new cli application
+
+USAGE:
+   rancher [global options] command [command options] [arguments...]
+
+VERSION:
+   v2.0.0
+
+COMMANDS:
+     help, h  Shows a list of commands or help for one command
+
+GLOBAL OPTIONS:
+   --kubeconfig value         Kube config for accessing k8s cluster [$KUBECONFIG]
+   --debug                    Enable debug logs
+   --add-local value          Add local cluster (true, false, auto) (default: &quot;auto&quot;)
+   --http-listen-port value   HTTP listen port (default: 8080)
+   --https-listen-port value  HTTPS listen port (default: 8443)
+   --k8s-mode value           Mode to run or access k8s API server for management API (embedded, external, auto) (default: &quot;auto&quot;)
+   --log-format value         Log formatter used (json, text, simple) (default: &quot;simple&quot;)
+   --acme-domain value        Domain to register with LetsEncrypt
+   --help, -h                 show help
+   --version, -v              print the version
+</code></pre><p>なんでじゃ？rancher コマンドに <code>--advertise-address</code> オプションなんてないはずなのに&mldr;</p>
+<p><code>3-node-certificate-recognizedca.yml</code></p>
+<div class=highlight><pre tabindex=0 class=chroma><code class=language-yaml data-lang=yaml><span class=w>  </span><span class=nt>kind</span><span class=p>:</span><span class=w> </span><span class=l>Deployment</span><span class=w>
+</span><span class=w>  </span><span class=nt>apiVersion</span><span class=p>:</span><span class=w> </span><span class=l>extensions/v1beta1</span><span class=w>
+</span><span class=w>  </span><span class=nt>metadata</span><span class=p>:</span><span class=w>
+</span><span class=w>    </span><span class=nt>namespace</span><span class=p>:</span><span class=w> </span><span class=l>cattle-system</span><span class=w>
+</span><span class=w>    </span><span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>cattle</span><span class=w>
+</span><span class=w>  </span><span class=nt>spec</span><span class=p>:</span><span class=w>
+</span><span class=w>    </span><span class=nt>replicas</span><span class=p>:</span><span class=w> </span><span class=m>1</span><span class=w>
+</span><span class=w>    </span><span class=nt>template</span><span class=p>:</span><span class=w>
+</span><span class=w>      </span><span class=nt>metadata</span><span class=p>:</span><span class=w>
+</span><span class=w>        </span><span class=nt>labels</span><span class=p>:</span><span class=w>
+</span><span class=w>          </span><span class=nt>app</span><span class=p>:</span><span class=w> </span><span class=l>cattle</span><span class=w>
+</span><span class=w>      </span><span class=nt>spec</span><span class=p>:</span><span class=w>
+</span><span class=w>        </span><span class=nt>serviceAccountName</span><span class=p>:</span><span class=w> </span><span class=l>cattle-admin</span><span class=w>
+</span><span class=w>        </span><span class=nt>containers</span><span class=p>:</span><span class=w>
+</span><span class=w>        </span>- <span class=nt>image</span><span class=p>:</span><span class=w> </span><span class=l>rancher/rancher:latest</span><span class=w>
+</span><span class=w>          </span><span class=nt>imagePullPolicy</span><span class=p>:</span><span class=w> </span><span class=l>Always</span><span class=w>
+</span><span class=w>          </span><span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>cattle-server</span><span class=w>
+</span><span class=w>          </span><span class=nt>ports</span><span class=p>:</span><span class=w>
+</span><span class=w>          </span>- <span class=nt>containerPort</span><span class=p>:</span><span class=w> </span><span class=m>80</span><span class=w>
+</span><span class=w>            </span><span class=nt>protocol</span><span class=p>:</span><span class=w> </span><span class=l>TCP</span><span class=w>
+</span><span class=w>          </span>- <span class=nt>containerPort</span><span class=p>:</span><span class=w> </span><span class=m>443</span><span class=w>
+</span><span class=w>            </span><span class=nt>protocol</span><span class=p>:</span><span class=w> </span><span class=l>TCP</span><span class=w>
+</span><span class=w>          </span><span class=nt>args</span><span class=p>:</span><span class=w>
+</span><span class=w>          </span>- --<span class=l>advertise-address=$(POD_IP)</span><span class=w>
+</span><span class=w>          </span><span class=nt>env</span><span class=p>:</span><span class=w>
+</span><span class=w>          </span>- <span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>POD_IP</span><span class=w>
+</span><span class=w>            </span><span class=nt>valueFrom</span><span class=p>:</span><span class=w>
+</span><span class=w>              </span><span class=nt>fieldRef</span><span class=p>:</span><span class=w>
+</span><span class=w>                </span><span class=nt>fieldPath</span><span class=p>:</span><span class=w> </span><span class=l>status.podIP</span><span class=w>
+</span></code></pre></div><p>うむむ、、つい21時間前に master に変更が入っている</p>
+<p><a href=https://github.com/rancher/rancher/commit/29bd33528aa810001b89580a654dddb1c53b2d6a#diff-7ddfb3e035b42cd70649cc33393fe32c>https://github.com/rancher/rancher/commit/29bd33528aa810001b89580a654dddb1c53b2d6a#diff-7ddfb3e035b42cd70649cc33393fe32c</a> <a href=https://github.com/rancher/rancher/issues/13292>https://github.com/rancher/rancher/issues/13292</a></p>
+<p>2.0 に取り込まれたらまた試してみよう</p>
+<p>merge の3日後に revert されているので 5/17 以降は使えるようになっています。</p>
+<h3 id=kubectl-で-rke-にアクセスしてみる class="relative group">kubectl で RKE にアクセスしてみる <span class="absolute top-0 w-6 transition-opacity opacity-0 ltr:-left-6 rtl:-right-6 not-prose group-hover:opacity-100"><a class="group-hover:text-primary-300 dark:group-hover:text-neutral-700" style=text-decoration-line:none!important href=#kubectl-%e3%81%a7-rke-%e3%81%ab%e3%82%a2%e3%82%af%e3%82%bb%e3%82%b9%e3%81%97%e3%81%a6%e3%81%bf%e3%82%8b aria-label=アンカー>#</a></span></h3>
+<p><code>rke</code> コマンドで作った Kubernetes にアクセスするための <code>kubectl</code> 用ファイルが <code>kube_config_3-node-certificate-recognizedca.yml</code> としてカレントディレクトリに作成されていましたので <code>~/.kube/config</code> にコピーします</p>
+<pre tabindex=0><code>$ cp kube_config_3-node-certificate-recognizedca.yml ~/.kube/config
+</code></pre><pre tabindex=0><code>$ kubectl get nodes
+NAME             STATUS    ROLES                      AGE       VERSION
+188.166.xxx.111  Ready     controlplane,etcd,worker   26m       v1.10.1
+188.166.xxx.222  Ready     controlplane,etcd,worker   26m       v1.10.1
+188.166.xxx.333  Ready     controlplane,etcd,worker   26m       v1.10.1
+</code></pre><pre tabindex=0><code>$ kubectl get pods --all-namespaces
+NAMESPACE       NAME                                      READY     STATUS             RESTARTS   AGE
+cattle-system   cattle-95fc8b5fc-xbtm4                    0/1       CrashLoopBackOff   11         34m
+ingress-nginx   default-http-backend-564b9b6c5b-lpd75     1/1       Running            0          34m
+ingress-nginx   nginx-ingress-controller-2hbtq            1/1       Running            0          34m
+ingress-nginx   nginx-ingress-controller-kjs7q            1/1       Running            0          34m
+ingress-nginx   nginx-ingress-controller-qc5r6            1/1       Running            0          34m
+kube-system     canal-gszp9                               3/3       Running            0          34m
+kube-system     canal-ktg7w                               3/3       Running            0          34m
+kube-system     canal-ltspx                               3/3       Running            0          34m
+kube-system     kube-dns-5ccb66df65-q7wj9                 3/3       Running            0          34m
+kube-system     kube-dns-autoscaler-6c4b786f5-gsskl       1/1       Running            0          34m
+kube-system     rke-ingress-controller-deploy-job-qjd9h   0/1       Completed          0          34m
+kube-system     rke-kubedns-addon-deploy-job-rq4w5        0/1       Completed          0          34m
+kube-system     rke-network-plugin-deploy-job-wmclj       0/1       Completed          0          34m
+kube-system     rke-user-addon-deploy-job-959n6           0/1       Completed          0          34m
+</code></pre><p>以上、HA 構成のセットアップ手順でした。。。</p>
+<p>非 HA 構成（docker run するだけ）だと Rancher がデータを保持する etcd は内蔵されていて /var/lib/rancher/etcd 配下にデータファイルが置かれているのだけれど HA 構成の場合にどうなるのか確認したかったのだけどまた後日確認だな</p>
+<p>「<a href=/2018/05/rancher-2-0-ha-install-using-terraform-and-rke/>続 Rancher 2.0 の HA 構成を試す</a>」に続きがあります</p>
+</div>
+<script>var liked_article=!1,oid,id,viewed,oid_likes,id_likes,liked;typeof auth!='undefined'&&(oid="views_posts/rancher-2-0-ha-install.md",id=oid&&oid.replaceAll("/","-"),viewed=localStorage.getItem(id),viewed||auth.signInAnonymously().then(()=>{var a=db.collection('views').doc(id);localStorage.setItem(id,!0),a.get().then(a=>{a.exists?db.collection('views').doc(id).update({views:firebase.firestore.FieldValue.increment(1)}):db.collection('views').doc(id).set({views:1})}).catch(a=>{console.log("Error getting document:",a)})}).catch(a=>{var b=a.code,c=a.message;console.error(b,c)}),oid_likes="likes_posts/rancher-2-0-ha-install.md",id_likes=oid_likes&&oid_likes.replaceAll("/","-"),liked=localStorage.getItem(id_likes),liked&&(liked_article=!0,document.querySelectorAll("button[id='likes_button']")[0].innerText="Remove Like"));function like_article(a){console.log("add"),liked_article=!0,localStorage.setItem(a,!0),document.querySelectorAll("button[id='likes_button']")[0].innerText="Remove Like",auth.signInAnonymously().then(()=>{var b=db.collection('likes').doc(a);b.get().then(b=>{b.exists?db.collection('likes').doc(a).update({likes:firebase.firestore.FieldValue.increment(1)}):db.collection('likes').doc(a).set({likes:1})}).catch(a=>{console.log("Error getting document:",a)})}).catch(a=>{var b=a.code,c=a.message;console.error(b,c)})}function remove_like_article(a){console.log("remove"),liked_article=!1,localStorage.setItem(a,!1),document.querySelectorAll("button[id='likes_button']")[0].innerText="Like",auth.signInAnonymously().then(()=>{var b=db.collection('likes').doc(a);b.get().then(b=>{b.exists?db.collection('likes').doc(a).update({likes:firebase.firestore.FieldValue.increment(-1)}):db.collection('likes').doc(a).set({likes:0})}).catch(a=>{console.log("Error getting document:",a)})}).catch(a=>{var b=a.code,c=a.message;console.error(b,c)})}function process_article(){var a="likes_posts/rancher-2-0-ha-install.md",b=a&&a.replaceAll("/","-");liked_article?remove_like_article(b):like_article(b)}</script>
+</section>
+<footer class="pt-8 max-w-prose print:hidden">
+<div class=flex>
+<div class=place-self-center>
+<div class="text-[0.6rem] uppercase leading-3 text-neutral-500 dark:text-neutral-400">
+著者
+</div>
+<div class="font-semibold leading-6 text-neutral-800 dark:text-neutral-300">
+Yoshinori Teraoka
+</div>
+<div class="text-2xl sm:text-lg">
+<div class="flex flex-wrap text-neutral-400 dark:text-neutral-500">
+<a class="px-1 hover:text-primary-700 dark:hover:text-primary-400" href=https://twitter.com/yteraoka target=_blank aria-label=Twitter rel="me noopener noreferrer">
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentcolor" d="M459.37 151.716c.325 4.548.325 9.097.325 13.645.0 138.72-105.583 298.558-298.558 298.558-59.452.0-114.68-17.219-161.137-47.106 8.447.974 16.568 1.299 25.34 1.299 49.055.0 94.213-16.568 130.274-44.832-46.132-.975-84.792-31.188-98.112-72.772 6.498.974 12.995 1.624 19.818 1.624 9.421.0 18.843-1.3 27.614-3.573-48.081-9.747-84.143-51.98-84.143-102.985v-1.299c13.969 7.797 30.214 12.67 47.431 13.319-28.264-18.843-46.781-51.005-46.781-87.391.0-19.492 5.197-37.36 14.294-52.954 51.655 63.675 129.3 105.258 216.365 109.807-1.624-7.797-2.599-15.918-2.599-24.04.0-57.828 46.782-104.934 104.934-104.934 30.213.0 57.502 12.67 76.67 33.137 23.715-4.548 46.456-13.32 66.599-25.34-7.798 24.366-24.366 44.833-46.132 57.827 21.117-2.273 41.584-8.122 60.426-16.243-14.292 20.791-32.161 39.308-52.628 54.253z"/></svg>
+</span>
+</a>
+<a class="px-1 hover:text-primary-700 dark:hover:text-primary-400" href=https://github.com/yteraoka target=_blank aria-label=Github rel="me noopener noreferrer">
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><path fill="currentcolor" d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6.0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6.0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3.0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1.0-6.2-.3-40.4-.3-61.4.0.0-70 15-84.7-29.8.0.0-11.4-29.1-27.8-36.6.0.0-22.9-15.7 1.6-15.4.0.0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5.0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9.0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4.0 33.7-.3 75.4-.3 83.6.0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6.0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9.0-6.2-1.4-2.3-4-3.3-5.6-2z"/></svg>
+</span>
+</a>
+<a class="px-1 hover:text-primary-700 dark:hover:text-primary-400" href=https://linkedin.com/in/fa5b66b7-9c77-4e1b-8b97-40ba4a5a2c13/ target=_blank aria-label=Linkedin rel="me noopener noreferrer">
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path fill="currentcolor" d="M416 32H31.9C14.3 32 0 46.5.0 64.3v383.4C0 465.5 14.3 480 31.9 480H416c17.6.0 32-14.5 32-32.3V64.3c0-17.8-14.4-32.3-32-32.3zM135.4 416H69V202.2h66.5V416zm-33.2-243c-21.3.0-38.5-17.3-38.5-38.5S80.9 96 102.2 96c21.2.0 38.5 17.3 38.5 38.5.0 21.3-17.2 38.5-38.5 38.5zm282.1 243h-66.4V312c0-24.8-.5-56.7-34.5-56.7-34.6.0-39.9 27-39.9 54.9V416h-66.4V202.2h63.7v29.2h.9c8.9-16.8 30.6-34.5 62.9-34.5 67.2.0 79.7 44.3 79.7 101.9V416z"/></svg>
+</span>
+</a>
+<a class="px-1 hover:text-primary-700 dark:hover:text-primary-400" href=https://medium.com/@yteraoka target=_blank aria-label=Medium rel="me noopener noreferrer">
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512"><path fill="currentcolor" d="M180.5 74.262C80.813 74.262.0 155.633.0 256S80.819 437.738 180.5 437.738 361 356.373 361 256 280.191 74.262 180.5 74.262zm288.25 10.646c-49.845.0-90.245 76.619-90.245 171.095s40.406 171.1 90.251 171.1 90.251-76.619 90.251-171.1H559C559 161.5 518.6 84.908 468.752 84.908zm139.506 17.821c-17.526.0-31.735 68.628-31.735 153.274s14.2 153.274 31.735 153.274S640 340.631 640 256c0-84.649-14.215-153.271-31.742-153.271z"/></svg>
+</span>
+</a>
+</div>
+</div>
+</div>
+</div>
+<section class="flex flex-row flex-wrap justify-center pt-4 text-xl">
+<a class="m-1 inline-block min-w-[2.4rem] rounded bg-neutral-300 p-1 text-center text-neutral-700 hover:bg-primary-500 hover:text-neutral dark:bg-neutral-700 dark:text-neutral-300 dark:hover:bg-primary-400 dark:hover:text-neutral-800" href="https://www.linkedin.com/shareArticle?mini=true&url=https://preview-blog.1q77.com/2018/05/rancher-2-0-ha-install/&title=Rancher%202.0%20%e3%81%ae%20HA%20%e6%a7%8b%e6%88%90%e3%82%92%e8%a9%a6%e3%81%99" title=LinkedInでシェアする aria-label=LinkedInでシェアする>
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path fill="currentcolor" d="M416 32H31.9C14.3 32 0 46.5.0 64.3v383.4C0 465.5 14.3 480 31.9 480H416c17.6.0 32-14.5 32-32.3V64.3c0-17.8-14.4-32.3-32-32.3zM135.4 416H69V202.2h66.5V416zm-33.2-243c-21.3.0-38.5-17.3-38.5-38.5S80.9 96 102.2 96c21.2.0 38.5 17.3 38.5 38.5.0 21.3-17.2 38.5-38.5 38.5zm282.1 243h-66.4V312c0-24.8-.5-56.7-34.5-56.7-34.6.0-39.9 27-39.9 54.9V416h-66.4V202.2h63.7v29.2h.9c8.9-16.8 30.6-34.5 62.9-34.5 67.2.0 79.7 44.3 79.7 101.9V416z"/></svg>
+</span>
+</a>
+<a class="m-1 inline-block min-w-[2.4rem] rounded bg-neutral-300 p-1 text-center text-neutral-700 hover:bg-primary-500 hover:text-neutral dark:bg-neutral-700 dark:text-neutral-300 dark:hover:bg-primary-400 dark:hover:text-neutral-800" href="https://twitter.com/intent/tweet/?url=https://preview-blog.1q77.com/2018/05/rancher-2-0-ha-install/&text=Rancher%202.0%20%e3%81%ae%20HA%20%e6%a7%8b%e6%88%90%e3%82%92%e8%a9%a6%e3%81%99" title=Twitterに投稿する aria-label=Twitterに投稿する>
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentcolor" d="M459.37 151.716c.325 4.548.325 9.097.325 13.645.0 138.72-105.583 298.558-298.558 298.558-59.452.0-114.68-17.219-161.137-47.106 8.447.974 16.568 1.299 25.34 1.299 49.055.0 94.213-16.568 130.274-44.832-46.132-.975-84.792-31.188-98.112-72.772 6.498.974 12.995 1.624 19.818 1.624 9.421.0 18.843-1.3 27.614-3.573-48.081-9.747-84.143-51.98-84.143-102.985v-1.299c13.969 7.797 30.214 12.67 47.431 13.319-28.264-18.843-46.781-51.005-46.781-87.391.0-19.492 5.197-37.36 14.294-52.954 51.655 63.675 129.3 105.258 216.365 109.807-1.624-7.797-2.599-15.918-2.599-24.04.0-57.828 46.782-104.934 104.934-104.934 30.213.0 57.502 12.67 76.67 33.137 23.715-4.548 46.456-13.32 66.599-25.34-7.798 24.366-24.366 44.833-46.132 57.827 21.117-2.273 41.584-8.122 60.426-16.243-14.292 20.791-32.161 39.308-52.628 54.253z"/></svg>
+</span>
+</a>
+</section>
+<div class=pt-8>
+<hr class="border-dotted border-neutral-300 dark:border-neutral-600">
+<div class="flex justify-between pt-3">
+<span>
+<a class="flex group" href=/2018/05/cilium/>
+<span class="mr-3 text-neutral-700 group-hover:text-primary-600 ltr:inline rtl:hidden dark:text-neutral dark:group-hover:text-primary-400">&larr;</span>
+<span class="ml-3 text-neutral-700 group-hover:text-primary-600 ltr:hidden rtl:inline dark:text-neutral dark:group-hover:text-primary-400">&rarr;</span>
+<span class="flex flex-col">
+<span class="mt-[0.1rem] leading-6 group-hover:underline group-hover:decoration-primary-500">Cilium ってなんだ？</span>
+<span class="mt-[0.1rem] text-xs text-neutral-500 dark:text-neutral-400">
+<time datetime="2018-05-09 15:03:10 +0000 UTC">2018年5月9日</time>
+</span>
+</span>
+</a>
+</span>
+<span>
+<a class="flex text-right group" href=/2018/05/rancher-2-0-ha-install-using-terraform-and-rke/>
+<span class="flex flex-col">
+<span class="mt-[0.1rem] leading-6 group-hover:underline group-hover:decoration-primary-500">続 Rancher 2.0 の HA 構成を試す</span>
+<span class="mt-[0.1rem] text-xs text-neutral-500 dark:text-neutral-400">
+<time datetime="2018-05-26 13:48:10 +0000 UTC">2018年5月26日</time>
+</span>
+</span>
+<span class="ml-3 text-neutral-700 group-hover:text-primary-600 ltr:inline rtl:hidden dark:text-neutral dark:group-hover:text-primary-400">&rarr;</span>
+<span class="mr-3 text-neutral-700 group-hover:text-primary-600 ltr:hidden rtl:inline dark:text-neutral dark:group-hover:text-primary-400">&larr;</span>
+</a>
+</span>
+</div>
+</div>
+</footer>
+</article>
+<div class="pointer-events-none absolute top-[100vh] bottom-0 w-12 ltr:right-0 rtl:left-0">
+<a href=#the-top class="pointer-events-auto sticky top-[calc(100vh-5.5rem)] flex h-12 w-12 items-center justify-center rounded-full bg-neutral/50 text-xl text-neutral-700 backdrop-blur hover:text-primary-600 dark:bg-neutral-800/50 dark:text-neutral dark:hover:text-primary-400" aria-label=TOPへスクロール title=TOPへスクロール>
+&uarr;
+</a>
+</div>
+</main><footer class="py-10 print:hidden">
+<div class="flex items-center justify-between">
+<p class="text-sm text-neutral-500 dark:text-neutral-400">
+&copy;
+2022
+Yoshinori Teraoka
+</p>
+</div>
+<script>mediumZoom(document.querySelectorAll("img:not(.nozoom)"),{margin:24,background:'rgba(0,0,0,0.5)',scrollOffset:0})</script>
+<script type=text/javascript src=/js/process.min.48d08339b8a087b59c7b8cb42b6717aeeed3e07bfc68b1654cac27f00583284dac59cae47fb686dd7c0e9ff1d2745689dc2071230dff432ca6d7fc24b9f2e036.js integrity="sha512-SNCDObigh7Wce4y0K2cXru7T4Hv8aLFlTKwn8AWDKE2sWcrkf7aG3XwOn/HSdFaJ3CBxIw3/Qyym1/wkufLgNg=="></script>
+</footer><div id=search-wrapper class="invisible fixed inset-0 z-50 flex h-screen w-screen cursor-default flex-col bg-neutral-500/50 p-4 backdrop-blur-sm dark:bg-neutral-900/50 sm:p-6 md:p-[10vh] lg:p-[12vh]" data-url=https://preview-blog.1q77.com/>
+<div id=search-modal class="flex flex-col w-full max-w-3xl min-h-0 mx-auto border rounded-md shadow-lg top-20 border-neutral-200 bg-neutral dark:border-neutral-700 dark:bg-neutral-800">
+<header class="relative z-10 flex items-center justify-between flex-none px-2">
+<form class="flex items-center flex-auto min-w-0">
+<div class="flex items-center justify-center w-8 h-8 text-neutral-400">
+<span class="relative inline-block align-text-bottom icon"><svg aria-hidden="true" focusable="false" data-prefix="fas" data-icon="search" class="svg-inline--fa fa-search fa-w-16" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentcolor" d="M505 442.7 405.3 343c-4.5-4.5-10.6-7-17-7H372c27.6-35.3 44-79.7 44-128C416 93.1 322.9.0 208 0S0 93.1.0 208s93.1 208 208 208c48.3.0 92.7-16.4 128-44v16.3c0 6.4 2.5 12.5 7 17l99.7 99.7c9.4 9.4 24.6 9.4 33.9.0l28.3-28.3c9.4-9.4 9.4-24.6.1-34zM208 336c-70.7.0-128-57.2-128-128 0-70.7 57.2-128 128-128 70.7.0 128 57.2 128 128 0 70.7-57.2 128-128 128z"/></svg>
+</span>
+</div>
+<input type=search id=search-query class="flex flex-auto h-12 mx-1 bg-transparent appearance-none focus:outline-dotted focus:outline-2 focus:outline-transparent" placeholder=Search tabindex=0>
+</form>
+<button id=close-search-button class="flex items-center justify-center w-8 h-8 text-neutral-700 hover:text-primary-600 dark:text-neutral dark:hover:text-primary-400" title="閉じる (Esc)">
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><path fill="currentcolor" d="M310.6 361.4c12.5 12.5 12.5 32.75.0 45.25C304.4 412.9 296.2 416 288 416s-16.38-3.125-22.62-9.375L160 301.3 54.63 406.6C48.38 412.9 40.19 416 32 416S15.63 412.9 9.375 406.6c-12.5-12.5-12.5-32.75.0-45.25l105.4-105.4L9.375 150.6c-12.5-12.5-12.5-32.75.0-45.25s32.75-12.5 45.25.0L160 210.8l105.4-105.4c12.5-12.5 32.75-12.5 45.25.0s12.5 32.75.0 45.25l-105.4 105.4L310.6 361.4z"/></svg>
+</span>
+</button>
+</header>
+<section class="flex-auto px-2 overflow-auto">
+<ul id=search-results>
+</ul>
+</section>
+</div>
+</div>
+</div>
+</body>
+</html>

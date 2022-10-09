@@ -1,0 +1,1359 @@
+<!doctype html><html lang=ja dir=ltr class=scroll-smooth data-default-appearance=light data-auto-appearance=true><head>
+<meta charset=utf-8>
+<meta http-equiv=content-language content="ja">
+<meta name=viewport content="width=device-width,initial-scale=1">
+<meta http-equiv=x-ua-compatible content="ie=edge">
+<title>GKE の node はどのようにログを転送しているのか &#183; 1Q77</title>
+<meta name=title content="GKE の node はどのようにログを転送しているのか &#183; 1Q77">
+<link rel=canonical href=https://preview-blog.1q77.com/2020/03/how-gke-node-send-logs/>
+<link type=text/css rel=stylesheet href=/css/main.bundle.min.a9d40529d239a91ecb75447e67ee6c80c1f1c28593904b4052651b12220121e13ec42904268b0193a6858f039cf8bfdd2b1331529ed341ddc7488cec3bdcbc2e.css integrity="sha512-qdQFKdI5qR7LdUR+Z+5sgMHxwoWTkEtAUmUbEiIBIeE+xCkEJosBk6aFjwOc+L/dKxMxUp7TQd3HSIzsO9y8Lg==">
+<script type=text/javascript src=/js/main.min.cf83e1357eefb8bdf1542850d66d8007d620e4050b5715dc83f4a921d36ce9ce47d0d13c5d85f2b0ff8318d2877eec2f63b931bd47417a81a538327af927da3e.js integrity="sha512-z4PhNX7vuL3xVChQ1m2AB9Yg5AULVxXcg/SpIdNs6c5H0NE8XYXysP+DGNKHfuwvY7kxvUdBeoGlODJ6+SfaPg=="></script>
+<script type=text/javascript src=/js/appearance.min.49025a779c36ad37a5bf9f1cc6bffd35ccb69ce15560ef1b10057ddf31576265b19f8bcc1733207336c9144926f7b18aea2e5895f29e858b24271332a2fa5cd5.js integrity="sha512-SQJad5w2rTelv58cxr/9Ncy2nOFVYO8bEAV93zFXYmWxn4vMFzMgczbJFEkm97GK6i5YlfKehYskJxMyovpc1Q=="></script>
+<script defer type=text/javascript id=script-bundle src=/js/main.bundle.min.34ee8372ff77835535e486c6ed01ff6993374a1cec8108898cad793fc6ae7520778e24db68e085c762d25af6fa7d00b57d7a791438dc68b676581f8c8344f6e0.js integrity="sha512-NO6Dcv93g1U15IbG7QH/aZM3ShzsgQiJjK15P8audSB3jiTbaOCFx2LSWvb6fQC1fXp5FDjcaLZ2WB+Mg0T24A==" data-copy data-copied></script>
+<script src=/js/zoom.min.js></script>
+<link rel=apple-touch-icon sizes=180x180 href=/apple-touch-icon.png>
+<link rel=icon type=image/png sizes=32x32 href=/favicon-32x32.png>
+<link rel=icon type=image/png sizes=16x16 href=/favicon-16x16.png>
+<link rel=manifest href=/site.webmanifest>
+<meta property="og:title" content="GKE の node はどのようにログを転送しているのか">
+<meta property="og:description" content="GKE は何もしなくてもログを Cloud Logging (旧 Stackdriver Logging) に送ってくれて便利なんだけどどうやって送ってるのかな？と思って調べたメモ。なかなか興味深かった。 メトリク">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://preview-blog.1q77.com/2020/03/how-gke-node-send-logs/"><meta property="article:section" content="posts">
+<meta property="article:published_time" content="2020-03-13T15:40:41+00:00">
+<meta property="article:modified_time" content="2020-03-13T15:40:41+00:00">
+<meta name=twitter:card content="summary">
+<meta name=twitter:title content="GKE の node はどのようにログを転送しているのか">
+<meta name=twitter:description content="GKE は何もしなくてもログを Cloud Logging (旧 Stackdriver Logging) に送ってくれて便利なんだけどどうやって送ってるのかな？と思って調べたメモ。なかなか興味深かった。 メトリク">
+<script type=application/ld+json>[{"@context":"https://schema.org","@type":"Article","articleSection":"Posts","name":"GKE の node はどのようにログを転送しているのか","headline":"GKE の node はどのようにログを転送しているのか","abstract":"GKE は何もしなくてもログを Cloud Logging (旧 Stackdriver Logging) に送ってくれて便利なんだけどどうやって送ってるのかな？と思って調べたメモ。なかなか興味深かった。 メトリク","inLanguage":"ja","url":"https:\/\/preview-blog.1q77.com\/2020\/03\/how-gke-node-send-logs\/","author":{"@type":"Person","name":"Yoshinori Teraoka"},"copyrightYear":"2020","dateCreated":"2020-03-13T15:40:41\u002b00:00","datePublished":"2020-03-13T15:40:41\u002b00:00","dateModified":"2020-03-13T15:40:41\u002b00:00","keywords":["GCP","GCP","Kubernetes","fluentd"],"mainEntityOfPage":"true","wordCount":"4793"}]</script>
+<meta name=author content="Yoshinori Teraoka">
+<link href=https://twitter.com/yteraoka rel=me>
+<link href=https://github.com/yteraoka rel=me>
+<link href=https://linkedin.com/in/fa5b66b7-9c77-4e1b-8b97-40ba4a5a2c13/ rel=me>
+<link href=https://medium.com/@yteraoka rel=me>
+<link rel=stylesheet href=https://rsms.me/inter/inter.css>
+</head><body class="flex flex-col h-screen px-6 m-auto text-lg leading-7 max-w-7xl bg-neutral text-neutral-900 dark:bg-neutral-800 dark:text-neutral sm:px-14 md:px-24 lg:px-32">
+<div id=the-top class="absolute flex self-center">
+<a class="px-3 py-1 text-sm -translate-y-8 rounded-b-lg bg-primary-200 focus:translate-y-0 dark:bg-neutral-600" href=#main-content><span class="font-bold text-primary-600 ltr:pr-2 rtl:pl-2 dark:text-primary-400">&darr;</span>メインコンテンツへスキップ</a>
+</div>
+<div style=padding-left:0;padding-right:0 class="flex items-center justify-between px-4 py-6 sm:px-6 md:justify-start space-x-3">
+<div class="flex flex-1 items-center justify-between">
+<nav class="flex space-x-3">
+<a href=/ class="text-base font-medium text-gray-500 hover:text-gray-900">1Q77</a>
+</nav>
+<div class="hidden md:flex items-center space-x-5 md:ml-12">
+<a href=/posts/ class="text-base font-medium text-gray-500 hover:text-gray-900" title=Posts>
+Blog
+</a>
+<a href=/tags/ class="text-base font-medium text-gray-500 hover:text-gray-900" title=Tags>
+Tags
+</a>
+<a href=https://github.com/yteraoka class="text-base font-medium text-gray-500 hover:text-gray-900" title>
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><path fill="currentcolor" d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6.0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6.0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3.0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1.0-6.2-.3-40.4-.3-61.4.0.0-70 15-84.7-29.8.0.0-11.4-29.1-27.8-36.6.0.0-22.9-15.7 1.6-15.4.0.0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5.0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9.0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4.0 33.7-.3 75.4-.3 83.6.0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6.0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9.0-6.2-1.4-2.3-4-3.3-5.6-2z"/></svg>
+</span>
+&nbsp;
+GitHub
+</a>
+<a href=https://twitter.com/yteraoka class="text-base font-medium text-gray-500 hover:text-gray-900" title>
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentcolor" d="M459.37 151.716c.325 4.548.325 9.097.325 13.645.0 138.72-105.583 298.558-298.558 298.558-59.452.0-114.68-17.219-161.137-47.106 8.447.974 16.568 1.299 25.34 1.299 49.055.0 94.213-16.568 130.274-44.832-46.132-.975-84.792-31.188-98.112-72.772 6.498.974 12.995 1.624 19.818 1.624 9.421.0 18.843-1.3 27.614-3.573-48.081-9.747-84.143-51.98-84.143-102.985v-1.299c13.969 7.797 30.214 12.67 47.431 13.319-28.264-18.843-46.781-51.005-46.781-87.391.0-19.492 5.197-37.36 14.294-52.954 51.655 63.675 129.3 105.258 216.365 109.807-1.624-7.797-2.599-15.918-2.599-24.04.0-57.828 46.782-104.934 104.934-104.934 30.213.0 57.502 12.67 76.67 33.137 23.715-4.548 46.456-13.32 66.599-25.34-7.798 24.366-24.366 44.833-46.132 57.827 21.117-2.273 41.584-8.122 60.426-16.243-14.292 20.791-32.161 39.308-52.628 54.253z"/></svg>
+</span>
+&nbsp;
+Twitter
+</a>
+<a href=https://qiita.com/yteraoka class="text-base font-medium text-gray-500 hover:text-gray-900" title>
+Qiita
+</a>
+<button id=search-button class="text-base hover:text-primary-600 dark:hover:text-primary-400" title>
+<span class="relative inline-block align-text-bottom icon"><svg aria-hidden="true" focusable="false" data-prefix="fas" data-icon="search" class="svg-inline--fa fa-search fa-w-16" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentcolor" d="M505 442.7 405.3 343c-4.5-4.5-10.6-7-17-7H372c27.6-35.3 44-79.7 44-128C416 93.1 322.9.0 208 0S0 93.1.0 208s93.1 208 208 208c48.3.0 92.7-16.4 128-44v16.3c0 6.4 2.5 12.5 7 17l99.7 99.7c9.4 9.4 24.6 9.4 33.9.0l28.3-28.3c9.4-9.4 9.4-24.6.1-34zM208 336c-70.7.0-128-57.2-128-128 0-70.7 57.2-128 128-128 70.7.0 128 57.2 128 128 0 70.7-57.2 128-128 128z"/></svg>
+</span>
+</button>
+<div class="ltr:mr-14 rtl:ml-14 cursor-pointer text-sm text-neutral-700 hover:text-primary-600 dark:text-neutral dark:hover:text-primary-400">
+<button id=appearance-switcher type=button>
+<div class="flex items-center justify-center h-12 dark:hidden">
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentcolor" d="M32 256C32 132.2 132.3 32 255.8 32c11.36.0 29.7 1.668 40.9 3.746 9.616 1.777 11.75 14.63 3.279 19.44C245 86.5 211.2 144.6 211.2 207.8c0 109.7 99.71 193 208.3 172.3 9.561-1.805 16.28 9.324 10.11 16.95C387.9 448.6 324.8 480 255.8 480 132.1 480 32 379.6 32 256z"/></svg>
+</span>
+</div>
+<div class="items-center justify-center hidden h-12 dark:flex">
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentcolor" d="M256 159.1c-53.02.0-95.1 42.98-95.1 95.1s41.2 96.9 95.1 96.9 95.1-42.98 95.1-95.1S309 159.1 256 159.1zM509.3 347l-63.2-91.9 63.15-91.01c6.332-9.125 1.104-21.74-9.826-23.72l-109-19.7-19.7-109c-1.975-10.93-14.59-16.16-23.72-9.824L256 65.89 164.1 2.736c-9.125-6.332-21.74-1.107-23.72 9.824L121.6 121.6 12.56 141.3C1.633 143.2-3.596 155.9 2.736 164.1L65.89 256 2.74 347.01c-6.332 9.125-1.105 21.74 9.824 23.72l109 19.7 19.7 109c1.975 10.93 14.59 16.16 23.72 9.824L256 446.1l91.01 63.15c9.127 6.334 21.75 1.107 23.72-9.822l19.7-109 109-19.7C510.4 368.8 515.6 356.1 509.3 347zM256 383.1c-70.69.0-127.1-57.31-127.1-127.1.0-70.69 57.31-127.1 127.1-127.1S383.1 186.2 383.1 256c0 70.7-56.4 127.1-127.1 127.1z"/></svg>
+</span>
+</div>
+</button>
+</div>
+</div>
+<div class="flex md:hidden items-center space-x-5 md:ml-12">
+<span></span>
+<button id=search-button-mobile class="text-base hover:text-primary-600 dark:hover:text-primary-400" title>
+<span class="relative inline-block align-text-bottom icon"><svg aria-hidden="true" focusable="false" data-prefix="fas" data-icon="search" class="svg-inline--fa fa-search fa-w-16" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentcolor" d="M505 442.7 405.3 343c-4.5-4.5-10.6-7-17-7H372c27.6-35.3 44-79.7 44-128C416 93.1 322.9.0 208 0S0 93.1.0 208s93.1 208 208 208c48.3.0 92.7-16.4 128-44v16.3c0 6.4 2.5 12.5 7 17l99.7 99.7c9.4 9.4 24.6 9.4 33.9.0l28.3-28.3c9.4-9.4 9.4-24.6.1-34zM208 336c-70.7.0-128-57.2-128-128 0-70.7 57.2-128 128-128 70.7.0 128 57.2 128 128 0 70.7-57.2 128-128 128z"/></svg>
+</span>
+</button>
+<button id=appearance-switcher-mobile type=button style=margin-right:5px>
+<div class="flex items-center justify-center h-12 dark:hidden">
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentcolor" d="M32 256C32 132.2 132.3 32 255.8 32c11.36.0 29.7 1.668 40.9 3.746 9.616 1.777 11.75 14.63 3.279 19.44C245 86.5 211.2 144.6 211.2 207.8c0 109.7 99.71 193 208.3 172.3 9.561-1.805 16.28 9.324 10.11 16.95C387.9 448.6 324.8 480 255.8 480 132.1 480 32 379.6 32 256z"/></svg>
+</span>
+</div>
+<div class="items-center justify-center hidden h-12 dark:flex">
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentcolor" d="M256 159.1c-53.02.0-95.1 42.98-95.1 95.1s41.2 96.9 95.1 96.9 95.1-42.98 95.1-95.1S309 159.1 256 159.1zM509.3 347l-63.2-91.9 63.15-91.01c6.332-9.125 1.104-21.74-9.826-23.72l-109-19.7-19.7-109c-1.975-10.93-14.59-16.16-23.72-9.824L256 65.89 164.1 2.736c-9.125-6.332-21.74-1.107-23.72 9.824L121.6 121.6 12.56 141.3C1.633 143.2-3.596 155.9 2.736 164.1L65.89 256 2.74 347.01c-6.332 9.125-1.105 21.74 9.824 23.72l109 19.7 19.7 109c1.975 10.93 14.59 16.16 23.72 9.824L256 446.1l91.01 63.15c9.127 6.334 21.75 1.107 23.72-9.822l19.7-109 109-19.7C510.4 368.8 515.6 356.1 509.3 347zM256 383.1c-70.69.0-127.1-57.31-127.1-127.1.0-70.69 57.31-127.1 127.1-127.1S383.1 186.2 383.1 256c0 70.7-56.4 127.1-127.1 127.1z"/></svg>
+</span>
+</div>
+</button>
+</div>
+</div>
+<div class="-my-2 -mr-2 md:hidden">
+<label id=menu-button for=menu-controller class=block>
+<input type=checkbox id=menu-controller class=hidden>
+<div class="cursor-pointer hover:text-primary-600 dark:hover:text-primary-400">
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path fill="currentcolor" d="M0 96C0 78.33 14.33 64 32 64H416c17.7.0 32 14.33 32 32 0 17.7-14.3 32-32 32H32C14.33 128 0 113.7.0 96zM0 256c0-17.7 14.33-32 32-32H416c17.7.0 32 14.3 32 32s-14.3 32-32 32H32c-17.67.0-32-14.3-32-32zM416 448H32c-17.67.0-32-14.3-32-32s14.33-32 32-32H416c17.7.0 32 14.3 32 32s-14.3 32-32 32z"/></svg>
+</span>
+</div>
+<div id=menu-wrapper style=padding-top:25px class="fixed inset-0 z-30 invisible w-screen h-screen m-auto overflow-auto transition-opacity opacity-0 cursor-default bg-neutral-100/50 backdrop-blur-sm dark:bg-neutral-900/50">
+<ul class="flex movedown flex-col w-full px-6 py-6 mx-auto overflow-visible list-none ltr:text-right rtl:text-left max-w-7xl sm:px-14 md:px-24 lg:px-32 sm:py-10 sm:pt-10">
+<li class=mb-1>
+<span class="cursor-pointer hover:text-primary-600 dark:hover:text-primary-400">
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><path fill="currentcolor" d="M310.6 361.4c12.5 12.5 12.5 32.75.0 45.25C304.4 412.9 296.2 416 288 416s-16.38-3.125-22.62-9.375L160 301.3 54.63 406.6C48.38 412.9 40.19 416 32 416S15.63 412.9 9.375 406.6c-12.5-12.5-12.5-32.75.0-45.25l105.4-105.4L9.375 150.6c-12.5-12.5-12.5-32.75.0-45.25s32.75-12.5 45.25.0L160 210.8l105.4-105.4c12.5-12.5 32.75-12.5 45.25.0s12.5 32.75.0 45.25l-105.4 105.4L310.6 361.4z"/></svg>
+</span>
+</span>
+</li>
+<li class=mb-1>
+<a class="decoration-primary-500 hover:underline hover:decoration-2 hover:underline-offset-2" href=/posts/ title=Posts>
+Blog
+</a>
+</li>
+<li class=mb-1>
+<a class="decoration-primary-500 hover:underline hover:decoration-2 hover:underline-offset-2" href=/tags/ title=Tags>
+Tags
+</a>
+</li>
+<li class=mb-1>
+<a class="decoration-primary-500 hover:underline hover:decoration-2 hover:underline-offset-2" href=https://github.com/yteraoka title>
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><path fill="currentcolor" d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6.0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6.0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3.0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1.0-6.2-.3-40.4-.3-61.4.0.0-70 15-84.7-29.8.0.0-11.4-29.1-27.8-36.6.0.0-22.9-15.7 1.6-15.4.0.0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5.0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9.0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4.0 33.7-.3 75.4-.3 83.6.0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6.0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9.0-6.2-1.4-2.3-4-3.3-5.6-2z"/></svg>
+</span>
+&nbsp;
+GitHub
+</a>
+</li>
+<li class=mb-1>
+<a class="decoration-primary-500 hover:underline hover:decoration-2 hover:underline-offset-2" href=https://twitter.com/yteraoka title>
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentcolor" d="M459.37 151.716c.325 4.548.325 9.097.325 13.645.0 138.72-105.583 298.558-298.558 298.558-59.452.0-114.68-17.219-161.137-47.106 8.447.974 16.568 1.299 25.34 1.299 49.055.0 94.213-16.568 130.274-44.832-46.132-.975-84.792-31.188-98.112-72.772 6.498.974 12.995 1.624 19.818 1.624 9.421.0 18.843-1.3 27.614-3.573-48.081-9.747-84.143-51.98-84.143-102.985v-1.299c13.969 7.797 30.214 12.67 47.431 13.319-28.264-18.843-46.781-51.005-46.781-87.391.0-19.492 5.197-37.36 14.294-52.954 51.655 63.675 129.3 105.258 216.365 109.807-1.624-7.797-2.599-15.918-2.599-24.04.0-57.828 46.782-104.934 104.934-104.934 30.213.0 57.502 12.67 76.67 33.137 23.715-4.548 46.456-13.32 66.599-25.34-7.798 24.366-24.366 44.833-46.132 57.827 21.117-2.273 41.584-8.122 60.426-16.243-14.292 20.791-32.161 39.308-52.628 54.253z"/></svg>
+</span>
+&nbsp;
+Twitter
+</a>
+</li>
+<li class=mb-1>
+<a class="decoration-primary-500 hover:underline hover:decoration-2 hover:underline-offset-2" href=https://qiita.com/yteraoka title>
+Qiita
+</a>
+</li>
+</ul>
+</div>
+</label>
+</div>
+</div>
+<div id=mobile-menu class="fixed inset-0 z-30 invisible w-screen h-screen m-auto overflow-auto transition-opacity opacity-0 cursor-default bg-neutral-100/50 backdrop-blur-sm dark:bg-neutral-900/50">
+<ul class="flex movedown flex-col w-full px-6 py-6 mx-auto overflow-visible list-none ltr:text-right rtl:text-left max-w-7xl sm:px-14 md:px-24 lg:px-32 sm:py-10 sm:pt-10">
+<li class=mb-1>
+<span class="cursor-pointer hover:text-primary-600 dark:hover:text-primary-400">
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><path fill="currentcolor" d="M310.6 361.4c12.5 12.5 12.5 32.75.0 45.25C304.4 412.9 296.2 416 288 416s-16.38-3.125-22.62-9.375L160 301.3 54.63 406.6C48.38 412.9 40.19 416 32 416S15.63 412.9 9.375 406.6c-12.5-12.5-12.5-32.75.0-45.25l105.4-105.4L9.375 150.6c-12.5-12.5-12.5-32.75.0-45.25s32.75-12.5 45.25.0L160 210.8l105.4-105.4c12.5-12.5 32.75-12.5 45.25.0s12.5 32.75.0 45.25l-105.4 105.4L310.6 361.4z"/></svg>
+</span>
+</span>
+</li>
+<li class=mb-1>
+<a class="decoration-primary-500 hover:underline hover:decoration-2 hover:underline-offset-2" href=/posts/ title=Posts>Blog</a>
+</li>
+<li class=mb-1>
+<a class="decoration-primary-500 hover:underline hover:decoration-2 hover:underline-offset-2" href=/tags/ title=Tags>Tags</a>
+</li>
+<li class=mb-1>
+<a class="decoration-primary-500 hover:underline hover:decoration-2 hover:underline-offset-2" href=https://github.com/yteraoka title>GitHub</a>
+</li>
+<li class=mb-1>
+<a class="decoration-primary-500 hover:underline hover:decoration-2 hover:underline-offset-2" href=https://twitter.com/yteraoka title>Twitter</a>
+</li>
+<li class=mb-1>
+<a class="decoration-primary-500 hover:underline hover:decoration-2 hover:underline-offset-2" href=https://qiita.com/yteraoka title>Qiita</a>
+</li>
+<li>
+<button id=search-button-mobile class="text-base hover:text-primary-600 dark:hover:text-primary-400">
+<span class="relative inline-block align-text-bottom icon"><svg aria-hidden="true" focusable="false" data-prefix="fas" data-icon="search" class="svg-inline--fa fa-search fa-w-16" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentcolor" d="M505 442.7 405.3 343c-4.5-4.5-10.6-7-17-7H372c27.6-35.3 44-79.7 44-128C416 93.1 322.9.0 208 0S0 93.1.0 208s93.1 208 208 208c48.3.0 92.7-16.4 128-44v16.3c0 6.4 2.5 12.5 7 17l99.7 99.7c9.4 9.4 24.6 9.4 33.9.0l28.3-28.3c9.4-9.4 9.4-24.6.1-34zM208 336c-70.7.0-128-57.2-128-128 0-70.7 57.2-128 128-128 70.7.0 128 57.2 128 128 0 70.7-57.2 128-128 128z"/></svg>
+</span>
+</button>
+</li>
+</ul>
+</div>
+<div class="relative flex flex-col grow">
+<main id=main-content class=grow>
+<article>
+<header class=max-w-prose>
+<ol class="text-sm text-neutral-500 dark:text-neutral-400 print:hidden">
+<li class="inline hidden">
+<a class="hover:underline decoration-neutral-300 dark:underline-neutral-600" href=/>1Q77</a><span class="px-1 text-primary-500">/</span>
+</li>
+<li class=inline>
+<a class="hover:underline decoration-neutral-300 dark:underline-neutral-600" href=/posts/>Posts</a><span class="px-1 text-primary-500">/</span>
+</li>
+<li class="inline hidden">
+<a class="hover:underline decoration-neutral-300 dark:underline-neutral-600" href=/2020/03/how-gke-node-send-logs/>GKE の node はどのようにログを転送しているのか</a><span class="px-1 text-primary-500">/</span>
+</li>
+</ol>
+<h1 class="mt-0 text-4xl font-extrabold text-neutral-900 dark:text-neutral">
+GKE の node はどのようにログを転送しているのか
+</h1>
+<div class="mt-8 mb-12 text-base text-neutral-500 dark:text-neutral-400 print:hidden">
+<div class="flex flex-row flex-wrap items-center">
+<time datetime="2020-03-13 15:40:41 +0000 UTC">2020年3月13日</time>
+</div>
+<div class="flex flex-row flex-wrap items-center">
+<span style=margin-top:.5rem class=mr-2 onclick='window.open("/tags/gcp/")'>
+<span class=flex>
+<span class="rounded-md border border-primary-400 px-1 py-[1px] text-xs font-normal text-primary-700 dark:border-primary-600 dark:text-primary-400">
+GCP
+</span>
+</span>
+</span>
+<span style=margin-top:.5rem class=mr-2 onclick='window.open("/tags/kubernetes/")'>
+<span class=flex>
+<span class="rounded-md border border-primary-400 px-1 py-[1px] text-xs font-normal text-primary-700 dark:border-primary-600 dark:text-primary-400">
+Kubernetes
+</span>
+</span>
+</span>
+<span style=margin-top:.5rem class=mr-2 onclick='window.open("/tags/fluentd/")'>
+<span class=flex>
+<span class="rounded-md border border-primary-400 px-1 py-[1px] text-xs font-normal text-primary-700 dark:border-primary-600 dark:text-primary-400">
+fluentd
+</span>
+</span>
+</span>
+</div>
+</div>
+</header>
+<section class="flex flex-col max-w-full mt-0 prose dark:prose-invert lg:flex-row">
+<div class="order-first px-0 lg:order-last lg:max-w-xs ltr:lg:pl-8 rtl:lg:pr-8">
+<div class="toc ltr:pl-5 rtl:pr-5 print:hidden lg:sticky lg:top-10">
+<details open class="mt-0 overflow-hidden rounded-lg ltr:-ml-5 ltr:pl-5 rtl:-mr-5 rtl:pr-5 hidden lg:block">
+<summary class="block py-1 text-lg font-semibold cursor-pointer bg-neutral-100 text-neutral-800 ltr:-ml-5 ltr:pl-5 rtl:-mr-5 rtl:pr-5 dark:bg-neutral-700 dark:text-neutral-100 lg:hidden">
+目次
+</summary>
+<div class="py-2 border-dotted border-neutral-300 ltr:-ml-5 ltr:border-l ltr:pl-5 rtl:-mr-5 rtl:border-r rtl:pr-5 dark:border-neutral-600">
+<nav id=TableOfContents>
+<ul>
+<li><a href=#gke-クラスタの作成>GKE クラスタの作成</a></li>
+<li><a href=#kube-system-内の-pod-などを確認>kube-system 内の Pod などを確認</a></li>
+<li><a href=#fluentd-gcp-v311-の定義を確認>fluentd-gcp-v3.1.1 の定義を確認</a></li>
+<li><a href=#fluentd-の設定ファイルを読み解く>fluentd の設定ファイルを読み解く</a>
+<ul>
+<li><a href=#etcgoogle-fluentdgoogle-fluentdconf>/etc/google-fluentd/google-fluentd.conf</a></li>
+<li><a href=#etcgoogle-fluentdconfigdcontainersinputconf>/etc/google-fluentd/config.d/containers.input.conf</a></li>
+<li><a href=#etcgoogle-fluentdconfigdmonitoringconf>/etc/google-fluentd/config.d/monitoring.conf</a></li>
+<li><a href=#etcgoogle-fluentdconfigdoutputconf>/etc/google-fluentd/config.d/output.conf</a></li>
+<li><a href=#etcgoogle-fluentdconfigdsysteminputconf>/etc/google-fluentd/config.d/system.input.conf</a></li>
+</ul>
+</li>
+<li><a href=#まとめ>まとめ</a></li>
+</ul>
+</nav>
+</div>
+</details>
+<details class="mt-0 overflow-hidden rounded-lg ltr:-ml-5 ltr:pl-5 rtl:-mr-5 rtl:pr-5 lg:hidden">
+<summary class="py-1 text-lg font-semibold cursor-pointer bg-neutral-100 text-neutral-800 ltr:-ml-5 ltr:pl-5 rtl:-mr-5 rtl:pr-5 dark:bg-neutral-700 dark:text-neutral-100 lg:hidden">
+目次
+</summary>
+<div class="py-2 border-dotted border-neutral-300 ltr:-ml-5 ltr:border-l ltr:pl-5 rtl:-mr-5 rtl:border-r rtl:pr-5 dark:border-neutral-600">
+<nav id=TableOfContents>
+<ul>
+<li><a href=#gke-クラスタの作成>GKE クラスタの作成</a></li>
+<li><a href=#kube-system-内の-pod-などを確認>kube-system 内の Pod などを確認</a></li>
+<li><a href=#fluentd-gcp-v311-の定義を確認>fluentd-gcp-v3.1.1 の定義を確認</a></li>
+<li><a href=#fluentd-の設定ファイルを読み解く>fluentd の設定ファイルを読み解く</a>
+<ul>
+<li><a href=#etcgoogle-fluentdgoogle-fluentdconf>/etc/google-fluentd/google-fluentd.conf</a></li>
+<li><a href=#etcgoogle-fluentdconfigdcontainersinputconf>/etc/google-fluentd/config.d/containers.input.conf</a></li>
+<li><a href=#etcgoogle-fluentdconfigdmonitoringconf>/etc/google-fluentd/config.d/monitoring.conf</a></li>
+<li><a href=#etcgoogle-fluentdconfigdoutputconf>/etc/google-fluentd/config.d/output.conf</a></li>
+<li><a href=#etcgoogle-fluentdconfigdsysteminputconf>/etc/google-fluentd/config.d/system.input.conf</a></li>
+</ul>
+</li>
+<li><a href=#まとめ>まとめ</a></li>
+</ul>
+</nav>
+</div>
+</details>
+</div>
+</div>
+<div class="min-w-0 min-h-0 max-w-prose">
+<p>GKE は何もしなくてもログを Cloud Logging (旧 Stackdriver Logging) に送ってくれて便利なんだけどどうやって送ってるのかな？と思って調べたメモ。なかなか興味深かった。</p>
+<p>メトリクスの方も調べてみたがそれはまた別途、と思ったけどここでも登場した。</p>
+<h2 id=gke-クラスタの作成 class="relative group">GKE クラスタの作成 <span class="absolute top-0 w-6 transition-opacity opacity-0 ltr:-left-6 rtl:-right-6 not-prose group-hover:opacity-100"><a class="group-hover:text-primary-300 dark:group-hover:text-neutral-700" style=text-decoration-line:none!important href=#gke-%e3%82%af%e3%83%a9%e3%82%b9%e3%82%bf%e3%81%ae%e4%bd%9c%e6%88%90 aria-label=アンカー>#</a></span></h2>
+<p>クラスタの作成。画面ポチポチして取得した gcloud コマンドは省略可能なものも沢山ついてて長い。gcloud の config に compute/region, compute/zone が設定されている前提。でも設定されてたら指定の必要もないのか？</p>
+<pre tabindex=0><code>$ PROJECT\_ID=$(gcloud config get-value project)
+$ REGION=$(gcloud config get-value compute/region)
+$ ZONE=$(gcloud config get-value compute/zone)
+$ CLUSTER\_NAME=cluster-1
+$ gcloud beta container --project &quot;${PROJECT\_ID}&quot; clusters create &quot;${CLUSTER\_NAME}&quot; \\
+    --zone &quot;${ZONE}&quot; \\
+    --no-enable-basic-auth \\
+    --cluster-version &quot;1.14.10-gke.17&quot; \\
+    --machine-type &quot;n1-standard-1&quot; \\
+    --image-type &quot;COS&quot; \\
+    --disk-type &quot;pd-standard&quot; \\
+    --disk-size &quot;100&quot; \\
+    --metadata disable-legacy-endpoints=true \\
+    --scopes \\
+&quot;https://www.googleapis.com/auth/devstorage.read\_only&quot;,\\
+&quot;https://www.googleapis.com/auth/logging.write&quot;,\\
+&quot;https://www.googleapis.com/auth/monitoring&quot;,\\
+&quot;https://www.googleapis.com/auth/servicecontrol&quot;,\\
+&quot;https://www.googleapis.com/auth/service.management.readonly&quot;,\\
+&quot;https://www.googleapis.com/auth/trace.append&quot; \\
+    --preemptible \\
+    --num-nodes &quot;1&quot; \\
+    --enable-stackdriver-kubernetes \\
+    --enable-ip-alias \\
+    --network &quot;projects/${PROJECT\_ID}/global/networks/default&quot; \\
+    --subnetwork &quot;projects/${PROJECT\_ID}/regions/${REGION}/subnetworks/default&quot; \\
+    --default-max-pods-per-node &quot;110&quot; \\
+    --enable-autoscaling --min-nodes &quot;0&quot; --max-nodes &quot;1&quot; \\
+    --no-enable-master-authorized-networks \\
+    --addons HorizontalPodAutoscaling,HttpLoadBalancing \\
+    --enable-autoupgrade \\
+    --enable-autorepair \\
+    --max-surge-upgrade 1 \\
+    --max-unavailable-upgrade 0
+
+</code></pre><h2 id=kube-system-内の-pod-などを確認 class="relative group">kube-system 内の Pod などを確認 <span class="absolute top-0 w-6 transition-opacity opacity-0 ltr:-left-6 rtl:-right-6 not-prose group-hover:opacity-100"><a class="group-hover:text-primary-300 dark:group-hover:text-neutral-700" style=text-decoration-line:none!important href=#kube-system-%e5%86%85%e3%81%ae-pod-%e3%81%aa%e3%81%a9%e3%82%92%e7%a2%ba%e8%aa%8d aria-label=アンカー>#</a></span></h2>
+<p>kube-system 内に作られているものを確認。この中の <strong>daemonset.apps/fluentd-gcp-v3.1.1</strong> がログを送っている。</p>
+<pre tabindex=0><code>$ kubectl get all -n kube-system
+NAME                                                            READY   STATUS    RESTARTS   AGE
+pod/event-exporter-v0.2.5-7df89f4b8f-kzzz5                      2/2     Running   0          4m5s
+pod/fluentd-gcp-scaler-54ccb89d5-6c6cf                          1/1     Running   0          4m1s
+pod/fluentd-gcp-v3.1.1-w8rhw                                    2/2     Running   0          3m38s
+pod/heapster-gke-54fdfc9bd4-gs9cf                               3/3     Running   0          3m6s
+pod/kube-dns-5877696fb4-5b2dp                                   4/4     Running   0          4m6s
+pod/kube-dns-autoscaler-8687c64fc-gj9rg                         1/1     Running   0          4m1s
+pod/kube-proxy-gke-cluster-1-default-pool-fe6f5f88-br21         1/1     Running   0          3m57s
+pod/l7-default-backend-8f479dd9-fpcch                           1/1     Running   0          4m6s
+pod/metrics-server-v0.3.1-5c6fbf777-rs45z                       2/2     Running   0          3m43s
+pod/prometheus-to-sd-84v7h                                      2/2     Running   0          3m57s
+pod/stackdriver-metadata-agent-cluster-level-69454f8dd5-p7w7b   1/1     Running   0          4m5s
+
+NAME                           TYPE        CLUSTER-IP   EXTERNAL-IP   PORT(S)         AGE
+service/default-http-backend   NodePort    10.0.5.107   &lt;none&gt;        80:30406/TCP    4m6s
+service/heapster               ClusterIP   10.0.0.114   &lt;none&gt;        80/TCP          4m5s
+service/kube-dns               ClusterIP   10.0.0.10    &lt;none&gt;        53/UDP,53/TCP   4m7s
+service/metrics-server         ClusterIP   10.0.5.80    &lt;none&gt;        443/TCP         4m3s
+
+NAME                                      DESIRED   CURRENT   READY   UP-TO-DATE   AVAILABLE   NODE SELECTOR                                                              AGE
+daemonset.apps/fluentd-gcp-v3.1.1         1         1         1       1            1           beta.kubernetes.io/fluentd-ds-ready=true,beta.kubernetes.io/os=linux       4m6s
+daemonset.apps/metadata-proxy-v0.1        0         0         0       0            0           beta.kubernetes.io/metadata-proxy-ready=true,beta.kubernetes.io/os=linux   4m5s
+daemonset.apps/nvidia-gpu-device-plugin   0         0         0       0            0           &lt;none&gt;                                                                     4m1s
+daemonset.apps/prometheus-to-sd           1         1         1       1            1           beta.kubernetes.io/os=linux                                                4m5s
+
+NAME                                                       READY   UP-TO-DATE   AVAILABLE   AGE
+deployment.apps/event-exporter-v0.2.5                      1/1     1            1           4m5s
+deployment.apps/fluentd-gcp-scaler                         1/1     1            1           4m1s
+deployment.apps/heapster-gke                               1/1     1            1           4m6s
+deployment.apps/kube-dns                                   1/1     1            1           4m7s
+deployment.apps/kube-dns-autoscaler                        1/1     1            1           4m6s
+deployment.apps/l7-default-backend                         1/1     1            1           4m6s
+deployment.apps/metrics-server-v0.3.1                      1/1     1            1           4m4s
+deployment.apps/stackdriver-metadata-agent-cluster-level   1/1     1            1           4m5s
+
+NAME                                                                  DESIRED   CURRENT   READY   AGE
+replicaset.apps/event-exporter-v0.2.5-7df89f4b8f                      1         1         1       4m5s
+replicaset.apps/fluentd-gcp-scaler-54ccb89d5                          1         1         1       4m1s
+replicaset.apps/heapster-gke-54fdfc9bd4                               1         1         1       3m6s
+replicaset.apps/heapster-gke-7fbb79848                                0         0         0       4m6s
+replicaset.apps/kube-dns-5877696fb4                                   1         1         1       4m7s
+replicaset.apps/kube-dns-autoscaler-8687c64fc                         1         1         1       4m6s
+replicaset.apps/l7-default-backend-8f479dd9                           1         1         1       4m6s
+replicaset.apps/metrics-server-v0.3.1-5c6fbf777                       1         1         1       3m43s
+replicaset.apps/metrics-server-v0.3.1-8559697b9c                      0         0         0       4m4s
+replicaset.apps/stackdriver-metadata-agent-cluster-level-69454f8dd5   1         1         1       4m5s
+
+</code></pre><h2 id=fluentd-gcp-v311-の定義を確認 class="relative group">fluentd-gcp-v3.1.1 の定義を確認 <span class="absolute top-0 w-6 transition-opacity opacity-0 ltr:-left-6 rtl:-right-6 not-prose group-hover:opacity-100"><a class="group-hover:text-primary-300 dark:group-hover:text-neutral-700" style=text-decoration-line:none!important href=#fluentd-gcp-v311-%e3%81%ae%e5%ae%9a%e7%be%a9%e3%82%92%e7%a2%ba%e8%aa%8d aria-label=アンカー>#</a></span></h2>
+<p>Pod 内には fluentd-gcp と prometheus-to-sd-exporter という2つのコンテナが含まれています。後者は fluentd の prometheus plugin が提供する endpoint を polling して定期的にメトリクスを Cloud Monitoring (旧 Stackdriver Monitoring) に送信しています。似たようなやつが DamonSet にもいて、各 node で kubelet, kube-proxy の Prometheus 用メトリクスを Cloud Monitoring に送っています。</p>
+<pre tabindex=0><code>$ kubectl get -n kube-system daemonset.apps/fluentd-gcp-v3.1.1 -o yaml
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  annotations:
+    (省略)
+  generation: 2
+  labels:
+    addonmanager.kubernetes.io/mode: Reconcile
+    k8s-app: fluentd-gcp
+    kubernetes.io/cluster-service: &quot;true&quot;
+    version: v3.1.1
+  name: fluentd-gcp-v3.1.1
+  namespace: kube-system
+  resourceVersion: &quot;786&quot;
+  selfLink: /apis/apps/v1/namespaces/kube-system/daemonsets/fluentd-gcp-v3.1.1
+  uid: 3eeada2a-6530-11ea-a16f-42010a920085
+spec:
+  revisionHistoryLimit: 10
+  selector:
+    matchLabels:
+      k8s-app: fluentd-gcp
+      kubernetes.io/cluster-service: &quot;true&quot;
+      version: v3.1.1
+  template:
+    metadata:
+      annotations:
+        scheduler.alpha.kubernetes.io/critical-pod: &quot;&quot;
+      creationTimestamp: null
+      labels:
+        k8s-app: fluentd-gcp
+        kubernetes.io/cluster-service: &quot;true&quot;
+        version: v3.1.1
+    spec:
+      containers:
+      - env:
+        - name: NODE\_NAME
+          valueFrom:
+            fieldRef:
+              apiVersion: v1
+              fieldPath: spec.nodeName
+        - name: K8S\_NODE\_NAME
+          valueFrom:
+            fieldRef:
+              apiVersion: v1
+              fieldPath: spec.nodeName
+        - name: STACKDRIVER\_METADATA\_AGENT\_URL
+          value: http://$(NODE\_NAME):8799
+        image: gcr.io/stackdriver-agents/stackdriver-logging-agent:1.6.17-16060
+        imagePullPolicy: IfNotPresent
+        livenessProbe:
+          exec:
+            command:
+            - /bin/sh
+            - -c
+            - |2
+
+              LIVENESS\_THRESHOLD\_SECONDS=${LIVENESS\_THRESHOLD\_SECONDS:-300}; STUCK\_THRESHOLD\_SECONDS=${STUCK\_THRESHOLD\_SECONDS:-900}; if \[ ! -e /var/run/google-fluentd/buffers \]; then
+                exit 1;
+              fi; touch -d &quot;${STUCK\_THRESHOLD\_SECONDS} seconds ago&quot; /tmp/marker-stuck; if \[ -z &quot;$(find /var/run/google-fluentd/buffers -type d -newer /tmp/marker-stuck -print -quit)&quot; \]; then
+                rm -rf /var/run/google-fluentd/buffers;
+                exit 1;
+              fi; touch -d &quot;${LIVENESS\_THRESHOLD\_SECONDS} seconds ago&quot; /tmp/marker-liveness; if \[ -z &quot;$(find /var/run/google-fluentd/buffers -type d -newer /tmp/marker-liveness -print -quit)&quot; \]; then
+                exit 1;
+              fi;
+          failureThreshold: 3
+          initialDelaySeconds: 600
+          periodSeconds: 60
+          successThreshold: 1
+          timeoutSeconds: 1
+        name: fluentd-gcp
+        resources:
+          limits:
+            cpu: &quot;1&quot;
+            memory: 500Mi
+          requests:
+            cpu: 100m
+            memory: 200Mi
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+        volumeMounts:
+        - mountPath: /var/run/google-fluentd
+          name: varrun
+        - mountPath: /var/log
+          name: varlog
+        - mountPath: /var/lib/docker/containers
+          name: varlibdockercontainers
+          readOnly: true
+        - mountPath: /etc/google-fluentd/config.d
+          name: config-volume
+      - command:
+        - /monitor
+        - --stackdriver-prefix=container.googleapis.com/internal/addons
+        - --api-override=https://monitoring.googleapis.com/
+        - --source=fluentd:http://localhost:24231?whitelisted=stackdriver\_successful\_requests\_count,stackdriver\_failed\_requests\_count,stackdriver\_ingested\_entries\_count,stackdriver\_dropped\_entries\_count
+        - --pod-id=$(POD\_NAME)
+        - --namespace-id=$(POD\_NAMESPACE)
+        env:
+        - name: POD\_NAME
+          valueFrom:
+            fieldRef:
+              apiVersion: v1
+              fieldPath: metadata.name
+        - name: POD\_NAMESPACE
+          valueFrom:
+            fieldRef:
+              apiVersion: v1
+              fieldPath: metadata.namespace
+        image: k8s.gcr.io/prometheus-to-sd:v0.5.0
+        imagePullPolicy: IfNotPresent
+        name: prometheus-to-sd-exporter
+        resources: {}
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+      dnsPolicy: Default
+      hostNetwork: true
+      nodeSelector:
+        beta.kubernetes.io/fluentd-ds-ready: &quot;true&quot;
+        beta.kubernetes.io/os: linux
+      priorityClassName: system-node-critical
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext: {}
+      serviceAccount: fluentd-gcp
+      serviceAccountName: fluentd-gcp
+      terminationGracePeriodSeconds: 30
+      tolerations:
+      - effect: NoExecute
+        operator: Exists
+      - effect: NoSchedule
+        operator: Exists
+      volumes:
+      - hostPath:
+          path: /var/run/google-fluentd
+          type: &quot;&quot;
+        name: varrun
+      - hostPath:
+          path: /var/log
+          type: &quot;&quot;
+        name: varlog
+      - hostPath:
+          path: /var/lib/docker/containers
+          type: &quot;&quot;
+        name: varlibdockercontainers
+      - configMap:
+          defaultMode: 420
+          name: fluentd-gcp-config-v1.2.6
+        name: config-volume
+  updateStrategy:
+    rollingUpdate:
+      maxUnavailable: 1
+    type: RollingUpdate
+status:
+  (省略)
+
+</code></pre><h2 id=fluentd-の設定ファイルを読み解く class="relative group">fluentd の設定ファイルを読み解く <span class="absolute top-0 w-6 transition-opacity opacity-0 ltr:-left-6 rtl:-right-6 not-prose group-hover:opacity-100"><a class="group-hover:text-primary-300 dark:group-hover:text-neutral-700" style=text-decoration-line:none!important href=#fluentd-%e3%81%ae%e8%a8%ad%e5%ae%9a%e3%83%95%e3%82%a1%e3%82%a4%e3%83%ab%e3%82%92%e8%aa%ad%e3%81%bf%e8%a7%a3%e3%81%8f aria-label=アンカー>#</a></span></h2>
+<p>fluentd の config file を確認します。<strong>config.d</strong> サブディレクトリ配下のファイルは <strong>fluentd-gcp-config-v1.2.6</strong> という ConfigMap に入っています。</p>
+<pre tabindex=0><code>$ kubectl -n kube-system exec -it -c fluentd-gcp \\
+  $(kubectl get -n kube-system pods -l k8s-app=fluentd-gcp -o jsonpath='{.items\[0\].metadata.name}') \\
+  -- ls -l /etc/google-fluentd/
+total 12
+drwxrwxrwx 3 root root 4096 Mar 13 13:41 config.d
+-rw-r--r-- 1 root root 2195 Sep 24 21:11 google-fluentd.conf
+drwxr-xr-x 2 root root 4096 Sep 24 21:11 plugin
+
+$ kubectl -n kube-system exec -it -c fluentd-gcp \\
+  $(kubectl get -n kube-system pods -l k8s-app=fluentd-gcp -o jsonpath='{.items\[0\].metadata.name}') \\
+  -- ls -l /etc/google-fluentd/config.d/
+total 0
+lrwxrwxrwx 1 root root 28 Mar 13 13:41 containers.input.conf -&gt; ..data/containers.input.conf
+lrwxrwxrwx 1 root root 22 Mar 13 13:41 monitoring.conf -&gt; ..data/monitoring.conf
+lrwxrwxrwx 1 root root 18 Mar 13 13:41 output.conf -&gt; ..data/output.conf
+lrwxrwxrwx 1 root root 24 Mar 13 13:41 system.input.conf -&gt; ..data/system.input.conf
+
+</code></pre><h3 id=etcgoogle-fluentdgoogle-fluentdconf class="relative group">/etc/google-fluentd/google-fluentd.conf <span class="absolute top-0 w-6 transition-opacity opacity-0 ltr:-left-6 rtl:-right-6 not-prose group-hover:opacity-100"><a class="group-hover:text-primary-300 dark:group-hover:text-neutral-700" style=text-decoration-line:none!important href=#etcgoogle-fluentdgoogle-fluentdconf aria-label=アンカー>#</a></span></h3>
+<p>まずはメインのファイルです。この中に <code>@include config.d/*.conf</code> とあり、<strong>config.d</strong> 配下のファイルが読み込まれています。</p>
+<p><code>@type prometheus</code>, <code>@type prometheus_monitor</code> というのがありますが。「<a href=https://qiita.com/kazegusuri/items/d526cbbf9807d0daec75>fluent-plugin-prometheusをリリースしました - Qiita</a>」ですね。先に紹介した <strong>prometheus-to-sd-exporter</strong> コンテナはこの plugin が提供する endpoint にアクセスしています。</p>
+<p><code>@type add_insert_ids</code> は送った先で重複してログを保存（もしくは集計）しないように各行にユニークなIDを振っているようです。そんな工夫がされていたんですね。retry の影響でログが重複してるよーって事にならないのは嬉しい。(<a href=https://github.com/GoogleCloudPlatform/fluent-plugin-google-cloud/blob/master/lib/fluent/plugin/filter_add_insert_ids.rb>filter_add_insert_ids.rb</a>)</p>
+<p>次の <code>@type google_cloud</code> も Google の plugin で BufferedOutput で Cloud Logging に送る部分を担当しています。(<a href=https://github.com/GoogleCloudPlatform/fluent-plugin-google-cloud/blob/master/lib/fluent/plugin/out_google_cloud.rb>out_google_cloud.rb</a>)ファイルに buffering して複数スレッドで gRPC で送るみたいですね。</p>
+<pre tabindex=0><code>\# Master configuration file for google-fluentd
+
+# Include any configuration files in the config.d directory.
+#
+# An example &quot;catch-all&quot; configuration can be found at
+# https://github.com/GoogleCloudPlatform/fluentd-catch-all-config
+@include config.d/\*.conf
+
+# Prometheus monitoring.
+&lt;source&gt;
+  @type prometheus
+  port 24231
+&lt;/source&gt;
+&lt;source&gt;
+  @type prometheus\_monitor
+&lt;/source&gt;
+
+# Do not collect fluentd's own logs to avoid infinite loops.
+&lt;match fluent.\*\*&gt;
+  @type null
+&lt;/match&gt;
+
+# Add a unique insertId to each log entry that doesn't already have it.
+# This helps guarantee the order and prevent log duplication.
+&lt;filter \*\*&gt;
+  @type add\_insert\_ids
+&lt;/filter&gt;
+
+# Configure all sources to output to Google Cloud Logging
+&lt;match \*\*&gt;
+  @type google\_cloud
+  buffer\_type file
+  buffer\_path /var/log/google-fluentd/buffers
+  # Set the chunk limit conservatively to avoid exceeding the recommended
+  # chunk size of 5MB per write request.
+  buffer\_chunk\_limit 512KB
+  # Flush logs every 5 seconds, even if the buffer is not full.
+  flush\_interval 5s
+  # Enforce some limit on the number of retries.
+  disable\_retry\_limit false
+  # After 3 retries, a given chunk will be discarded.
+  retry\_limit 3
+  # Wait 10 seconds before the first retry. The wait interval will be doubled on
+  # each following retry (20s, 40s...) until it hits the retry limit.
+  retry\_wait 10
+  # Never wait longer than 5 minutes between retries. If the wait interval
+  # reaches this limit, the exponentiation stops.
+  # Given the default config, this limit should never be reached, but if
+  # retry\_limit and retry\_wait are customized, this limit might take effect.
+  max\_retry\_wait 300
+  # Use multiple threads for processing.
+  num\_threads 8
+  detect\_json true
+  # Enable metadata agent lookups.
+  enable\_metadata\_agent true
+  metadata\_agent\_url &quot;http://local-metadata-agent.stackdriver.com:8000&quot;
+  # Use the gRPC transport.
+  use\_grpc true
+  # If a request is a mix of valid log entries and invalid ones, ingest the
+  # valid ones and drop the invalid ones instead of dropping everything.
+  partial\_success true
+  # Enable monitoring via Prometheus integration.
+  enable\_monitoring true
+  monitoring\_type prometheus
+&lt;/match&gt;
+
+</code></pre><h3 id=etcgoogle-fluentdconfigdcontainersinputconf class="relative group">/etc/google-fluentd/config.d/containers.input.conf <span class="absolute top-0 w-6 transition-opacity opacity-0 ltr:-left-6 rtl:-right-6 not-prose group-hover:opacity-100"><a class="group-hover:text-primary-300 dark:group-hover:text-neutral-700" style=text-decoration-line:none!important href=#etcgoogle-fluentdconfigdcontainersinputconf aria-label=アンカー>#</a></span></h3>
+<p>次は containers.input.conf です。名前の通り各コンテナのログを <strong>/var/log/containers/*.log</strong> をtail で読み出してます。そう、docker の fluentd log driver を使うわけではないんですね。(docker と containerd の関係とか良くわからん)</p>
+<p>その後は kubernetes の metadata を付加して行きます。plugin 書いてたりするのに record_modifier で ruby で処理したりもするんですね。</p>
+<p>最後の <code>@type detect_exceptions</code> は複数行に渡る stack trace を発見すると1つのメッセージにまとめてくれる便利 plugin のようです。(<a href=https://github.com/GoogleCloudPlatform/fluent-plugin-detect-exceptions>GoogleCloudPlatform/fluent-plugin-detect-exceptions</a>)</p>
+<pre tabindex=0><code>\# This configuration file for Fluentd is used
+# to watch changes to Docker log files that live in the
+# directory /var/lib/docker/containers/ and are symbolically
+# linked to from the /var/log/containers directory using names that capture the
+# pod name and container name. These logs are then submitted to
+# Google Cloud Logging which assumes the installation of the cloud-logging plug-in.
+#
+# Example
+# =======
+# A line in the Docker log file might look like this JSON:
+#
+# {&quot;log&quot;:&quot;2014/09/25 21:15:03 Got request with path wombat\\\\n&quot;,
+#  &quot;stream&quot;:&quot;stderr&quot;,
+#   &quot;time&quot;:&quot;2014-09-25T21:15:03.499185026Z&quot;}
+#
+# The original tag is derived from the log file's location.
+# For example a Docker container's logs might be in the directory:
+#  /var/lib/docker/containers/997599971ee6366d4a5920d25b79286ad45ff37a74494f262e3bc98d909d0a7b
+# and in the file:
+#  997599971ee6366d4a5920d25b79286ad45ff37a74494f262e3bc98d909d0a7b-json.log
+# where 997599971ee6... is the Docker ID of the running container.
+# The Kubernetes kubelet makes a symbolic link to this file on the host
+# machine in the /var/log/containers directory which includes the pod name,
+# the namespace name and the Kubernetes container name:
+#    synthetic-logger-0.25lps-pod\_default\_synth-lgr-997599971ee6366d4a5920d25b79286ad45ff37a74494f262e3bc98d909d0a7b.log
+#    -&gt;
+#    /var/lib/docker/containers/997599971ee6366d4a5920d25b79286ad45ff37a74494f262e3bc98d909d0a7b/997599971ee6366d4a5920d25b79286ad45ff37a74494f262e3bc98d909d0a7b-json.log
+# The /var/log directory on the host is mapped to the /var/log directory in the container
+# running this instance of Fluentd and we end up collecting the file:
+#   /var/log/containers/synthetic-logger-0.25lps-pod\_default\_synth-lgr-997599971ee6366d4a5920d25b79286ad45ff37a74494f262e3bc98d909d0a7b.log
+# This results in the tag:
+#  var.log.containers.synthetic-logger-0.25lps-pod\_default\_synth-lgr-997599971ee6366d4a5920d25b79286ad45ff37a74494f262e3bc98d909d0a7b.log
+# where 'synthetic-logger-0.25lps-pod' is the pod name, 'default' is the
+# namespace name, 'synth-lgr' is the container name and '997599971ee6..' is
+# the container ID.
+# The record reformer is used to extract pod\_name, namespace\_name and
+# container\_name from the tag and set them in a local\_resource\_id in the
+# format of:
+# 'k8s\_container.&lt;NAMESPACE\_NAME&gt;.&lt;POD\_NAME&gt;.&lt;CONTAINER\_NAME&gt;'.
+# The reformer also changes the tags to 'stderr' or 'stdout' based on the
+# value of 'stream'.
+# local\_resource\_id is later used by google\_cloud plugin to determine the
+# monitored resource to ingest logs against.
+
+# Json Log Example:
+# {&quot;log&quot;:&quot;\[info:2016-02-16T16:04:05.930-08:00\] Some log text here\\n&quot;,&quot;stream&quot;:&quot;stdout&quot;,&quot;time&quot;:&quot;2016-02-17T00:04:05.931087621Z&quot;}
+# CRI Log Example:
+# 2016-02-17T00:04:05.931087621Z stdout F \[info:2016-02-16T16:04:05.930-08:00\] Some log text here
+&lt;source&gt;
+  @type tail
+  
+  path /var/log/containers/\*.log
+  
+  
+  pos\_file /var/run/google-fluentd/pos-files/gcp-containers.pos
+  
+  # Tags at this point are in the format of:
+  # reform.var.log.containers.&lt;POD\_NAME&gt;\_&lt;NAMESPACE\_NAME&gt;\_&lt;CONTAINER\_NAME&gt;-&lt;CONTAINER\_ID&gt;.log
+  tag reform.\*
+  read\_from\_head true
+  &lt;parse&gt;
+    @type multi\_format
+    &lt;pattern&gt;
+      format json
+      time\_key time
+      time\_format %Y-%m-%dT%H:%M:%S.%NZ
+    &lt;/pattern&gt;
+    &lt;pattern&gt;
+      format /^(?&lt;time&gt;.+) (?&lt;stream&gt;stdout|stderr) \[^ \]\* (?&lt;log&gt;.\*)$/
+      time\_format %Y-%m-%dT%H:%M:%S.%N%:z
+    &lt;/pattern&gt;
+  &lt;/parse&gt;
+&lt;/source&gt;
+
+&lt;filter reform.\*\*&gt;
+  @type parser
+  format /^(?&lt;severity&gt;\\w)(?&lt;time&gt;\\d{4} \[^\\s\]\*)\\s+(?&lt;pid&gt;\\d+)\\s+(?&lt;source&gt;\[^ \\\]\]+)\\\] (?&lt;log&gt;.\*)/
+  reserve\_data true
+  suppress\_parse\_error\_log true
+  emit\_invalid\_record\_to\_error false
+  key\_name log
+&lt;/filter&gt;
+
+
+&lt;filter reform.\*\*&gt;
+  # This plugin uses environment variables KUBERNETES\_SERVICE\_HOST and
+  # KUBERNETES\_SERVICE\_PORT to talk to the API server. These environment
+  # variables are added by kubelet automatically.
+  @type kubernetes\_metadata
+  # Interval in seconds to dump cache stats locally in the Fluentd log.
+  stats\_interval 300
+  # TTL in seconds of each cached element.
+  cache\_ttl 30
+  
+  # Skip fetching unused metadata.
+  skip\_container\_metadata true
+  skip\_master\_url true
+  skip\_namespace\_metadata true
+  
+&lt;/filter&gt;
+
+&lt;filter reform.\*\*&gt;
+  # We have to use record\_modifier because only this plugin supports complex
+  # logic to modify record the way we need.
+  @type record\_modifier
+  enable\_ruby true
+  &lt;record&gt;
+    # Extract &quot;kubernetes&quot;-&gt;&quot;labels&quot; and set them as
+    # &quot;logging.googleapis.com/labels&quot;. Prefix these labels with
+    # &quot;k8s-pod&quot; to distinguish with other labels and avoid
+    # label name collision with other types of labels.
+    \_dummy\_ ${if record.is\_a?(Hash) &amp;&amp; record.has\_key?('kubernetes') &amp;&amp; record\['kubernetes'\].has\_key?('labels') &amp;&amp; record\['kubernetes'\]\['labels'\].is\_a?(Hash); then; record\[&quot;logging.googleapis.com/labels&quot;\] = record\['kubernetes'\]\['labels'\].map{ |k, v| \[&quot;k8s-pod/#{k}&quot;, v\]}.to\_h; end; nil}
+  &lt;/record&gt;
+  # Delete this dummy field and the rest of &quot;kubernetes&quot; and &quot;docker&quot;.
+  remove\_keys \_dummy\_,kubernetes,docker
+&lt;/filter&gt;
+
+
+&lt;match reform.\*\*&gt;
+  @type record\_reformer
+  enable\_ruby true
+  &lt;record&gt;
+    # Extract local\_resource\_id from tag for 'k8s\_container' monitored
+    # resource. The format is:
+    # 'k8s\_container.&lt;namespace\_name&gt;.&lt;pod\_name&gt;.&lt;container\_name&gt;'.
+    &quot;logging.googleapis.com/local\_resource\_id&quot; ${&quot;k8s\_container.#{tag\_suffix\[4\].rpartition('.')\[0\].split('\_')\[1\]}.#{tag\_suffix\[4\].rpartition('.')\[0\].split('\_')\[0\]}.#{tag\_suffix\[4\].rpartition('.')\[0\].split('\_')\[2\].rpartition('-')\[0\]}&quot;}
+    # Rename the field 'log' to a more generic field 'message'. This way the
+    # fluent-plugin-google-cloud knows to flatten the field as textPayload
+    # instead of jsonPayload after extracting 'time', 'severity' and
+    # 'stream' from the record.
+    message ${record\['log'\]}
+    # If 'severity' is not set, assume stderr is ERROR and stdout is INFO.
+    severity ${record\['severity'\] || if record\['stream'\] == 'stderr' then 'ERROR' else 'INFO' end}
+  &lt;/record&gt;
+  tag ${if record\['stream'\] == 'stderr' then 'raw.stderr' else 'raw.stdout' end}
+  remove\_keys stream,log
+&lt;/match&gt;
+
+# Detect exceptions in the log output and forward them as one log entry.
+&lt;match {raw.stderr,raw.stdout}&gt;
+  @type detect\_exceptions
+
+  remove\_tag\_prefix raw
+  message message
+  stream &quot;logging.googleapis.com/local\_resource\_id&quot;
+  multiline\_flush\_interval 5
+  max\_bytes 500000
+  max\_lines 1000
+&lt;/match&gt;
+
+</code></pre><h3 id=etcgoogle-fluentdconfigdmonitoringconf class="relative group">/etc/google-fluentd/config.d/monitoring.conf <span class="absolute top-0 w-6 transition-opacity opacity-0 ltr:-left-6 rtl:-right-6 not-prose group-hover:opacity-100"><a class="group-hover:text-primary-300 dark:group-hover:text-neutral-700" style=text-decoration-line:none!important href=#etcgoogle-fluentdconfigdmonitoringconf aria-label=アンカー>#</a></span></h3>
+<p>次は monitoring.onf です。これは短い。</p>
+<p><code>@type exec</code> で <code>date +%s</code> コマンドを実行し、unix timestamp を process_start_timestamp という key に入れます。</p>
+<p>その後、型を Integer に変換して終わり。続きは次のファイルです。</p>
+<pre tabindex=0><code>\# This source is used to acquire approximate process start timestamp,
+# which purpose is explained before the corresponding output plugin.
+&lt;source&gt;
+  @type exec
+  command /bin/sh -c 'date +%s'
+  tag process\_start
+  time\_format %Y-%m-%d %H:%M:%S
+  keys process\_start\_timestamp
+&lt;/source&gt;
+
+# This filter is used to convert process start timestamp to integer
+# value for correct ingestion in the prometheus output plugin.
+&lt;filter process\_start&gt;
+  @type record\_transformer
+  enable\_ruby true
+  auto\_typecast true
+  &lt;record&gt;
+    process\_start\_timestamp ${record\[&quot;process\_start\_timestamp&quot;\].to\_i}
+  &lt;/record&gt;
+&lt;/filter&gt;
+
+</code></pre><h3 id=etcgoogle-fluentdconfigdoutputconf class="relative group">/etc/google-fluentd/config.d/output.conf <span class="absolute top-0 w-6 transition-opacity opacity-0 ltr:-left-6 rtl:-right-6 not-prose group-hover:opacity-100"><a class="group-hover:text-primary-300 dark:group-hover:text-neutral-700" style=text-decoration-line:none!important href=#etcgoogle-fluentdconfigdoutputconf aria-label=アンカー>#</a></span></h3>
+<p>次は output.conf です。最初のファイルで全部 Cloud Logging に送るようになってたじゃんって思うわけですが、ここでも出てきます。</p>
+<p>まずは <code>@type prometheus</code> です。なるほどそういうことかって感じですね。さっきの process_start_timestamp は prometheus で良くあるプロセスの起動時刻用だったのです。</p>
+<p>次も prometheus 用で読み込んだログの行数カウンターです。</p>
+<p>その次は stdout, stderr タグのメッセージについて、Cloud Logging は1メッセージあたり100KBという制限があるために、100000 Bytes を超える場合はそれ以降を切り捨てて <code>[Trimmed]</code> っていう prefix を入れます。しかし、<strong>.length</strong> だとマルチバイトの時に制限超えちゃうんじゃないの？？？</p>
+<p>&ldquo;This section is exclusive for k8s_container logs.&rdquo; ってのは k8s_container っていう新しい Kubernetes Engine Monitoring 専用って事ですね。</p>
+<p>次は <strong>fluent.*</strong> は fluentd 自身のログなので捨てる。</p>
+<p>その後また <code>@type add_insert_ids</code> が出てくるけど、すでに unique id が存在したら何もしないらしいので重複して適用しても大丈夫みたい。</p>
+<p>後はまた metadata いじって Cloud Logging に送る。</p>
+<pre tabindex=0><code>\# This match is placed before the all-matching output to provide metric
+# exporter with a process start timestamp for correct exporting of
+# cumulative metrics to Stackdriver.
+&lt;match process\_start&gt;
+  @type prometheus
+
+  &lt;metric&gt;
+    type gauge
+    name process\_start\_time\_seconds
+    desc Timestamp of the process start in seconds
+    key process\_start\_timestamp
+  &lt;/metric&gt;
+&lt;/match&gt;
+
+# This filter allows to count the number of log entries read by fluentd
+# before they are processed by the output plugin. This in turn allows to
+# monitor the number of log entries that were read but never sent, e.g.
+# because of liveness probe removing buffer.
+&lt;filter \*\*&gt;
+  @type prometheus
+  &lt;metric&gt;
+    type counter
+    name logging\_entry\_count
+    desc Total number of log entries generated by either application containers or system components
+  &lt;/metric&gt;
+&lt;/filter&gt;
+
+# This section is exclusive for k8s\_container logs. Those come with
+# 'stderr'/'stdout' tags.
+# TODO(instrumentation): Reconsider this workaround later.
+# Trim the entries which exceed slightly less than 100KB, to avoid
+# dropping them. It is a necessity, because Stackdriver only supports
+# entries that are up to 100KB in size.
+&lt;filter {stderr,stdout}&gt;
+  @type record\_transformer
+  enable\_ruby true
+  &lt;record&gt;
+    message ${record\['message'\].length &gt; 100000 ? &quot;\[Trimmed\]#{record\['message'\]\[0..100000\]}...&quot; : record\['message'\]}
+  &lt;/record&gt;
+&lt;/filter&gt;
+
+# Do not collect fluentd's own logs to avoid infinite loops.
+&lt;match fluent.\*\*&gt;
+  @type null
+&lt;/match&gt;
+
+# Add a unique insertId to each log entry that doesn't already have it.
+# This helps guarantee the order and prevent log duplication.
+&lt;filter \*\*&gt;
+  @type add\_insert\_ids
+&lt;/filter&gt;
+
+# This filter parses the 'source' field created for glog lines into a single
+# top-level field, for proper processing by the output plugin.
+# For example, if a record includes:
+#     {&quot;source&quot;:&quot;handlers.go:131&quot;},
+# then the following entry will be added to the record:
+#     {&quot;logging.googleapis.com/sourceLocation&quot;:
+#          {&quot;file&quot;:&quot;handlers.go&quot;, &quot;line&quot;:&quot;131&quot;}
+#     }
+&lt;filter \*\*&gt;
+  @type record\_transformer
+  enable\_ruby true
+  &lt;record&gt;
+    &quot;logging.googleapis.com/sourceLocation&quot; ${if record.is\_a?(Hash) &amp;&amp; record.has\_key?('source'); source\_parts = record\['source'\].split(':', 2); {'file' =&gt; source\_parts\[0\], 'line' =&gt; source\_parts\[1\]} if source\_parts.length == 2; else; nil; end}
+  &lt;/record&gt;
+&lt;/filter&gt;
+
+
+# This section is exclusive for k8s\_container logs. These logs come with
+# 'stderr'/'stdout' tags.
+# We use a separate output stanza for 'k8s\_node' logs with a smaller buffer
+# because node logs are less important than user's container logs.
+&lt;match {stderr,stdout}&gt;
+  @type google\_cloud
+
+  # Try to detect JSON formatted log entries.
+  detect\_json true
+  # Collect metrics in Prometheus registry about plugin activity.
+  enable\_monitoring true
+  monitoring\_type prometheus
+  # Allow log entries from multiple containers to be sent in the same request.
+  split\_logs\_by\_tag false
+  # Set the buffer type to file to improve the reliability and reduce the memory consumption
+  buffer\_type file
+  
+  buffer\_path /var/run/google-fluentd/buffers/kubernetes.containers.buffer
+  
+  # Set queue\_full action to block because we want to pause gracefully
+  # in case of the off-the-limits load instead of throwing an exception
+  buffer\_queue\_full\_action block
+  # Set the chunk limit conservatively to avoid exceeding the recommended
+  # chunk size of 5MB per write request.
+  buffer\_chunk\_limit 512k
+  # Cap the combined memory usage of this buffer and the one below to
+  # 512KiB/chunk \* (6 + 2) chunks = 4 MiB
+  buffer\_queue\_limit 6
+  # Never wait more than 5 seconds before flushing logs in the non-error case.
+  flush\_interval 5s
+  # Never wait longer than 30 seconds between retries.
+  max\_retry\_wait 30
+  # Disable the limit on the number of retries (retry forever).
+  disable\_retry\_limit
+  # Use multiple threads for processing.
+  num\_threads 2
+  use\_grpc true
+  # Skip timestamp adjustment as this is in a controlled environment with
+  # known timestamp format. This helps with CPU usage.
+  adjust\_invalid\_timestamps false
+&lt;/match&gt;
+
+# Attach local\_resource\_id for 'k8s\_node' monitored resource.
+&lt;filter \*\*&gt;
+  @type record\_transformer
+  enable\_ruby true
+  &lt;record&gt;
+    &quot;logging.googleapis.com/local\_resource\_id&quot; ${&quot;k8s\_node.#{ENV\['NODE\_NAME'\]}&quot;}
+  &lt;/record&gt;
+&lt;/filter&gt;
+
+# This section is exclusive for 'k8s\_node' logs. These logs come with tags
+# that are neither 'stderr' or 'stdout'.
+# We use a separate output stanza for 'k8s\_container' logs with a larger
+# buffer because user's container logs are more important than node logs.
+&lt;match \*\*&gt;
+  @type google\_cloud
+
+  detect\_json true
+  enable\_monitoring true
+  monitoring\_type prometheus
+  # Allow entries from multiple system logs to be sent in the same request.
+  split\_logs\_by\_tag false
+  detect\_subservice false
+  buffer\_type file
+  
+  buffer\_path /var/run/google-fluentd/buffers/kubernetes.system.buffer
+  
+  buffer\_queue\_full\_action block
+  buffer\_chunk\_limit 512k
+  buffer\_queue\_limit 2
+  flush\_interval 5s
+  max\_retry\_wait 30
+  disable\_retry\_limit
+  num\_threads 2
+  use\_grpc true
+  # Skip timestamp adjustment as this is in a controlled environment with
+  # known timestamp format. This helps with CPU usage.
+  adjust\_invalid\_timestamps false
+&lt;/match&gt;
+
+</code></pre><h3 id=etcgoogle-fluentdconfigdsysteminputconf class="relative group">/etc/google-fluentd/config.d/system.input.conf <span class="absolute top-0 w-6 transition-opacity opacity-0 ltr:-left-6 rtl:-right-6 not-prose group-hover:opacity-100"><a class="group-hover:text-primary-300 dark:group-hover:text-neutral-700" style=text-decoration-line:none!important href=#etcgoogle-fluentdconfigdsysteminputconf aria-label=アンカー>#</a></span></h3>
+<p>これで最後、system.input.conf です。</p>
+<p>/var/log 配下のログや systemd の journal log から読み出す設定です。Control Plane でも使われているのか api server とか etcd 用の設定も入ってますね。</p>
+<pre tabindex=0><code>\# Example:
+# Dec 21 23:17:22 gke-foo-1-1-4b5cbd14-node-4eoj startupscript: Finished running startup script /var/run/google.startup.script
+&lt;source&gt;
+  @type tail
+  format syslog
+  path /var/log/startupscript.log
+  
+  pos\_file /var/run/google-fluentd/pos-files/gcp-startupscript.pos
+  
+  tag startupscript
+&lt;/source&gt;
+
+# Examples:
+# time=&quot;2016-02-04T06:51:03.053580605Z&quot; level=info msg=&quot;GET /containers/json&quot;
+# time=&quot;2016-02-04T07:53:57.505612354Z&quot; level=error msg=&quot;HTTP Error&quot; err=&quot;No such image: -f&quot; statusCode=404
+# TODO(random-liu): Remove this after cri container runtime rolls out.
+&lt;source&gt;
+  @type tail
+  format /^time=&quot;(?&lt;time&gt;\[^)\]\*)&quot; level=(?&lt;severity&gt;\[^ \]\*) msg=&quot;(?&lt;message&gt;\[^&quot;\]\*)&quot;( err=&quot;(?&lt;error&gt;\[^&quot;\]\*)&quot;)?( statusCode=($&lt;status\_code&gt;\\d+))?/
+  path /var/log/docker.log
+  
+  pos\_file /var/run/google-fluentd/pos-files/gcp-docker.pos
+  
+  tag docker
+&lt;/source&gt;
+
+# Example:
+# 2016/02/04 06:52:38 filePurge: successfully removed file /var/etcd/data/member/wal/00000000000006d0-00000000010a23d1.wal
+&lt;source&gt;
+  @type tail
+  # Not parsing this, because it doesn't have anything particularly useful to
+  # parse out of it (like severities).
+  format none
+  path /var/log/etcd.log
+  
+  pos\_file /var/run/google-fluentd/pos-files/gcp-etcd.pos
+  
+  tag etcd
+&lt;/source&gt;
+
+# Multi-line parsing is required for all the kube logs because very large log
+# statements, such as those that include entire object bodies, get split into
+# multiple lines by glog.
+
+# Example:
+# I0204 07:32:30.020537    3368 server.go:1048\] POST /stats/container/: (13.972191ms) 200 \[\[Go-http-client/1.1\] 10.244.1.3:40537\]
+&lt;source&gt;
+  @type tail
+  format multiline
+  multiline\_flush\_interval 5s
+  format\_firstline /^\\w\\d{4}/
+  format1 /^(?&lt;severity&gt;\\w)(?&lt;time&gt;\\d{4} \[^\\s\]\*)\\s+(?&lt;pid&gt;\\d+)\\s+(?&lt;source&gt;\[^ \\\]\]+)\\\] (?&lt;message&gt;.\*)/
+  time\_format %m%d %H:%M:%S.%N
+  path /var/log/kubelet.log
+  
+  pos\_file /var/run/google-fluentd/pos-files/gcp-kubelet.pos
+  
+  tag kubelet
+&lt;/source&gt;
+
+# Example:
+# I1118 21:26:53.975789       6 proxier.go:1096\] Port &quot;nodePort for kube-system/default-http-backend:http&quot; (:31429/tcp) was open before and is still needed
+&lt;source&gt;
+  @type tail
+  format multiline
+  multiline\_flush\_interval 5s
+  format\_firstline /^\\w\\d{4}/
+  format1 /^(?&lt;severity&gt;\\w)(?&lt;time&gt;\\d{4} \[^\\s\]\*)\\s+(?&lt;pid&gt;\\d+)\\s+(?&lt;source&gt;\[^ \\\]\]+)\\\] (?&lt;message&gt;.\*)/
+  time\_format %m%d %H:%M:%S.%N
+  path /var/log/kube-proxy.log
+  
+  pos\_file /var/run/google-fluentd/pos-files/gcp-kube-proxy.pos
+  
+  tag kube-proxy
+&lt;/source&gt;
+
+# Example:
+# I0204 07:00:19.604280       5 handlers.go:131\] GET /api/v1/nodes: (1.624207ms) 200 \[\[kube-controller-manager/v1.1.3 (linux/amd64) kubernetes/6a81b50\] 127.0.0.1:38266\]
+&lt;source&gt;
+  @type tail
+  format multiline
+  multiline\_flush\_interval 5s
+  format\_firstline /^\\w\\d{4}/
+  format1 /^(?&lt;severity&gt;\\w)(?&lt;time&gt;\\d{4} \[^\\s\]\*)\\s+(?&lt;pid&gt;\\d+)\\s+(?&lt;source&gt;\[^ \\\]\]+)\\\] (?&lt;message&gt;.\*)/
+  time\_format %m%d %H:%M:%S.%N
+  path /var/log/kube-apiserver.log
+  
+  pos\_file /var/run/google-fluentd/pos-files/gcp-kube-apiserver.pos
+  
+  tag kube-apiserver
+&lt;/source&gt;
+
+# Example:
+# I0204 06:55:31.872680       5 servicecontroller.go:277\] LB already exists and doesn't need update for service kube-system/kube-ui
+&lt;source&gt;
+  @type tail
+  format multiline
+  multiline\_flush\_interval 5s
+  format\_firstline /^\\w\\d{4}/
+  format1 /^(?&lt;severity&gt;\\w)(?&lt;time&gt;\\d{4} \[^\\s\]\*)\\s+(?&lt;pid&gt;\\d+)\\s+(?&lt;source&gt;\[^ \\\]\]+)\\\] (?&lt;message&gt;.\*)/
+  time\_format %m%d %H:%M:%S.%N
+  path /var/log/kube-controller-manager.log
+  
+  pos\_file /var/run/google-fluentd/pos-files/gcp-kube-controller-manager.pos
+  
+  tag kube-controller-manager
+&lt;/source&gt;
+
+# Example:
+# W0204 06:49:18.239674       7 reflector.go:245\] pkg/scheduler/factory/factory.go:193: watch of \*api.Service ended with: 401: The event in requested index is outdated and cleared (the requested history has been cleared \[2578313/2577886\]) \[2579312\]
+&lt;source&gt;
+  @type tail
+  format multiline
+  multiline\_flush\_interval 5s
+  format\_firstline /^\\w\\d{4}/
+  format1 /^(?&lt;severity&gt;\\w)(?&lt;time&gt;\\d{4} \[^\\s\]\*)\\s+(?&lt;pid&gt;\\d+)\\s+(?&lt;source&gt;\[^ \\\]\]+)\\\] (?&lt;message&gt;.\*)/
+  time\_format %m%d %H:%M:%S.%N
+  path /var/log/kube-scheduler.log
+  
+  pos\_file /var/run/google-fluentd/pos-files/gcp-kube-scheduler.pos
+  
+  tag kube-scheduler
+&lt;/source&gt;
+
+# Example:
+# I1104 10:36:20.242766       5 rescheduler.go:73\] Running Rescheduler
+&lt;source&gt;
+  @type tail
+  format multiline
+  multiline\_flush\_interval 5s
+  format\_firstline /^\\w\\d{4}/
+  format1 /^(?&lt;severity&gt;\\w)(?&lt;time&gt;\\d{4} \[^\\s\]\*)\\s+(?&lt;pid&gt;\\d+)\\s+(?&lt;source&gt;\[^ \\\]\]+)\\\] (?&lt;message&gt;.\*)/
+  time\_format %m%d %H:%M:%S.%N
+  path /var/log/rescheduler.log
+  
+  pos\_file /var/run/google-fluentd/pos-files/gcp-rescheduler.pos
+  
+  tag rescheduler
+&lt;/source&gt;
+
+# Example:
+# I0603 15:31:05.793605       6 cluster\_manager.go:230\] Reading config from path /etc/gce.conf
+&lt;source&gt;
+  @type tail
+  format multiline
+  multiline\_flush\_interval 5s
+  format\_firstline /^\\w\\d{4}/
+  format1 /^(?&lt;severity&gt;\\w)(?&lt;time&gt;\\d{4} \[^\\s\]\*)\\s+(?&lt;pid&gt;\\d+)\\s+(?&lt;source&gt;\[^ \\\]\]+)\\\] (?&lt;message&gt;.\*)/
+  time\_format %m%d %H:%M:%S.%N
+  path /var/log/glbc.log
+  
+  pos\_file /var/run/google-fluentd/pos-files/gcp-glbc.pos
+  
+  tag glbc
+&lt;/source&gt;
+
+# Example:
+# I0603 15:31:05.793605       6 cluster\_manager.go:230\] Reading config from path /etc/gce.conf
+&lt;source&gt;
+  @type tail
+  format multiline
+  multiline\_flush\_interval 5s
+  format\_firstline /^\\w\\d{4}/
+  format1 /^(?&lt;severity&gt;\\w)(?&lt;time&gt;\\d{4} \[^\\s\]\*)\\s+(?&lt;pid&gt;\\d+)\\s+(?&lt;source&gt;\[^ \\\]\]+)\\\] (?&lt;message&gt;.\*)/
+  time\_format %m%d %H:%M:%S.%N
+  path /var/log/cluster-autoscaler.log
+  
+  pos\_file /var/run/google-fluentd/pos-files/gcp-cluster-autoscaler.pos
+  
+  tag cluster-autoscaler
+&lt;/source&gt;
+
+# Logs from systemd-journal for interesting services.
+# TODO(random-liu): Keep this for compatibility, remove this after
+# cri container runtime rolls out.
+&lt;source&gt;
+  @type systemd
+  filters \[{ &quot;\_SYSTEMD\_UNIT&quot;: &quot;docker.service&quot; }\]
+  
+  &lt;storage&gt;
+    @type local
+    path /var/run/google-fluentd/pos-files/gcp-journald-docker.pos
+  &lt;/storage&gt;
+  
+  read\_from\_head true
+  tag docker
+&lt;/source&gt;
+
+&lt;source&gt;
+  @type systemd
+  filters \[{ &quot;\_SYSTEMD\_UNIT&quot;: &quot;docker.service&quot; }\]
+  
+  &lt;storage&gt;
+    @type local
+    path /var/run/google-fluentd/pos-files/gcp-journald-container-runtime.pos
+  &lt;/storage&gt;
+  
+  read\_from\_head true
+  tag container-runtime
+&lt;/source&gt;
+
+&lt;source&gt;
+  @type systemd
+  filters \[{ &quot;\_SYSTEMD\_UNIT&quot;: &quot;kubelet.service&quot; }\]
+  
+  &lt;storage&gt;
+    @type local
+    path /var/run/google-fluentd/pos-files/gcp-journald-kubelet.pos
+  &lt;/storage&gt;
+  
+  read\_from\_head true
+  tag kubelet
+&lt;/source&gt;
+
+
+# kube-node-installation, kube-node-configuration, and kube-logrotate are
+# oneshots, but it's extremely valuable to have their logs on Stackdriver
+# as they can diagnose critical issues with node startup.
+# See http://cs/cloud-gke-kubernetes/cluster/gce/gci/node.yaml.
+&lt;source&gt;
+  @type systemd
+  filters \[{ &quot;\_SYSTEMD\_UNIT&quot;: &quot;kube-node-installation.service&quot; }\]
+  
+  &lt;storage&gt;
+    @type local
+    path /var/run/google-fluentd/pos-files/gcp-journald-kube-node-installation.pos
+  &lt;/storage&gt;
+  
+  read\_from\_head true
+  tag kube-node-installation
+&lt;/source&gt;
+
+&lt;source&gt;
+  @type systemd
+  filters \[{ &quot;\_SYSTEMD\_UNIT&quot;: &quot;kube-node-configuration.service&quot; }\]
+  
+  &lt;storage&gt;
+    @type local
+    path /var/run/google-fluentd/pos-files/gcp-journald-kube-node-configuration.pos
+  &lt;/storage&gt;
+  
+  read\_from\_head true
+  tag kube-node-configuration
+&lt;/source&gt;
+
+&lt;source&gt;
+  @type systemd
+  filters \[{ &quot;\_SYSTEMD\_UNIT&quot;: &quot;kube-logrotate.service&quot; }\]
+  
+  &lt;storage&gt;
+    @type local
+    path /var/run/google-fluentd/pos-files/gcp-journald-kube-logrotate.pos
+  &lt;/storage&gt;
+  
+  read\_from\_head true
+  tag kube-logrotate
+&lt;/source&gt;
+
+
+&lt;source&gt;
+  @type systemd
+  filters \[{ &quot;\_SYSTEMD\_UNIT&quot;: &quot;node-problem-detector.service&quot; }\]
+  pos\_file /var/log/gcp-journald-node-problem-detector.pos
+  read\_from\_head true
+  tag node-problem-detector
+&lt;/source&gt;
+
+
+&lt;source&gt;
+  @type systemd
+  filters \[{ &quot;\_SYSTEMD\_UNIT&quot;: &quot;kube-container-runtime-monitor.service&quot; }\]
+  pos\_file /var/log/gcp-journald-kube-container-runtime-monitor.pos
+  read\_from\_head true
+  tag kube-container-runtime-monitor
+&lt;/source&gt;
+
+&lt;source&gt;
+  @type systemd
+  filters \[{ &quot;\_SYSTEMD\_UNIT&quot;: &quot;kubelet-monitor.service&quot; }\]
+  pos\_file /var/log/gcp-journald-kubelet-monitor.pos
+  read\_from\_head true
+  tag kubelet-monitor
+&lt;/source&gt;
+
+</code></pre><h2 id=まとめ class="relative group">まとめ <span class="absolute top-0 w-6 transition-opacity opacity-0 ltr:-left-6 rtl:-right-6 not-prose group-hover:opacity-100"><a class="group-hover:text-primary-300 dark:group-hover:text-neutral-700" style=text-decoration-line:none!important href=#%e3%81%be%e3%81%a8%e3%82%81 aria-label=アンカー>#</a></span></h2>
+<p>へぇ、GCP でもそんな風にやってるのかあって感じられて興味深かったです。</p>
+</div>
+<script>var liked_article=!1,oid,id,viewed,oid_likes,id_likes,liked;typeof auth!='undefined'&&(oid="views_posts/how-gke-node-send-logs.md",id=oid&&oid.replaceAll("/","-"),viewed=localStorage.getItem(id),viewed||auth.signInAnonymously().then(()=>{var a=db.collection('views').doc(id);localStorage.setItem(id,!0),a.get().then(a=>{a.exists?db.collection('views').doc(id).update({views:firebase.firestore.FieldValue.increment(1)}):db.collection('views').doc(id).set({views:1})}).catch(a=>{console.log("Error getting document:",a)})}).catch(a=>{var b=a.code,c=a.message;console.error(b,c)}),oid_likes="likes_posts/how-gke-node-send-logs.md",id_likes=oid_likes&&oid_likes.replaceAll("/","-"),liked=localStorage.getItem(id_likes),liked&&(liked_article=!0,document.querySelectorAll("button[id='likes_button']")[0].innerText="Remove Like"));function like_article(a){console.log("add"),liked_article=!0,localStorage.setItem(a,!0),document.querySelectorAll("button[id='likes_button']")[0].innerText="Remove Like",auth.signInAnonymously().then(()=>{var b=db.collection('likes').doc(a);b.get().then(b=>{b.exists?db.collection('likes').doc(a).update({likes:firebase.firestore.FieldValue.increment(1)}):db.collection('likes').doc(a).set({likes:1})}).catch(a=>{console.log("Error getting document:",a)})}).catch(a=>{var b=a.code,c=a.message;console.error(b,c)})}function remove_like_article(a){console.log("remove"),liked_article=!1,localStorage.setItem(a,!1),document.querySelectorAll("button[id='likes_button']")[0].innerText="Like",auth.signInAnonymously().then(()=>{var b=db.collection('likes').doc(a);b.get().then(b=>{b.exists?db.collection('likes').doc(a).update({likes:firebase.firestore.FieldValue.increment(-1)}):db.collection('likes').doc(a).set({likes:0})}).catch(a=>{console.log("Error getting document:",a)})}).catch(a=>{var b=a.code,c=a.message;console.error(b,c)})}function process_article(){var a="likes_posts/how-gke-node-send-logs.md",b=a&&a.replaceAll("/","-");liked_article?remove_like_article(b):like_article(b)}</script>
+</section>
+<footer class="pt-8 max-w-prose print:hidden">
+<div class=flex>
+<div class=place-self-center>
+<div class="text-[0.6rem] uppercase leading-3 text-neutral-500 dark:text-neutral-400">
+著者
+</div>
+<div class="font-semibold leading-6 text-neutral-800 dark:text-neutral-300">
+Yoshinori Teraoka
+</div>
+<div class="text-2xl sm:text-lg">
+<div class="flex flex-wrap text-neutral-400 dark:text-neutral-500">
+<a class="px-1 hover:text-primary-700 dark:hover:text-primary-400" href=https://twitter.com/yteraoka target=_blank aria-label=Twitter rel="me noopener noreferrer">
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentcolor" d="M459.37 151.716c.325 4.548.325 9.097.325 13.645.0 138.72-105.583 298.558-298.558 298.558-59.452.0-114.68-17.219-161.137-47.106 8.447.974 16.568 1.299 25.34 1.299 49.055.0 94.213-16.568 130.274-44.832-46.132-.975-84.792-31.188-98.112-72.772 6.498.974 12.995 1.624 19.818 1.624 9.421.0 18.843-1.3 27.614-3.573-48.081-9.747-84.143-51.98-84.143-102.985v-1.299c13.969 7.797 30.214 12.67 47.431 13.319-28.264-18.843-46.781-51.005-46.781-87.391.0-19.492 5.197-37.36 14.294-52.954 51.655 63.675 129.3 105.258 216.365 109.807-1.624-7.797-2.599-15.918-2.599-24.04.0-57.828 46.782-104.934 104.934-104.934 30.213.0 57.502 12.67 76.67 33.137 23.715-4.548 46.456-13.32 66.599-25.34-7.798 24.366-24.366 44.833-46.132 57.827 21.117-2.273 41.584-8.122 60.426-16.243-14.292 20.791-32.161 39.308-52.628 54.253z"/></svg>
+</span>
+</a>
+<a class="px-1 hover:text-primary-700 dark:hover:text-primary-400" href=https://github.com/yteraoka target=_blank aria-label=Github rel="me noopener noreferrer">
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><path fill="currentcolor" d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6.0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6.0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3.0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1.0-6.2-.3-40.4-.3-61.4.0.0-70 15-84.7-29.8.0.0-11.4-29.1-27.8-36.6.0.0-22.9-15.7 1.6-15.4.0.0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5.0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9.0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4.0 33.7-.3 75.4-.3 83.6.0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6.0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9.0-6.2-1.4-2.3-4-3.3-5.6-2z"/></svg>
+</span>
+</a>
+<a class="px-1 hover:text-primary-700 dark:hover:text-primary-400" href=https://linkedin.com/in/fa5b66b7-9c77-4e1b-8b97-40ba4a5a2c13/ target=_blank aria-label=Linkedin rel="me noopener noreferrer">
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path fill="currentcolor" d="M416 32H31.9C14.3 32 0 46.5.0 64.3v383.4C0 465.5 14.3 480 31.9 480H416c17.6.0 32-14.5 32-32.3V64.3c0-17.8-14.4-32.3-32-32.3zM135.4 416H69V202.2h66.5V416zm-33.2-243c-21.3.0-38.5-17.3-38.5-38.5S80.9 96 102.2 96c21.2.0 38.5 17.3 38.5 38.5.0 21.3-17.2 38.5-38.5 38.5zm282.1 243h-66.4V312c0-24.8-.5-56.7-34.5-56.7-34.6.0-39.9 27-39.9 54.9V416h-66.4V202.2h63.7v29.2h.9c8.9-16.8 30.6-34.5 62.9-34.5 67.2.0 79.7 44.3 79.7 101.9V416z"/></svg>
+</span>
+</a>
+<a class="px-1 hover:text-primary-700 dark:hover:text-primary-400" href=https://medium.com/@yteraoka target=_blank aria-label=Medium rel="me noopener noreferrer">
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512"><path fill="currentcolor" d="M180.5 74.262C80.813 74.262.0 155.633.0 256S80.819 437.738 180.5 437.738 361 356.373 361 256 280.191 74.262 180.5 74.262zm288.25 10.646c-49.845.0-90.245 76.619-90.245 171.095s40.406 171.1 90.251 171.1 90.251-76.619 90.251-171.1H559C559 161.5 518.6 84.908 468.752 84.908zm139.506 17.821c-17.526.0-31.735 68.628-31.735 153.274s14.2 153.274 31.735 153.274S640 340.631 640 256c0-84.649-14.215-153.271-31.742-153.271z"/></svg>
+</span>
+</a>
+</div>
+</div>
+</div>
+</div>
+<section class="flex flex-row flex-wrap justify-center pt-4 text-xl">
+<a class="m-1 inline-block min-w-[2.4rem] rounded bg-neutral-300 p-1 text-center text-neutral-700 hover:bg-primary-500 hover:text-neutral dark:bg-neutral-700 dark:text-neutral-300 dark:hover:bg-primary-400 dark:hover:text-neutral-800" href="https://www.linkedin.com/shareArticle?mini=true&url=https://preview-blog.1q77.com/2020/03/how-gke-node-send-logs/&title=GKE%20%e3%81%ae%20node%20%e3%81%af%e3%81%a9%e3%81%ae%e3%82%88%e3%81%86%e3%81%ab%e3%83%ad%e3%82%b0%e3%82%92%e8%bb%a2%e9%80%81%e3%81%97%e3%81%a6%e3%81%84%e3%82%8b%e3%81%ae%e3%81%8b" title=LinkedInでシェアする aria-label=LinkedInでシェアする>
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path fill="currentcolor" d="M416 32H31.9C14.3 32 0 46.5.0 64.3v383.4C0 465.5 14.3 480 31.9 480H416c17.6.0 32-14.5 32-32.3V64.3c0-17.8-14.4-32.3-32-32.3zM135.4 416H69V202.2h66.5V416zm-33.2-243c-21.3.0-38.5-17.3-38.5-38.5S80.9 96 102.2 96c21.2.0 38.5 17.3 38.5 38.5.0 21.3-17.2 38.5-38.5 38.5zm282.1 243h-66.4V312c0-24.8-.5-56.7-34.5-56.7-34.6.0-39.9 27-39.9 54.9V416h-66.4V202.2h63.7v29.2h.9c8.9-16.8 30.6-34.5 62.9-34.5 67.2.0 79.7 44.3 79.7 101.9V416z"/></svg>
+</span>
+</a>
+<a class="m-1 inline-block min-w-[2.4rem] rounded bg-neutral-300 p-1 text-center text-neutral-700 hover:bg-primary-500 hover:text-neutral dark:bg-neutral-700 dark:text-neutral-300 dark:hover:bg-primary-400 dark:hover:text-neutral-800" href="https://twitter.com/intent/tweet/?url=https://preview-blog.1q77.com/2020/03/how-gke-node-send-logs/&text=GKE%20%e3%81%ae%20node%20%e3%81%af%e3%81%a9%e3%81%ae%e3%82%88%e3%81%86%e3%81%ab%e3%83%ad%e3%82%b0%e3%82%92%e8%bb%a2%e9%80%81%e3%81%97%e3%81%a6%e3%81%84%e3%82%8b%e3%81%ae%e3%81%8b" title=Twitterに投稿する aria-label=Twitterに投稿する>
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentcolor" d="M459.37 151.716c.325 4.548.325 9.097.325 13.645.0 138.72-105.583 298.558-298.558 298.558-59.452.0-114.68-17.219-161.137-47.106 8.447.974 16.568 1.299 25.34 1.299 49.055.0 94.213-16.568 130.274-44.832-46.132-.975-84.792-31.188-98.112-72.772 6.498.974 12.995 1.624 19.818 1.624 9.421.0 18.843-1.3 27.614-3.573-48.081-9.747-84.143-51.98-84.143-102.985v-1.299c13.969 7.797 30.214 12.67 47.431 13.319-28.264-18.843-46.781-51.005-46.781-87.391.0-19.492 5.197-37.36 14.294-52.954 51.655 63.675 129.3 105.258 216.365 109.807-1.624-7.797-2.599-15.918-2.599-24.04.0-57.828 46.782-104.934 104.934-104.934 30.213.0 57.502 12.67 76.67 33.137 23.715-4.548 46.456-13.32 66.599-25.34-7.798 24.366-24.366 44.833-46.132 57.827 21.117-2.273 41.584-8.122 60.426-16.243-14.292 20.791-32.161 39.308-52.628 54.253z"/></svg>
+</span>
+</a>
+</section>
+<div class=pt-8>
+<hr class="border-dotted border-neutral-300 dark:border-neutral-600">
+<div class="flex justify-between pt-3">
+<span>
+<a class="flex group" href=/2020/03/istio-part8/>
+<span class="mr-3 text-neutral-700 group-hover:text-primary-600 ltr:inline rtl:hidden dark:text-neutral dark:group-hover:text-primary-400">&larr;</span>
+<span class="ml-3 text-neutral-700 group-hover:text-primary-600 ltr:hidden rtl:inline dark:text-neutral dark:group-hover:text-primary-400">&rarr;</span>
+<span class="flex flex-col">
+<span class="mt-[0.1rem] leading-6 group-hover:underline group-hover:decoration-primary-500">Istio 導入への道 - 外部へのアクセスでも Fault Injection 編</span>
+<span class="mt-[0.1rem] text-xs text-neutral-500 dark:text-neutral-400">
+<time datetime="2020-03-11 16:37:14 +0000 UTC">2020年3月11日</time>
+</span>
+</span>
+</a>
+</span>
+<span>
+<a class="flex text-right group" href=/2020/03/dive-into-docker-for-mac-vm/>
+<span class="flex flex-col">
+<span class="mt-[0.1rem] leading-6 group-hover:underline group-hover:decoration-primary-500">Docker Desktop for Mac で docker 用 VM の中に入る</span>
+<span class="mt-[0.1rem] text-xs text-neutral-500 dark:text-neutral-400">
+<time datetime="2020-03-14 11:26:48 +0000 UTC">2020年3月14日</time>
+</span>
+</span>
+<span class="ml-3 text-neutral-700 group-hover:text-primary-600 ltr:inline rtl:hidden dark:text-neutral dark:group-hover:text-primary-400">&rarr;</span>
+<span class="mr-3 text-neutral-700 group-hover:text-primary-600 ltr:hidden rtl:inline dark:text-neutral dark:group-hover:text-primary-400">&larr;</span>
+</a>
+</span>
+</div>
+</div>
+</footer>
+</article>
+<div class="pointer-events-none absolute top-[100vh] bottom-0 w-12 ltr:right-0 rtl:left-0">
+<a href=#the-top class="pointer-events-auto sticky top-[calc(100vh-5.5rem)] flex h-12 w-12 items-center justify-center rounded-full bg-neutral/50 text-xl text-neutral-700 backdrop-blur hover:text-primary-600 dark:bg-neutral-800/50 dark:text-neutral dark:hover:text-primary-400" aria-label=TOPへスクロール title=TOPへスクロール>
+&uarr;
+</a>
+</div>
+</main><footer class="py-10 print:hidden">
+<div class="flex items-center justify-between">
+<p class="text-sm text-neutral-500 dark:text-neutral-400">
+&copy;
+2022
+Yoshinori Teraoka
+</p>
+</div>
+<script>mediumZoom(document.querySelectorAll("img:not(.nozoom)"),{margin:24,background:'rgba(0,0,0,0.5)',scrollOffset:0})</script>
+<script type=text/javascript src=/js/process.min.48d08339b8a087b59c7b8cb42b6717aeeed3e07bfc68b1654cac27f00583284dac59cae47fb686dd7c0e9ff1d2745689dc2071230dff432ca6d7fc24b9f2e036.js integrity="sha512-SNCDObigh7Wce4y0K2cXru7T4Hv8aLFlTKwn8AWDKE2sWcrkf7aG3XwOn/HSdFaJ3CBxIw3/Qyym1/wkufLgNg=="></script>
+</footer><div id=search-wrapper class="invisible fixed inset-0 z-50 flex h-screen w-screen cursor-default flex-col bg-neutral-500/50 p-4 backdrop-blur-sm dark:bg-neutral-900/50 sm:p-6 md:p-[10vh] lg:p-[12vh]" data-url=https://preview-blog.1q77.com/>
+<div id=search-modal class="flex flex-col w-full max-w-3xl min-h-0 mx-auto border rounded-md shadow-lg top-20 border-neutral-200 bg-neutral dark:border-neutral-700 dark:bg-neutral-800">
+<header class="relative z-10 flex items-center justify-between flex-none px-2">
+<form class="flex items-center flex-auto min-w-0">
+<div class="flex items-center justify-center w-8 h-8 text-neutral-400">
+<span class="relative inline-block align-text-bottom icon"><svg aria-hidden="true" focusable="false" data-prefix="fas" data-icon="search" class="svg-inline--fa fa-search fa-w-16" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentcolor" d="M505 442.7 405.3 343c-4.5-4.5-10.6-7-17-7H372c27.6-35.3 44-79.7 44-128C416 93.1 322.9.0 208 0S0 93.1.0 208s93.1 208 208 208c48.3.0 92.7-16.4 128-44v16.3c0 6.4 2.5 12.5 7 17l99.7 99.7c9.4 9.4 24.6 9.4 33.9.0l28.3-28.3c9.4-9.4 9.4-24.6.1-34zM208 336c-70.7.0-128-57.2-128-128 0-70.7 57.2-128 128-128 70.7.0 128 57.2 128 128 0 70.7-57.2 128-128 128z"/></svg>
+</span>
+</div>
+<input type=search id=search-query class="flex flex-auto h-12 mx-1 bg-transparent appearance-none focus:outline-dotted focus:outline-2 focus:outline-transparent" placeholder=Search tabindex=0>
+</form>
+<button id=close-search-button class="flex items-center justify-center w-8 h-8 text-neutral-700 hover:text-primary-600 dark:text-neutral dark:hover:text-primary-400" title="閉じる (Esc)">
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><path fill="currentcolor" d="M310.6 361.4c12.5 12.5 12.5 32.75.0 45.25C304.4 412.9 296.2 416 288 416s-16.38-3.125-22.62-9.375L160 301.3 54.63 406.6C48.38 412.9 40.19 416 32 416S15.63 412.9 9.375 406.6c-12.5-12.5-12.5-32.75.0-45.25l105.4-105.4L9.375 150.6c-12.5-12.5-12.5-32.75.0-45.25s32.75-12.5 45.25.0L160 210.8l105.4-105.4c12.5-12.5 32.75-12.5 45.25.0s12.5 32.75.0 45.25l-105.4 105.4L310.6 361.4z"/></svg>
+</span>
+</button>
+</header>
+<section class="flex-auto px-2 overflow-auto">
+<ul id=search-results>
+</ul>
+</section>
+</div>
+</div>
+</div>
+</body>
+</html>

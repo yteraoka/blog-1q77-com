@@ -1,0 +1,900 @@
+<!doctype html><html lang=ja dir=ltr class=scroll-smooth data-default-appearance=light data-auto-appearance=true><head>
+<meta charset=utf-8>
+<meta http-equiv=content-language content="ja">
+<meta name=viewport content="width=device-width,initial-scale=1">
+<meta http-equiv=x-ua-compatible content="ie=edge">
+<title>Docker Swarm を試す – その4 &#183; 1Q77</title>
+<meta name=title content="Docker Swarm を試す – その4 &#183; 1Q77">
+<link rel=canonical href=https://preview-blog.1q77.com/2016/03/evaluate-docker-swarm-part4/>
+<link type=text/css rel=stylesheet href=/css/main.bundle.min.a9d40529d239a91ecb75447e67ee6c80c1f1c28593904b4052651b12220121e13ec42904268b0193a6858f039cf8bfdd2b1331529ed341ddc7488cec3bdcbc2e.css integrity="sha512-qdQFKdI5qR7LdUR+Z+5sgMHxwoWTkEtAUmUbEiIBIeE+xCkEJosBk6aFjwOc+L/dKxMxUp7TQd3HSIzsO9y8Lg==">
+<script type=text/javascript src=/js/main.min.cf83e1357eefb8bdf1542850d66d8007d620e4050b5715dc83f4a921d36ce9ce47d0d13c5d85f2b0ff8318d2877eec2f63b931bd47417a81a538327af927da3e.js integrity="sha512-z4PhNX7vuL3xVChQ1m2AB9Yg5AULVxXcg/SpIdNs6c5H0NE8XYXysP+DGNKHfuwvY7kxvUdBeoGlODJ6+SfaPg=="></script>
+<script type=text/javascript src=/js/appearance.min.49025a779c36ad37a5bf9f1cc6bffd35ccb69ce15560ef1b10057ddf31576265b19f8bcc1733207336c9144926f7b18aea2e5895f29e858b24271332a2fa5cd5.js integrity="sha512-SQJad5w2rTelv58cxr/9Ncy2nOFVYO8bEAV93zFXYmWxn4vMFzMgczbJFEkm97GK6i5YlfKehYskJxMyovpc1Q=="></script>
+<script defer type=text/javascript id=script-bundle src=/js/main.bundle.min.34ee8372ff77835535e486c6ed01ff6993374a1cec8108898cad793fc6ae7520778e24db68e085c762d25af6fa7d00b57d7a791438dc68b676581f8c8344f6e0.js integrity="sha512-NO6Dcv93g1U15IbG7QH/aZM3ShzsgQiJjK15P8audSB3jiTbaOCFx2LSWvb6fQC1fXp5FDjcaLZ2WB+Mg0T24A==" data-copy data-copied></script>
+<script src=/js/zoom.min.js></script>
+<link rel=apple-touch-icon sizes=180x180 href=/apple-touch-icon.png>
+<link rel=icon type=image/png sizes=32x32 href=/favicon-32x32.png>
+<link rel=icon type=image/png sizes=16x16 href=/favicon-16x16.png>
+<link rel=manifest href=/site.webmanifest>
+<meta property="og:title" content="Docker Swarm を試す – その4">
+<meta property="og:description" content="今回は Get started with multi-host networking に沿ってマルチホストでのオーバーレイネットワークを試してみます。 KVS として Consul を立ち上げる # まず mh-keystore という名前（名前はなんでも良い">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://preview-blog.1q77.com/2016/03/evaluate-docker-swarm-part4/"><meta property="article:section" content="posts">
+<meta property="article:published_time" content="2016-03-20T15:29:45+00:00">
+<meta property="article:modified_time" content="2016-03-20T15:29:45+00:00">
+<meta name=twitter:card content="summary">
+<meta name=twitter:title content="Docker Swarm を試す – その4">
+<meta name=twitter:description content="今回は Get started with multi-host networking に沿ってマルチホストでのオーバーレイネットワークを試してみます。 KVS として Consul を立ち上げる # まず mh-keystore という名前（名前はなんでも良い">
+<script type=application/ld+json>[{"@context":"https://schema.org","@type":"Article","articleSection":"Posts","name":"Docker Swarm を試す – その4","headline":"Docker Swarm を試す – その4","abstract":"今回は Get started with multi-host networking に沿ってマルチホストでのオーバーレイネットワークを試してみます。 KVS として Consul を立ち上げる # まず mh-keystore という名前（名前はなんでも良い","inLanguage":"ja","url":"https:\/\/preview-blog.1q77.com\/2016\/03\/evaluate-docker-swarm-part4\/","author":{"@type":"Person","name":"Yoshinori Teraoka"},"copyrightYear":"2016","dateCreated":"2016-03-20T15:29:45\u002b00:00","datePublished":"2016-03-20T15:29:45\u002b00:00","dateModified":"2016-03-20T15:29:45\u002b00:00","keywords":["Docker","Linux","Swarm"],"mainEntityOfPage":"true","wordCount":"3070"}]</script>
+<meta name=author content="Yoshinori Teraoka">
+<link href=https://twitter.com/yteraoka rel=me>
+<link href=https://github.com/yteraoka rel=me>
+<link href=https://linkedin.com/in/fa5b66b7-9c77-4e1b-8b97-40ba4a5a2c13/ rel=me>
+<link href=https://medium.com/@yteraoka rel=me>
+<link rel=stylesheet href=https://rsms.me/inter/inter.css>
+</head><body class="flex flex-col h-screen px-6 m-auto text-lg leading-7 max-w-7xl bg-neutral text-neutral-900 dark:bg-neutral-800 dark:text-neutral sm:px-14 md:px-24 lg:px-32">
+<div id=the-top class="absolute flex self-center">
+<a class="px-3 py-1 text-sm -translate-y-8 rounded-b-lg bg-primary-200 focus:translate-y-0 dark:bg-neutral-600" href=#main-content><span class="font-bold text-primary-600 ltr:pr-2 rtl:pl-2 dark:text-primary-400">&darr;</span>メインコンテンツへスキップ</a>
+</div>
+<div style=padding-left:0;padding-right:0 class="flex items-center justify-between px-4 py-6 sm:px-6 md:justify-start space-x-3">
+<div class="flex flex-1 items-center justify-between">
+<nav class="flex space-x-3">
+<a href=/ class="text-base font-medium text-gray-500 hover:text-gray-900">1Q77</a>
+</nav>
+<div class="hidden md:flex items-center space-x-5 md:ml-12">
+<a href=/posts/ class="text-base font-medium text-gray-500 hover:text-gray-900" title=Posts>
+Blog
+</a>
+<a href=/tags/ class="text-base font-medium text-gray-500 hover:text-gray-900" title=Tags>
+Tags
+</a>
+<a href=https://github.com/yteraoka class="text-base font-medium text-gray-500 hover:text-gray-900" title>
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><path fill="currentcolor" d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6.0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6.0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3.0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1.0-6.2-.3-40.4-.3-61.4.0.0-70 15-84.7-29.8.0.0-11.4-29.1-27.8-36.6.0.0-22.9-15.7 1.6-15.4.0.0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5.0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9.0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4.0 33.7-.3 75.4-.3 83.6.0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6.0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9.0-6.2-1.4-2.3-4-3.3-5.6-2z"/></svg>
+</span>
+&nbsp;
+GitHub
+</a>
+<a href=https://twitter.com/yteraoka class="text-base font-medium text-gray-500 hover:text-gray-900" title>
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentcolor" d="M459.37 151.716c.325 4.548.325 9.097.325 13.645.0 138.72-105.583 298.558-298.558 298.558-59.452.0-114.68-17.219-161.137-47.106 8.447.974 16.568 1.299 25.34 1.299 49.055.0 94.213-16.568 130.274-44.832-46.132-.975-84.792-31.188-98.112-72.772 6.498.974 12.995 1.624 19.818 1.624 9.421.0 18.843-1.3 27.614-3.573-48.081-9.747-84.143-51.98-84.143-102.985v-1.299c13.969 7.797 30.214 12.67 47.431 13.319-28.264-18.843-46.781-51.005-46.781-87.391.0-19.492 5.197-37.36 14.294-52.954 51.655 63.675 129.3 105.258 216.365 109.807-1.624-7.797-2.599-15.918-2.599-24.04.0-57.828 46.782-104.934 104.934-104.934 30.213.0 57.502 12.67 76.67 33.137 23.715-4.548 46.456-13.32 66.599-25.34-7.798 24.366-24.366 44.833-46.132 57.827 21.117-2.273 41.584-8.122 60.426-16.243-14.292 20.791-32.161 39.308-52.628 54.253z"/></svg>
+</span>
+&nbsp;
+Twitter
+</a>
+<a href=https://qiita.com/yteraoka class="text-base font-medium text-gray-500 hover:text-gray-900" title>
+Qiita
+</a>
+<button id=search-button class="text-base hover:text-primary-600 dark:hover:text-primary-400" title>
+<span class="relative inline-block align-text-bottom icon"><svg aria-hidden="true" focusable="false" data-prefix="fas" data-icon="search" class="svg-inline--fa fa-search fa-w-16" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentcolor" d="M505 442.7 405.3 343c-4.5-4.5-10.6-7-17-7H372c27.6-35.3 44-79.7 44-128C416 93.1 322.9.0 208 0S0 93.1.0 208s93.1 208 208 208c48.3.0 92.7-16.4 128-44v16.3c0 6.4 2.5 12.5 7 17l99.7 99.7c9.4 9.4 24.6 9.4 33.9.0l28.3-28.3c9.4-9.4 9.4-24.6.1-34zM208 336c-70.7.0-128-57.2-128-128 0-70.7 57.2-128 128-128 70.7.0 128 57.2 128 128 0 70.7-57.2 128-128 128z"/></svg>
+</span>
+</button>
+<div class="ltr:mr-14 rtl:ml-14 cursor-pointer text-sm text-neutral-700 hover:text-primary-600 dark:text-neutral dark:hover:text-primary-400">
+<button id=appearance-switcher type=button>
+<div class="flex items-center justify-center h-12 dark:hidden">
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentcolor" d="M32 256C32 132.2 132.3 32 255.8 32c11.36.0 29.7 1.668 40.9 3.746 9.616 1.777 11.75 14.63 3.279 19.44C245 86.5 211.2 144.6 211.2 207.8c0 109.7 99.71 193 208.3 172.3 9.561-1.805 16.28 9.324 10.11 16.95C387.9 448.6 324.8 480 255.8 480 132.1 480 32 379.6 32 256z"/></svg>
+</span>
+</div>
+<div class="items-center justify-center hidden h-12 dark:flex">
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentcolor" d="M256 159.1c-53.02.0-95.1 42.98-95.1 95.1s41.2 96.9 95.1 96.9 95.1-42.98 95.1-95.1S309 159.1 256 159.1zM509.3 347l-63.2-91.9 63.15-91.01c6.332-9.125 1.104-21.74-9.826-23.72l-109-19.7-19.7-109c-1.975-10.93-14.59-16.16-23.72-9.824L256 65.89 164.1 2.736c-9.125-6.332-21.74-1.107-23.72 9.824L121.6 121.6 12.56 141.3C1.633 143.2-3.596 155.9 2.736 164.1L65.89 256 2.74 347.01c-6.332 9.125-1.105 21.74 9.824 23.72l109 19.7 19.7 109c1.975 10.93 14.59 16.16 23.72 9.824L256 446.1l91.01 63.15c9.127 6.334 21.75 1.107 23.72-9.822l19.7-109 109-19.7C510.4 368.8 515.6 356.1 509.3 347zM256 383.1c-70.69.0-127.1-57.31-127.1-127.1.0-70.69 57.31-127.1 127.1-127.1S383.1 186.2 383.1 256c0 70.7-56.4 127.1-127.1 127.1z"/></svg>
+</span>
+</div>
+</button>
+</div>
+</div>
+<div class="flex md:hidden items-center space-x-5 md:ml-12">
+<span></span>
+<button id=search-button-mobile class="text-base hover:text-primary-600 dark:hover:text-primary-400" title>
+<span class="relative inline-block align-text-bottom icon"><svg aria-hidden="true" focusable="false" data-prefix="fas" data-icon="search" class="svg-inline--fa fa-search fa-w-16" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentcolor" d="M505 442.7 405.3 343c-4.5-4.5-10.6-7-17-7H372c27.6-35.3 44-79.7 44-128C416 93.1 322.9.0 208 0S0 93.1.0 208s93.1 208 208 208c48.3.0 92.7-16.4 128-44v16.3c0 6.4 2.5 12.5 7 17l99.7 99.7c9.4 9.4 24.6 9.4 33.9.0l28.3-28.3c9.4-9.4 9.4-24.6.1-34zM208 336c-70.7.0-128-57.2-128-128 0-70.7 57.2-128 128-128 70.7.0 128 57.2 128 128 0 70.7-57.2 128-128 128z"/></svg>
+</span>
+</button>
+<button id=appearance-switcher-mobile type=button style=margin-right:5px>
+<div class="flex items-center justify-center h-12 dark:hidden">
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentcolor" d="M32 256C32 132.2 132.3 32 255.8 32c11.36.0 29.7 1.668 40.9 3.746 9.616 1.777 11.75 14.63 3.279 19.44C245 86.5 211.2 144.6 211.2 207.8c0 109.7 99.71 193 208.3 172.3 9.561-1.805 16.28 9.324 10.11 16.95C387.9 448.6 324.8 480 255.8 480 132.1 480 32 379.6 32 256z"/></svg>
+</span>
+</div>
+<div class="items-center justify-center hidden h-12 dark:flex">
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentcolor" d="M256 159.1c-53.02.0-95.1 42.98-95.1 95.1s41.2 96.9 95.1 96.9 95.1-42.98 95.1-95.1S309 159.1 256 159.1zM509.3 347l-63.2-91.9 63.15-91.01c6.332-9.125 1.104-21.74-9.826-23.72l-109-19.7-19.7-109c-1.975-10.93-14.59-16.16-23.72-9.824L256 65.89 164.1 2.736c-9.125-6.332-21.74-1.107-23.72 9.824L121.6 121.6 12.56 141.3C1.633 143.2-3.596 155.9 2.736 164.1L65.89 256 2.74 347.01c-6.332 9.125-1.105 21.74 9.824 23.72l109 19.7 19.7 109c1.975 10.93 14.59 16.16 23.72 9.824L256 446.1l91.01 63.15c9.127 6.334 21.75 1.107 23.72-9.822l19.7-109 109-19.7C510.4 368.8 515.6 356.1 509.3 347zM256 383.1c-70.69.0-127.1-57.31-127.1-127.1.0-70.69 57.31-127.1 127.1-127.1S383.1 186.2 383.1 256c0 70.7-56.4 127.1-127.1 127.1z"/></svg>
+</span>
+</div>
+</button>
+</div>
+</div>
+<div class="-my-2 -mr-2 md:hidden">
+<label id=menu-button for=menu-controller class=block>
+<input type=checkbox id=menu-controller class=hidden>
+<div class="cursor-pointer hover:text-primary-600 dark:hover:text-primary-400">
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path fill="currentcolor" d="M0 96C0 78.33 14.33 64 32 64H416c17.7.0 32 14.33 32 32 0 17.7-14.3 32-32 32H32C14.33 128 0 113.7.0 96zM0 256c0-17.7 14.33-32 32-32H416c17.7.0 32 14.3 32 32s-14.3 32-32 32H32c-17.67.0-32-14.3-32-32zM416 448H32c-17.67.0-32-14.3-32-32s14.33-32 32-32H416c17.7.0 32 14.3 32 32s-14.3 32-32 32z"/></svg>
+</span>
+</div>
+<div id=menu-wrapper style=padding-top:25px class="fixed inset-0 z-30 invisible w-screen h-screen m-auto overflow-auto transition-opacity opacity-0 cursor-default bg-neutral-100/50 backdrop-blur-sm dark:bg-neutral-900/50">
+<ul class="flex movedown flex-col w-full px-6 py-6 mx-auto overflow-visible list-none ltr:text-right rtl:text-left max-w-7xl sm:px-14 md:px-24 lg:px-32 sm:py-10 sm:pt-10">
+<li class=mb-1>
+<span class="cursor-pointer hover:text-primary-600 dark:hover:text-primary-400">
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><path fill="currentcolor" d="M310.6 361.4c12.5 12.5 12.5 32.75.0 45.25C304.4 412.9 296.2 416 288 416s-16.38-3.125-22.62-9.375L160 301.3 54.63 406.6C48.38 412.9 40.19 416 32 416S15.63 412.9 9.375 406.6c-12.5-12.5-12.5-32.75.0-45.25l105.4-105.4L9.375 150.6c-12.5-12.5-12.5-32.75.0-45.25s32.75-12.5 45.25.0L160 210.8l105.4-105.4c12.5-12.5 32.75-12.5 45.25.0s12.5 32.75.0 45.25l-105.4 105.4L310.6 361.4z"/></svg>
+</span>
+</span>
+</li>
+<li class=mb-1>
+<a class="decoration-primary-500 hover:underline hover:decoration-2 hover:underline-offset-2" href=/posts/ title=Posts>
+Blog
+</a>
+</li>
+<li class=mb-1>
+<a class="decoration-primary-500 hover:underline hover:decoration-2 hover:underline-offset-2" href=/tags/ title=Tags>
+Tags
+</a>
+</li>
+<li class=mb-1>
+<a class="decoration-primary-500 hover:underline hover:decoration-2 hover:underline-offset-2" href=https://github.com/yteraoka title>
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><path fill="currentcolor" d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6.0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6.0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3.0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1.0-6.2-.3-40.4-.3-61.4.0.0-70 15-84.7-29.8.0.0-11.4-29.1-27.8-36.6.0.0-22.9-15.7 1.6-15.4.0.0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5.0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9.0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4.0 33.7-.3 75.4-.3 83.6.0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6.0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9.0-6.2-1.4-2.3-4-3.3-5.6-2z"/></svg>
+</span>
+&nbsp;
+GitHub
+</a>
+</li>
+<li class=mb-1>
+<a class="decoration-primary-500 hover:underline hover:decoration-2 hover:underline-offset-2" href=https://twitter.com/yteraoka title>
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentcolor" d="M459.37 151.716c.325 4.548.325 9.097.325 13.645.0 138.72-105.583 298.558-298.558 298.558-59.452.0-114.68-17.219-161.137-47.106 8.447.974 16.568 1.299 25.34 1.299 49.055.0 94.213-16.568 130.274-44.832-46.132-.975-84.792-31.188-98.112-72.772 6.498.974 12.995 1.624 19.818 1.624 9.421.0 18.843-1.3 27.614-3.573-48.081-9.747-84.143-51.98-84.143-102.985v-1.299c13.969 7.797 30.214 12.67 47.431 13.319-28.264-18.843-46.781-51.005-46.781-87.391.0-19.492 5.197-37.36 14.294-52.954 51.655 63.675 129.3 105.258 216.365 109.807-1.624-7.797-2.599-15.918-2.599-24.04.0-57.828 46.782-104.934 104.934-104.934 30.213.0 57.502 12.67 76.67 33.137 23.715-4.548 46.456-13.32 66.599-25.34-7.798 24.366-24.366 44.833-46.132 57.827 21.117-2.273 41.584-8.122 60.426-16.243-14.292 20.791-32.161 39.308-52.628 54.253z"/></svg>
+</span>
+&nbsp;
+Twitter
+</a>
+</li>
+<li class=mb-1>
+<a class="decoration-primary-500 hover:underline hover:decoration-2 hover:underline-offset-2" href=https://qiita.com/yteraoka title>
+Qiita
+</a>
+</li>
+</ul>
+</div>
+</label>
+</div>
+</div>
+<div id=mobile-menu class="fixed inset-0 z-30 invisible w-screen h-screen m-auto overflow-auto transition-opacity opacity-0 cursor-default bg-neutral-100/50 backdrop-blur-sm dark:bg-neutral-900/50">
+<ul class="flex movedown flex-col w-full px-6 py-6 mx-auto overflow-visible list-none ltr:text-right rtl:text-left max-w-7xl sm:px-14 md:px-24 lg:px-32 sm:py-10 sm:pt-10">
+<li class=mb-1>
+<span class="cursor-pointer hover:text-primary-600 dark:hover:text-primary-400">
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><path fill="currentcolor" d="M310.6 361.4c12.5 12.5 12.5 32.75.0 45.25C304.4 412.9 296.2 416 288 416s-16.38-3.125-22.62-9.375L160 301.3 54.63 406.6C48.38 412.9 40.19 416 32 416S15.63 412.9 9.375 406.6c-12.5-12.5-12.5-32.75.0-45.25l105.4-105.4L9.375 150.6c-12.5-12.5-12.5-32.75.0-45.25s32.75-12.5 45.25.0L160 210.8l105.4-105.4c12.5-12.5 32.75-12.5 45.25.0s12.5 32.75.0 45.25l-105.4 105.4L310.6 361.4z"/></svg>
+</span>
+</span>
+</li>
+<li class=mb-1>
+<a class="decoration-primary-500 hover:underline hover:decoration-2 hover:underline-offset-2" href=/posts/ title=Posts>Blog</a>
+</li>
+<li class=mb-1>
+<a class="decoration-primary-500 hover:underline hover:decoration-2 hover:underline-offset-2" href=/tags/ title=Tags>Tags</a>
+</li>
+<li class=mb-1>
+<a class="decoration-primary-500 hover:underline hover:decoration-2 hover:underline-offset-2" href=https://github.com/yteraoka title>GitHub</a>
+</li>
+<li class=mb-1>
+<a class="decoration-primary-500 hover:underline hover:decoration-2 hover:underline-offset-2" href=https://twitter.com/yteraoka title>Twitter</a>
+</li>
+<li class=mb-1>
+<a class="decoration-primary-500 hover:underline hover:decoration-2 hover:underline-offset-2" href=https://qiita.com/yteraoka title>Qiita</a>
+</li>
+<li>
+<button id=search-button-mobile class="text-base hover:text-primary-600 dark:hover:text-primary-400">
+<span class="relative inline-block align-text-bottom icon"><svg aria-hidden="true" focusable="false" data-prefix="fas" data-icon="search" class="svg-inline--fa fa-search fa-w-16" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentcolor" d="M505 442.7 405.3 343c-4.5-4.5-10.6-7-17-7H372c27.6-35.3 44-79.7 44-128C416 93.1 322.9.0 208 0S0 93.1.0 208s93.1 208 208 208c48.3.0 92.7-16.4 128-44v16.3c0 6.4 2.5 12.5 7 17l99.7 99.7c9.4 9.4 24.6 9.4 33.9.0l28.3-28.3c9.4-9.4 9.4-24.6.1-34zM208 336c-70.7.0-128-57.2-128-128 0-70.7 57.2-128 128-128 70.7.0 128 57.2 128 128 0 70.7-57.2 128-128 128z"/></svg>
+</span>
+</button>
+</li>
+</ul>
+</div>
+<div class="relative flex flex-col grow">
+<main id=main-content class=grow>
+<article>
+<header class=max-w-prose>
+<ol class="text-sm text-neutral-500 dark:text-neutral-400 print:hidden">
+<li class="inline hidden">
+<a class="hover:underline decoration-neutral-300 dark:underline-neutral-600" href=/>1Q77</a><span class="px-1 text-primary-500">/</span>
+</li>
+<li class=inline>
+<a class="hover:underline decoration-neutral-300 dark:underline-neutral-600" href=/posts/>Posts</a><span class="px-1 text-primary-500">/</span>
+</li>
+<li class="inline hidden">
+<a class="hover:underline decoration-neutral-300 dark:underline-neutral-600" href=/2016/03/evaluate-docker-swarm-part4/>Docker Swarm を試す – その4</a><span class="px-1 text-primary-500">/</span>
+</li>
+</ol>
+<h1 class="mt-0 text-4xl font-extrabold text-neutral-900 dark:text-neutral">
+Docker Swarm を試す – その4
+</h1>
+<div class="mt-8 mb-12 text-base text-neutral-500 dark:text-neutral-400 print:hidden">
+<div class="flex flex-row flex-wrap items-center">
+<time datetime="2016-03-20 15:29:45 +0000 UTC">2016年3月20日</time>
+</div>
+<div class="flex flex-row flex-wrap items-center">
+<span style=margin-top:.5rem class=mr-2 onclick='window.open("/tags/docker/")'>
+<span class=flex>
+<span class="rounded-md border border-primary-400 px-1 py-[1px] text-xs font-normal text-primary-700 dark:border-primary-600 dark:text-primary-400">
+Docker
+</span>
+</span>
+</span>
+<span style=margin-top:.5rem class=mr-2 onclick='window.open("/tags/linux/")'>
+<span class=flex>
+<span class="rounded-md border border-primary-400 px-1 py-[1px] text-xs font-normal text-primary-700 dark:border-primary-600 dark:text-primary-400">
+Linux
+</span>
+</span>
+</span>
+<span style=margin-top:.5rem class=mr-2 onclick='window.open("/tags/swarm/")'>
+<span class=flex>
+<span class="rounded-md border border-primary-400 px-1 py-[1px] text-xs font-normal text-primary-700 dark:border-primary-600 dark:text-primary-400">
+Swarm
+</span>
+</span>
+</span>
+</div>
+</div>
+</header>
+<section class="flex flex-col max-w-full mt-0 prose dark:prose-invert lg:flex-row">
+<div class="order-first px-0 lg:order-last lg:max-w-xs ltr:lg:pl-8 rtl:lg:pr-8">
+<div class="toc ltr:pl-5 rtl:pr-5 print:hidden lg:sticky lg:top-10">
+<details open class="mt-0 overflow-hidden rounded-lg ltr:-ml-5 ltr:pl-5 rtl:-mr-5 rtl:pr-5 hidden lg:block">
+<summary class="block py-1 text-lg font-semibold cursor-pointer bg-neutral-100 text-neutral-800 ltr:-ml-5 ltr:pl-5 rtl:-mr-5 rtl:pr-5 dark:bg-neutral-700 dark:text-neutral-100 lg:hidden">
+目次
+</summary>
+<div class="py-2 border-dotted border-neutral-300 ltr:-ml-5 ltr:border-l ltr:pl-5 rtl:-mr-5 rtl:border-r rtl:pr-5 dark:border-neutral-600">
+<nav id=TableOfContents>
+<ul>
+<li>
+<ul>
+<li><a href=#kvs-として-consul-を立ち上げる>KVS として Consul を立ち上げる</a></li>
+<li><a href=#consul-を使った-swarm-クラスタを立ち上げる>Consul を使った Swarm クラスタを立ち上げる</a></li>
+<li><a href=#オーバーレイネットワークの作成>オーバーレイネットワークの作成</a></li>
+</ul>
+</li>
+</ul>
+</nav>
+</div>
+</details>
+<details class="mt-0 overflow-hidden rounded-lg ltr:-ml-5 ltr:pl-5 rtl:-mr-5 rtl:pr-5 lg:hidden">
+<summary class="py-1 text-lg font-semibold cursor-pointer bg-neutral-100 text-neutral-800 ltr:-ml-5 ltr:pl-5 rtl:-mr-5 rtl:pr-5 dark:bg-neutral-700 dark:text-neutral-100 lg:hidden">
+目次
+</summary>
+<div class="py-2 border-dotted border-neutral-300 ltr:-ml-5 ltr:border-l ltr:pl-5 rtl:-mr-5 rtl:border-r rtl:pr-5 dark:border-neutral-600">
+<nav id=TableOfContents>
+<ul>
+<li>
+<ul>
+<li><a href=#kvs-として-consul-を立ち上げる>KVS として Consul を立ち上げる</a></li>
+<li><a href=#consul-を使った-swarm-クラスタを立ち上げる>Consul を使った Swarm クラスタを立ち上げる</a></li>
+<li><a href=#オーバーレイネットワークの作成>オーバーレイネットワークの作成</a></li>
+</ul>
+</li>
+</ul>
+</nav>
+</div>
+</details>
+</div>
+</div>
+<div class="min-w-0 min-h-0 max-w-prose">
+<p>今回は <a href=https://docs.docker.com/engine/userguide/networking/get-started-overlay/>Get started with multi-host networking</a> に沿ってマルチホストでのオーバーレイネットワークを試してみます。</p>
+<h3 id=kvs-として-consul-を立ち上げる class="relative group">KVS として Consul を立ち上げる <span class="absolute top-0 w-6 transition-opacity opacity-0 ltr:-left-6 rtl:-right-6 not-prose group-hover:opacity-100"><a class="group-hover:text-primary-300 dark:group-hover:text-neutral-700" style=text-decoration-line:none!important href=#kvs-%e3%81%a8%e3%81%97%e3%81%a6-consul-%e3%82%92%e7%ab%8b%e3%81%a1%e4%b8%8a%e3%81%92%e3%82%8b aria-label=アンカー>#</a></span></h3>
+<p>まず mh-keystore という名前（名前はなんでも良い）の docker-machine を作成します。</p>
+<pre tabindex=0><code>$ docker-machine create -d virtualbox mh-keystore
+Running pre-create checks...
+Creating machine...
+(mh-keystore) Copying /home/ytera/.docker/machine/cache/boot2docker.iso to /home/ytera/.docker/machine/machines/mh-keystore/boot2docker.iso...
+(mh-keystore) Creating VirtualBox VM...
+(mh-keystore) Creating SSH key...
+(mh-keystore) Starting the VM...
+(mh-keystore) Check network to re-create if needed...
+(mh-keystore) Waiting for an IP...
+Waiting for machine to be running, this may take a few minutes...
+Detecting operating system of created instance...
+Waiting for SSH to be available...
+Detecting the provisioner...
+Provisioning with boot2docker...
+Copying certs to the local machine directory...
+Copying certs to the remote machine...
+Setting Docker configuration on the remote daemon...
+Checking connection to Docker...
+Docker is up and running!
+To see how to connect your Docker Client to the Docker Engine running on this virtual machine, run: docker-machine env mh-keystore
+</code></pre><p>環境変数を設定して</p>
+<pre tabindex=0><code>$ eval &quot;$(docker-machine env mh-keystore)&quot;
+</code></pre><p>Consul コンテナを起動します</p>
+<pre tabindex=0><code>$ docker run -d \
+&gt;     -p &quot;8500:8500&quot; \
+&gt;     -h &quot;consul&quot; \
+&gt;     progrium/consul -server -bootstrap
+Unable to find image 'progrium/consul:latest' locally
+latest: Pulling from progrium/consul
+c862d82a67a2: Pull complete 
+0e7f3c08384e: Pull complete 
+0e221e32327a: Pull complete 
+09a952464e47: Pull complete 
+60a1b927414d: Pull complete 
+4c9f46b5ccce: Pull complete 
+417d86672aa4: Pull complete 
+b0d47ad24447: Pull complete 
+fd5300bd53f0: Pull complete 
+a3ed95caeb02: Pull complete 
+d023b445076e: Pull complete 
+ba8851f89e33: Pull complete 
+5d1cefca2a28: Pull complete 
+Digest: sha256:8cc8023462905929df9a79ff67ee435a36848ce7a10f18d6d0faba9306b97274
+Status: Downloaded newer image for progrium/consul:latest
+2fe1bbb97506bd1aa975230125f26b0b1fd666a54f819769a28a99a981aceb21
+</code></pre><pre tabindex=0><code>$ docker ps
+CONTAINER ID        IMAGE               COMMAND                  CREATED             STATUS              PORTS                                                                            NAMES
+2fe1bbb97506        progrium/consul     &quot;/bin/start -server -&quot;   25 seconds ago      Up 24 seconds       53/tcp, 53/udp, 8300-8302/tcp, 8400/tcp, 8301-8302/udp, 0.0.0.0:8500-&gt;8500/tcp   admiring_brahmagupta
+</code></pre><h3 id=consul-を使った-swarm-クラスタを立ち上げる class="relative group">Consul を使った Swarm クラスタを立ち上げる <span class="absolute top-0 w-6 transition-opacity opacity-0 ltr:-left-6 rtl:-right-6 not-prose group-hover:opacity-100"><a class="group-hover:text-primary-300 dark:group-hover:text-neutral-700" style=text-decoration-line:none!important href=#consul-%e3%82%92%e4%bd%bf%e3%81%a3%e3%81%9f-swarm-%e3%82%af%e3%83%a9%e3%82%b9%e3%82%bf%e3%82%92%e7%ab%8b%e3%81%a1%e4%b8%8a%e3%81%92%e3%82%8b aria-label=アンカー>#</a></span></h3>
+<p><a href=/2016/03/evaluate-docker-swarm-part1/>Docker Swarm を試す – その１</a> で試した Swarm クラスタは docker-machine を作成した後にその上で swarm コンテナを起動しましたが、今回は dcoker-machine create コマンドで swarm まで起動しちゃうようです</p>
+<pre tabindex=0><code>$ docker-machine create \
+&gt; -d virtualbox \
+&gt; --swarm --swarm-master \
+&gt; --swarm-discovery=&quot;consul://$(docker-machine ip mh-keystore):8500&quot; \
+&gt; --engine-opt=&quot;cluster-store=consul://$(docker-machine ip mh-keystore):8500&quot; \
+&gt; --engine-opt=&quot;cluster-advertise=eth1:2376&quot; \
+&gt; mhs-demo0
+Running pre-create checks...
+Creating machine...
+(mhs-demo0) Copying /home/ytera/.docker/machine/cache/boot2docker.iso to /home/ytera/.docker/machine/machines/mhs-demo0/boot2docker.iso...
+(mhs-demo0) Creating VirtualBox VM...
+(mhs-demo0) Creating SSH key...
+(mhs-demo0) Starting the VM...
+(mhs-demo0) Check network to re-create if needed...
+(mhs-demo0) Waiting for an IP...
+Waiting for machine to be running, this may take a few minutes...
+Detecting operating system of created instance...
+Waiting for SSH to be available...
+Detecting the provisioner...
+Provisioning with boot2docker...
+Copying certs to the local machine directory...
+Copying certs to the remote machine...
+Setting Docker configuration on the remote daemon...
+Configuring swarm...
+Checking connection to Docker...
+Docker is up and running!
+To see how to connect your Docker Client to the Docker Engine running on this virtual machine, run: docker-machine env mhs-demo0
+</code></pre><p>master と agent の2つのコンテナが起動しています</p>
+<pre tabindex=0><code>$ DOCKER_HOST=$(docker-machine ip mhs-demo0):2376 docker ps
+CONTAINER ID        IMAGE               COMMAND                  CREATED             STATUS              PORTS               NAMES
+20681dcbb76e        swarm:latest        &quot;/swarm join --advert&quot;   39 seconds ago      Up 39 seconds                           swarm-agent
+51e3f21e92f2        swarm:latest        &quot;/swarm manage --tlsv&quot;   44 seconds ago      Up 43 seconds                           swarm-agent-master
+</code></pre><p>もう一個 docker-machine を作成する</p>
+<pre tabindex=0><code>$ docker-machine create -d virtualbox \
+&gt;     --swarm \
+&gt;     --swarm-discovery=&quot;consul://$(docker-machine ip mh-keystore):8500&quot; \
+&gt;     --engine-opt=&quot;cluster-store=consul://$(docker-machine ip mh-keystore):8500&quot; \
+&gt;     --engine-opt=&quot;cluster-advertise=eth1:2376&quot; \
+&gt;   mhs-demo1
+Running pre-create checks...
+Creating machine...
+(mhs-demo1) Copying /home/ytera/.docker/machine/cache/boot2docker.iso to /home/ytera/.docker/machine/machines/mhs-demo1/boot2docker.iso...
+(mhs-demo1) Creating VirtualBox VM...
+(mhs-demo1) Creating SSH key...
+(mhs-demo1) Starting the VM...
+(mhs-demo1) Check network to re-create if needed...
+(mhs-demo1) Waiting for an IP...
+Waiting for machine to be running, this may take a few minutes...
+Detecting operating system of created instance...
+Waiting for SSH to be available...
+Detecting the provisioner...
+Provisioning with boot2docker...
+Copying certs to the local machine directory...
+Copying certs to the remote machine...
+Setting Docker configuration on the remote daemon...
+Configuring swarm...
+Checking connection to Docker...
+Docker is up and running!
+To see how to connect your Docker Client to the Docker Engine running on this virtual machine, run: docker-machine env mhs-demo1
+</code></pre><p>こちらは agent がひとつだけ</p>
+<pre tabindex=0><code>$ DOCKER_HOST=$(docker-machine ip mhs-demo1):2376 docker ps
+CONTAINER ID        IMAGE               COMMAND                  CREATED             STATUS              PORTS               NAMES
+94dc04993723        swarm:latest        &quot;/swarm join --advert&quot;   5 seconds ago       Up 5 seconds                            swarm-agent
+</code></pre><p>mhs-demo0 が SWARM の master になっているようです</p>
+<pre tabindex=0><code>$ docker-machine ls
+NAME          ACTIVE   DRIVER       STATE     URL                         SWARM                DOCKER    ERRORS
+mh-keystore   *        virtualbox   Running   tcp://192.168.99.103:2376                        v1.10.3   
+mhs-demo0     -        virtualbox   Running   tcp://192.168.99.104:2376   mhs-demo0 (master)   v1.10.3   
+mhs-demo1     -        virtualbox   Running   tcp://192.168.99.105:2376   mhs-demo0            v1.10.3
+</code></pre><p><code>docker-machine env</code> に <code>--swarm</code> をつけると Swarm クラスタとしてアクセスするための値が返されます</p>
+<pre tabindex=0><code>$ docker-machine env --swarm mhs-demo0
+export DOCKER_TLS_VERIFY=&quot;1&quot;
+export DOCKER_HOST=&quot;tcp://192.168.99.104:3376&quot;
+export DOCKER_CERT_PATH=&quot;/home/ytera/.docker/machine/machines/mhs-demo0&quot;
+export DOCKER_MACHINE_NAME=&quot;mhs-demo0&quot;
+# Run this command to configure your shell: 
+# eval $(docker-machine env --swarm mhs-demo0)
+</code></pre><p><code>--swarm</code> をつけないとこんな感じで docker-machine 単体となる</p>
+<pre tabindex=0><code>$ docker-machine env mhs-demo0
+export DOCKER_TLS_VERIFY=&quot;1&quot;
+export DOCKER_HOST=&quot;tcp://192.168.99.104:2376&quot;
+export DOCKER_CERT_PATH=&quot;/home/ytera/.docker/machine/machines/mhs-demo0&quot;
+export DOCKER_MACHINE_NAME=&quot;mhs-demo0&quot;
+# Run this command to configure your shell: 
+# eval $(docker-machine env mhs-demo0)
+</code></pre><p>master ではない node で <code>--swarm</code> をつけるとエラーになる</p>
+<pre tabindex=0><code>$ docker-machine env --swarm mhs-demo1
+Error checking TLS connection: &quot;mhs-demo1&quot; is not a swarm master. The --swarm flag is intended for use with swarm masters
+</code></pre><p>クラスタ情報の確認 2台のクラスタになっていることが確認できます</p>
+<pre tabindex=0><code>$ eval $(docker-machine env --swarm mhs-demo0)
+$ docker info
+Containers: 3
+ Running: 3
+ Paused: 0
+ Stopped: 0
+Images: 2
+Server Version: swarm/1.1.3
+Role: primary
+Strategy: spread
+Filters: health, port, dependency, affinity, constraint
+Nodes: 2
+ mhs-demo0: 192.168.99.104:2376
+  └ Status: Healthy
+  └ Containers: 2
+  └ Reserved CPUs: 0 / 1
+  └ Reserved Memory: 0 B / 1.021 GiB
+  └ Labels: executiondriver=native-0.2, kernelversion=4.1.19-boot2docker, operatingsystem=Boot2Docker 1.10.3 (TCL 6.4.1); master : 625117e - Thu Mar 10 22:09:02 UTC 2016, provider=virtualbox, storagedriver=aufs
+  └ Error: (none)
+  └ UpdatedAt: 2016-03-18T16:01:05Z
+ mhs-demo1: 192.168.99.105:2376
+  └ Status: Healthy
+  └ Containers: 1
+  └ Reserved CPUs: 0 / 1
+  └ Reserved Memory: 0 B / 1.021 GiB
+  └ Labels: executiondriver=native-0.2, kernelversion=4.1.19-boot2docker, operatingsystem=Boot2Docker 1.10.3 (TCL 6.4.1); master : 625117e - Thu Mar 10 22:09:02 UTC 2016, provider=virtualbox, storagedriver=aufs
+  └ Error: (none)
+  └ UpdatedAt: 2016-03-18T16:00:59Z
+Plugins: 
+ Volume: 
+ Network: 
+Kernel Version: 4.1.19-boot2docker
+Operating System: linux
+Architecture: amd64
+CPUs: 2
+Total Memory: 2.043 GiB
+Name: mhs-demo0
+</code></pre><h3 id=オーバーレイネットワークの作成 class="relative group">オーバーレイネットワークの作成 <span class="absolute top-0 w-6 transition-opacity opacity-0 ltr:-left-6 rtl:-right-6 not-prose group-hover:opacity-100"><a class="group-hover:text-primary-300 dark:group-hover:text-neutral-700" style=text-decoration-line:none!important href=#%e3%82%aa%e3%83%bc%e3%83%90%e3%83%bc%e3%83%ac%e3%82%a4%e3%83%8d%e3%83%83%e3%83%88%e3%83%af%e3%83%bc%e3%82%af%e3%81%ae%e4%bd%9c%e6%88%90 aria-label=アンカー>#</a></span></h3>
+<pre tabindex=0><code>$ eval $(docker-machine env --swarm mhs-demo0)
+$ docker network ls
+NETWORK ID          NAME                DRIVER
+566f51fbecf4        mhs-demo0/bridge    bridge              
+408cc854d4e2        mhs-demo1/bridge    bridge              
+f84f99d835f6        mhs-demo1/none      null                
+cecd093423fe        mhs-demo1/host      host                
+5fa9569a1b20        mhs-demo0/none      null                
+c7871366f2d5        mhs-demo0/host      host
+</code></pre><pre tabindex=0><code>$ DOCKER_HOST=$(docker-machine ip mhs-demo0):2376 docker network ls
+NETWORK ID          NAME                DRIVER
+566f51fbecf4        bridge              bridge              
+5fa9569a1b20        none                null                
+c7871366f2d5        host                host
+</code></pre><pre tabindex=0><code>$ DOCKER_HOST=$(docker-machine ip mhs-demo1):2376 docker network ls
+NETWORK ID          NAME                DRIVER
+f84f99d835f6        none                null                
+cecd093423fe        host                host                
+408cc854d4e2        bridge              bridge
+</code></pre><pre tabindex=0><code>$ eval $(docker-machine env --swarm mhs-demo0)
+$ docker network create --driver overlay --subnet=10.0.9.0/24 my-net
+5fa661090e5d418c4c87fcfb90b87468cb8b9a027239090cd16d020c8a183016
+$ docker network ls
+NETWORK ID          NAME                DRIVER
+408cc854d4e2        mhs-demo1/bridge    bridge              
+f84f99d835f6        mhs-demo1/none      null                
+5fa9569a1b20        mhs-demo0/none      null                
+5fa661090e5d        my-net              overlay             
+c7871366f2d5        mhs-demo0/host      host                
+566f51fbecf4        mhs-demo0/bridge    bridge              
+cecd093423fe        mhs-demo1/host      host
+</code></pre><p><code>--subnet</code> はちゃんと考えて指定しましょうとのこと。省略すると自動で採番されるけど、既存ネットワークとかぶると通信できないよと。 個別の docker-machine で見ても overlay の my-net が確認できます</p>
+<pre tabindex=0><code>$ DOCKER_HOST=$(docker-machine ip mhs-demo0):2376 docker network ls
+NETWORK ID          NAME                DRIVER
+5fa661090e5d        my-net              overlay             
+566f51fbecf4        bridge              bridge              
+5fa9569a1b20        none                null                
+c7871366f2d5        host                host                
+</code></pre><pre tabindex=0><code>$ DOCKER_HOST=$(docker-machine ip mhs-demo1):2376 docker network ls
+NETWORK ID          NAME                DRIVER
+5fa661090e5d        my-net              overlay             
+cecd093423fe        host                host                
+408cc854d4e2        bridge              bridge              
+f84f99d835f6        none                null
+</code></pre><p>nginx を mhs-demo0 で実行します。<code>--env="constraint:node==mhs-demo0"</code> で実行ノードを指定することができるんですね</p>
+<pre tabindex=0><code>$ docker run -itd --name=web --net=my-net --env=&quot;constraint:node==mhs-demo0&quot; nginx
+bf918047d0dd862ef5d60dc119ae846c8abe8c114165a45bf889164903ad2712
+</code></pre><pre tabindex=0><code>$ docker ps
+CONTAINER ID        IMAGE               COMMAND                  CREATED             STATUS              PORTS               NAMES
+bf918047d0dd        nginx               &quot;nginx -g 'daemon off&quot;   12 seconds ago      Up 11 seconds       80/tcp, 443/tcp     mhs-demo0/web
+</code></pre><p>mhs-demo1 で busybox を起動してその中から wget で先の nginx にアクセスします</p>
+<pre tabindex=0><code>$ docker run -it --rm --net=my-net --env=&quot;constraint:node==mhs-demo1&quot; busybox wget -O- http://web
+Connecting to web (10.0.9.2:80)
+&lt;!DOCTYPE html&gt;
+&lt;html&gt;
+&lt;head&gt;
+&lt;title&gt;Welcome to nginx!&lt;/title&gt;
+&lt;style&gt;
+    body {
+        width: 35em;
+        margin: 0 auto;
+        font-family: Tahoma, Verdana, Arial, sans-serif;
+    }
+&lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+&lt;h1&gt;Welcome to nginx!&lt;/h1&gt;
+&lt;p&gt;If you see this page, the nginx web server is successfully installed and
+working. Further configuration is required.&lt;/p&gt;
+
+&lt;p&gt;For online documentation and support please refer to
+&lt;a href=&quot;http://nginx.org/&quot;&gt;nginx.org&lt;/a&gt;.&lt;br/&gt;
+Commercial support is available at
+&lt;a href=&quot;http://nginx.com/&quot;&gt;nginx.com&lt;/a&gt;.&lt;/p&gt;
+</code></pre><p>busybox には wget も入ってるんですね。あのサイズで。
+web という名前で 10.0.9.2 にアクセスできています。これは誰が DNS サーバーとして返してくれているのだろうか？
+<code>/etc/resolv.conf</code> は次のようになっています。</p>
+<pre tabindex=0><code>nameserver 127.0.0.11
+options ndots:0
+</code></pre><p>127.0.0.11 ってことは loopback デバイスだから同一ホスト上にいるということだから docker か swarm-agent に DNS サーバー機能があるっぽい</p>
+<p><a href=https://docs.docker.com/engine/userguide/networking/dockernetworks/#docker-embedded-dns-server>Docker embedded DNS server</a> というものがあるようで、docker だったようです。</p>
+<p>Docker の名前解決関連だと /etc/resolv.conf や /etc/hosts などはどうやって書き換えてるのかなって思ってたけど、こんなことになってるんですね</p>
+<pre tabindex=0><code>/dev/sda1 on /etc/resolv.conf type ext4 (rw,relatime,data=ordered)
+/dev/sda1 on /etc/hostname type ext4 (rw,relatime,data=ordered)
+/dev/sda1 on /etc/hosts type ext4 (rw,relatime,data=ordered)
+</code></pre><p>試しに ubuntu コンテナを起動して dig で問い合わせてみる。www.google.com でも答えてくれる</p>
+<pre tabindex=0><code># dig +short @127.0.0.11 web a
+10.0.9.2
+# dig +short @127.0.0.11 www.google.com a
+216.58.197.196
+</code></pre><p>ところで、docker コンテナを起動させたら docker_gwbridge というネットワークが現れましたね</p>
+<pre tabindex=0><code>$ docker network ls
+NETWORK ID          NAME                        DRIVER
+9fbf2f30b09b        my-net                      overlay             
+efde1746d319        mhs-demo0/bridge            bridge              
+7ace1816bf3e        mhs-demo0/docker_gwbridge   bridge              
+dac21ff6debc        mhs-demo1/docker_gwbridge   bridge              
+ca19cb9ed0fe        mhs-demo1/bridge            bridge              
+2f3cec420273        mhs-demo0/none              null                
+9eca025e3f23        mhs-demo0/host              host                
+fdb80d5fdc3a        mhs-demo1/none              null                
+6533ca5a6b39        mhs-demo1/host              host
+</code></pre><p>それぞれの docker-machine にできてます</p>
+<pre tabindex=0><code>$ DOCKER_HOST=$(docker-machine ip mhs-demo1):2376 docker network ls
+NETWORK ID          NAME                DRIVER
+ca19cb9ed0fe        bridge              bridge              
+fdb80d5fdc3a        none                null                
+6533ca5a6b39        host                host                
+dac21ff6debc        docker_gwbridge     bridge              
+9fbf2f30b09b        my-net              overlay
+</code></pre><pre tabindex=0><code>$ DOCKER_HOST=$(docker-machine ip mhs-demo0):2376 docker network ls
+NETWORK ID          NAME                DRIVER
+9fbf2f30b09b        my-net              overlay             
+efde1746d319        bridge              bridge              
+2f3cec420273        none                null                
+9eca025e3f23        host                host                
+7ace1816bf3e        docker_gwbridge     bridge
+</code></pre><p>それぞれを <code>docker network inspect</code> で見てみます</p>
+<pre tabindex=0><code>$ docker network inspect mhs-demo0/docker_gwbridge
+[
+    {
+        &quot;Name&quot;: &quot;docker_gwbridge&quot;,
+        &quot;Id&quot;: &quot;7ace1816bf3e76eac53393808478bef4c6a6dfa91f86fbba413990489fff7955&quot;,
+        &quot;Scope&quot;: &quot;local&quot;,
+        &quot;Driver&quot;: &quot;bridge&quot;,
+        &quot;IPAM&quot;: {
+            &quot;Driver&quot;: &quot;default&quot;,
+            &quot;Options&quot;: null,
+            &quot;Config&quot;: [
+                {
+                    &quot;Subnet&quot;: &quot;172.18.0.0/16&quot;,
+                    &quot;Gateway&quot;: &quot;172.18.0.1/16&quot;
+                }
+            ]
+        },
+        &quot;Containers&quot;: {},
+        &quot;Options&quot;: {
+            &quot;com.docker.network.bridge.enable_icc&quot;: &quot;false&quot;,
+            &quot;com.docker.network.bridge.enable_ip_masquerade&quot;: &quot;true&quot;,
+            &quot;com.docker.network.bridge.name&quot;: &quot;docker_gwbridge&quot;
+        }
+    }
+]
+</code></pre><pre tabindex=0><code>$ docker network inspect mhs-demo0/bridge
+[
+    {
+        &quot;Name&quot;: &quot;bridge&quot;,
+        &quot;Id&quot;: &quot;efde1746d3196225e68f47508882d7d5b3d118aef886b6040f322a58647a430a&quot;,
+        &quot;Scope&quot;: &quot;local&quot;,
+        &quot;Driver&quot;: &quot;bridge&quot;,
+        &quot;IPAM&quot;: {
+            &quot;Driver&quot;: &quot;default&quot;,
+            &quot;Options&quot;: null,
+            &quot;Config&quot;: [
+                {
+                    &quot;Subnet&quot;: &quot;172.17.0.0/16&quot;
+                }
+            ]
+        },
+        &quot;Containers&quot;: {},
+        &quot;Options&quot;: {
+            &quot;com.docker.network.bridge.default_bridge&quot;: &quot;true&quot;,
+            &quot;com.docker.network.bridge.enable_icc&quot;: &quot;true&quot;,
+            &quot;com.docker.network.bridge.enable_ip_masquerade&quot;: &quot;true&quot;,
+            &quot;com.docker.network.bridge.host_binding_ipv4&quot;: &quot;0.0.0.0&quot;,
+            &quot;com.docker.network.bridge.name&quot;: &quot;docker0&quot;,
+            &quot;com.docker.network.driver.mtu&quot;: &quot;1500&quot;
+        }
+    }
+]
+</code></pre><pre tabindex=0><code>$ docker network inspect my-net
+[
+    {
+        &quot;Name&quot;: &quot;my-net&quot;,
+        &quot;Id&quot;: &quot;9fbf2f30b09bbe17457a116c64af2d59291b61efc11c34a006a2013583bb54e4&quot;,
+        &quot;Scope&quot;: &quot;global&quot;,
+        &quot;Driver&quot;: &quot;overlay&quot;,
+        &quot;IPAM&quot;: {
+            &quot;Driver&quot;: &quot;default&quot;,
+            &quot;Options&quot;: null,
+            &quot;Config&quot;: [
+                {
+                    &quot;Subnet&quot;: &quot;10.0.9.0/24&quot;
+                }
+            ]
+        },
+        &quot;Containers&quot;: {},
+        &quot;Options&quot;: {}
+    }
+]
+</code></pre><pre tabindex=0><code>$ docker network inspect mhs-demo0/host
+[
+    {
+        &quot;Name&quot;: &quot;host&quot;,
+        &quot;Id&quot;: &quot;9eca025e3f23c5fb7b66063dd09b74dbb0a19e0ab5f1438f65ff9d83c28a2bf6&quot;,
+        &quot;Scope&quot;: &quot;local&quot;,
+        &quot;Driver&quot;: &quot;host&quot;,
+        &quot;IPAM&quot;: {
+            &quot;Driver&quot;: &quot;default&quot;,
+            &quot;Options&quot;: null,
+            &quot;Config&quot;: []
+        },
+        &quot;Containers&quot;: {
+            &quot;0a0c6293b4d31f439ff131ce57809e28feb91ce7a6f59a5d47d4fa22d28c1114&quot;: {
+                &quot;Name&quot;: &quot;swarm-agent-master&quot;,
+                &quot;EndpointID&quot;: &quot;22ff3f4019ce59162b87964078ae9328660a52b1c364043509bae3a427c402e4&quot;,
+                &quot;MacAddress&quot;: &quot;&quot;,
+                &quot;IPv4Address&quot;: &quot;&quot;,
+                &quot;IPv6Address&quot;: &quot;&quot;
+            },
+            &quot;4614fed35665803693ac4702793b004ed89ca5f11e8f1673974ebe307dabee41&quot;: {
+                &quot;Name&quot;: &quot;swarm-agent&quot;,
+                &quot;EndpointID&quot;: &quot;4b1464dc76486835a42702281ed7714ef65bf900a385164c47bc6d44837113e1&quot;,
+                &quot;MacAddress&quot;: &quot;&quot;,
+                &quot;IPv4Address&quot;: &quot;&quot;,
+                &quot;IPv6Address&quot;: &quot;&quot;
+            }
+        },
+        &quot;Options&quot;: {}
+    }
+]
+</code></pre><pre tabindex=0><code>$ docker network inspect mhs-demo0/none
+[
+    {
+        &quot;Name&quot;: &quot;none&quot;,
+        &quot;Id&quot;: &quot;2f3cec4202730f0191ff6547f73da9ffa695367418fe34e98a3375d53abe71bd&quot;,
+        &quot;Scope&quot;: &quot;local&quot;,
+        &quot;Driver&quot;: &quot;null&quot;,
+        &quot;IPAM&quot;: {
+            &quot;Driver&quot;: &quot;default&quot;,
+            &quot;Options&quot;: null,
+            &quot;Config&quot;: []
+        },
+        &quot;Containers&quot;: {},
+        &quot;Options&quot;: {}
+    }
+]
+
+</code></pre><p>nginx コンテナで interface を確認してみます。<code>my-net</code> と <code>docker_gwbridge</code> が割り当てられています</p>
+<pre tabindex=0><code>$ docker exec web ip addr
+1: lo: mtu 65536 qdisc noqueue state UNKNOWN group default 
+    link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
+    inet 127.0.0.1/8 scope host lo
+       valid_lft forever preferred_lft forever
+    inet6 ::1/128 scope host 
+       valid_lft forever preferred_lft forever
+9: eth0@if10: mtu 1450 qdisc noqueue state UP group default 
+    link/ether 02:42:0a:00:09:02 brd ff:ff:ff:ff:ff:ff
+    inet 10.0.9.2/24 scope global eth0
+       valid_lft forever preferred_lft forever
+    inet6 fe80::42:aff:fe00:902/64 scope link 
+       valid_lft forever preferred_lft forever
+12: eth1@if13: mtu 1500 qdisc noqueue state UP group default 
+    link/ether 02:42:ac:12:00:02 brd ff:ff:ff:ff:ff:ff
+    inet 172.18.0.2/16 scope global eth1
+       valid_lft forever preferred_lft forever
+    inet6 fe80::42:acff:fe12:2/64 scope link 
+       valid_lft forever preferred_lft forever 
+</code></pre><pre tabindex=0><code>$ docker exec web ip r
+default via 172.18.0.1 dev eth1 
+10.0.9.0/24 dev eth0  proto kernel  scope link  src 10.0.9.2 
+172.18.0.0/16 dev eth1  proto kernel  scope link  src 172.18.0.2
+</code></pre><pre tabindex=0><code>$ docker exec -t web ping -c 3 8.8.8.8
+PING 8.8.8.8 (8.8.8.8): 56 data bytes
+64 bytes from 8.8.8.8: icmp_seq=0 ttl=61 time=13.327 ms
+64 bytes from 8.8.8.8: icmp_seq=1 ttl=61 time=13.003 ms
+64 bytes from 8.8.8.8: icmp_seq=2 ttl=61 time=13.236 ms
+--- 8.8.8.8 ping statistics ---
+3 packets transmitted, 3 packets received, 0% packet loss
+round-trip min/avg/max/stddev = 13.003/13.189/13.327/0.136 ms
+</code></pre><p><code>my-net</code> を使わない場合は 172.17.0.0/16 のアドレスなので <code>bridge</code> が割り当てられています</p>
+<pre tabindex=0><code>$ docker run -it --rm busybox ip a
+1: lo: mtu 65536 qdisc noqueue 
+    link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
+    inet 127.0.0.1/8 scope host lo
+       valid_lft forever preferred_lft forever
+    inet6 ::1/128 scope host 
+       valid_lft forever preferred_lft forever
+44: eth0@if45: mtu 1500 qdisc noqueue 
+    link/ether 02:42:ac:11:00:02 brd ff:ff:ff:ff:ff:ff
+    inet 172.17.0.2/16 scope global eth0
+       valid_lft forever preferred_lft forever
+    inet6 fe80::42:acff:fe11:2/64 scope link tentative 
+       valid_lft forever preferred_lft forever 
+</code></pre><p>さて、オーバーレイ・ネットワークがない場合とどう違うの？というところですが</p>
+<pre tabindex=0><code>$ docker run -itd --name=web2 --env=&quot;constraint:node==mhs-demo0&quot; nginx
+c3c0131cb7881652f2e27768184a29767728d33cc3be6d66c0fdbc79d8c66459
+
+$ docker run -it --rm --env=&quot;constraint:node==mhs-demo1&quot; busybox wget -O- http://web2
+wget: bad address 'web2'
+</code></pre><p>名前解決ができませんね、IP アドレスで試してみましょう</p>
+<pre tabindex=0><code>$ docker exec -it web2 ip a
+1: lo: mtu 65536 qdisc noqueue state UNKNOWN group default 
+    link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
+    inet 127.0.0.1/8 scope host lo
+       valid_lft forever preferred_lft forever
+    inet6 ::1/128 scope host 
+       valid_lft forever preferred_lft forever
+14: eth0@if15: mtu 1500 qdisc noqueue state UP group default 
+    link/ether 02:42:ac:11:00:02 brd ff:ff:ff:ff:ff:ff
+    inet 172.17.0.2/16 scope global eth0
+       valid_lft forever preferred_lft forever
+    inet6 fe80::42:acff:fe11:2/64 scope link 
+       valid_lft forever preferred_lft forever
+
+$ docker run -it --rm --env=&quot;constraint:node==mhs-demo1&quot; busybox wget -O - http://172.17.0.2
+Connecting to 172.17.0.2 (172.17.0.2:80)
+wget: can't connect to remote host (172.17.0.2): Connection refused 
+</code></pre><p>IP アドレスで指定しても通信できませんね。
+nginx と wget を実行するコンテナを同一ホスト(docker-machine)で実行するとどうでしょうか</p>
+<pre tabindex=0><code>$ docker run -it --rm --env=&quot;constraint:node==mhs-demo0&quot; busybox wget -O - http://172.17.0.2
+Connecting to 172.17.0.2 (172.17.0.2:80)
+
+Welcome to nginx!
+ body {
+        width: 35em;
+        margin: 0 auto;
+        font-family: Tahoma, Verdana, Arial, sans-serif;
+    } 
+
+Welcome to nginx!
+=================
+
+If you see this page, the nginx web server is successfully installed and
+working. Further configuration is required.
+
+For online documentation and support please refer to
+[nginx.org](http://nginx.org/).  
+Commercial support is available at
+[nginx.com](http://nginx.com/).
+
+_Thank you for using nginx._
+
+-                    100% |*******************************|   612   0:00:00 ETA
+</code></pre><p>つながりましたね。</p>
+<p>オーバーレイ・ネットワークがない状態の場合、2つの docker-machine がそれぞれ同じネットワークセグメントを独立して持っているためにお互いに通信ができませんでした。名前解決もできません。複数台の docker-machine を使う場合はオーバーレイ・ネットワークがとても便利です。</p>
+</div>
+<script>var liked_article=!1,oid,id,viewed,oid_likes,id_likes,liked;typeof auth!='undefined'&&(oid="views_posts/evaluate-docker-swarm-part4.md",id=oid&&oid.replaceAll("/","-"),viewed=localStorage.getItem(id),viewed||auth.signInAnonymously().then(()=>{var a=db.collection('views').doc(id);localStorage.setItem(id,!0),a.get().then(a=>{a.exists?db.collection('views').doc(id).update({views:firebase.firestore.FieldValue.increment(1)}):db.collection('views').doc(id).set({views:1})}).catch(a=>{console.log("Error getting document:",a)})}).catch(a=>{var b=a.code,c=a.message;console.error(b,c)}),oid_likes="likes_posts/evaluate-docker-swarm-part4.md",id_likes=oid_likes&&oid_likes.replaceAll("/","-"),liked=localStorage.getItem(id_likes),liked&&(liked_article=!0,document.querySelectorAll("button[id='likes_button']")[0].innerText="Remove Like"));function like_article(a){console.log("add"),liked_article=!0,localStorage.setItem(a,!0),document.querySelectorAll("button[id='likes_button']")[0].innerText="Remove Like",auth.signInAnonymously().then(()=>{var b=db.collection('likes').doc(a);b.get().then(b=>{b.exists?db.collection('likes').doc(a).update({likes:firebase.firestore.FieldValue.increment(1)}):db.collection('likes').doc(a).set({likes:1})}).catch(a=>{console.log("Error getting document:",a)})}).catch(a=>{var b=a.code,c=a.message;console.error(b,c)})}function remove_like_article(a){console.log("remove"),liked_article=!1,localStorage.setItem(a,!1),document.querySelectorAll("button[id='likes_button']")[0].innerText="Like",auth.signInAnonymously().then(()=>{var b=db.collection('likes').doc(a);b.get().then(b=>{b.exists?db.collection('likes').doc(a).update({likes:firebase.firestore.FieldValue.increment(-1)}):db.collection('likes').doc(a).set({likes:0})}).catch(a=>{console.log("Error getting document:",a)})}).catch(a=>{var b=a.code,c=a.message;console.error(b,c)})}function process_article(){var a="likes_posts/evaluate-docker-swarm-part4.md",b=a&&a.replaceAll("/","-");liked_article?remove_like_article(b):like_article(b)}</script>
+</section>
+<footer class="pt-8 max-w-prose print:hidden">
+<div class=flex>
+<div class=place-self-center>
+<div class="text-[0.6rem] uppercase leading-3 text-neutral-500 dark:text-neutral-400">
+著者
+</div>
+<div class="font-semibold leading-6 text-neutral-800 dark:text-neutral-300">
+Yoshinori Teraoka
+</div>
+<div class="text-2xl sm:text-lg">
+<div class="flex flex-wrap text-neutral-400 dark:text-neutral-500">
+<a class="px-1 hover:text-primary-700 dark:hover:text-primary-400" href=https://twitter.com/yteraoka target=_blank aria-label=Twitter rel="me noopener noreferrer">
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentcolor" d="M459.37 151.716c.325 4.548.325 9.097.325 13.645.0 138.72-105.583 298.558-298.558 298.558-59.452.0-114.68-17.219-161.137-47.106 8.447.974 16.568 1.299 25.34 1.299 49.055.0 94.213-16.568 130.274-44.832-46.132-.975-84.792-31.188-98.112-72.772 6.498.974 12.995 1.624 19.818 1.624 9.421.0 18.843-1.3 27.614-3.573-48.081-9.747-84.143-51.98-84.143-102.985v-1.299c13.969 7.797 30.214 12.67 47.431 13.319-28.264-18.843-46.781-51.005-46.781-87.391.0-19.492 5.197-37.36 14.294-52.954 51.655 63.675 129.3 105.258 216.365 109.807-1.624-7.797-2.599-15.918-2.599-24.04.0-57.828 46.782-104.934 104.934-104.934 30.213.0 57.502 12.67 76.67 33.137 23.715-4.548 46.456-13.32 66.599-25.34-7.798 24.366-24.366 44.833-46.132 57.827 21.117-2.273 41.584-8.122 60.426-16.243-14.292 20.791-32.161 39.308-52.628 54.253z"/></svg>
+</span>
+</a>
+<a class="px-1 hover:text-primary-700 dark:hover:text-primary-400" href=https://github.com/yteraoka target=_blank aria-label=Github rel="me noopener noreferrer">
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><path fill="currentcolor" d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6.0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6.0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3.0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1.0-6.2-.3-40.4-.3-61.4.0.0-70 15-84.7-29.8.0.0-11.4-29.1-27.8-36.6.0.0-22.9-15.7 1.6-15.4.0.0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5.0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9.0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4.0 33.7-.3 75.4-.3 83.6.0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6.0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9.0-6.2-1.4-2.3-4-3.3-5.6-2z"/></svg>
+</span>
+</a>
+<a class="px-1 hover:text-primary-700 dark:hover:text-primary-400" href=https://linkedin.com/in/fa5b66b7-9c77-4e1b-8b97-40ba4a5a2c13/ target=_blank aria-label=Linkedin rel="me noopener noreferrer">
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path fill="currentcolor" d="M416 32H31.9C14.3 32 0 46.5.0 64.3v383.4C0 465.5 14.3 480 31.9 480H416c17.6.0 32-14.5 32-32.3V64.3c0-17.8-14.4-32.3-32-32.3zM135.4 416H69V202.2h66.5V416zm-33.2-243c-21.3.0-38.5-17.3-38.5-38.5S80.9 96 102.2 96c21.2.0 38.5 17.3 38.5 38.5.0 21.3-17.2 38.5-38.5 38.5zm282.1 243h-66.4V312c0-24.8-.5-56.7-34.5-56.7-34.6.0-39.9 27-39.9 54.9V416h-66.4V202.2h63.7v29.2h.9c8.9-16.8 30.6-34.5 62.9-34.5 67.2.0 79.7 44.3 79.7 101.9V416z"/></svg>
+</span>
+</a>
+<a class="px-1 hover:text-primary-700 dark:hover:text-primary-400" href=https://medium.com/@yteraoka target=_blank aria-label=Medium rel="me noopener noreferrer">
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512"><path fill="currentcolor" d="M180.5 74.262C80.813 74.262.0 155.633.0 256S80.819 437.738 180.5 437.738 361 356.373 361 256 280.191 74.262 180.5 74.262zm288.25 10.646c-49.845.0-90.245 76.619-90.245 171.095s40.406 171.1 90.251 171.1 90.251-76.619 90.251-171.1H559C559 161.5 518.6 84.908 468.752 84.908zm139.506 17.821c-17.526.0-31.735 68.628-31.735 153.274s14.2 153.274 31.735 153.274S640 340.631 640 256c0-84.649-14.215-153.271-31.742-153.271z"/></svg>
+</span>
+</a>
+</div>
+</div>
+</div>
+</div>
+<section class="flex flex-row flex-wrap justify-center pt-4 text-xl">
+<a class="m-1 inline-block min-w-[2.4rem] rounded bg-neutral-300 p-1 text-center text-neutral-700 hover:bg-primary-500 hover:text-neutral dark:bg-neutral-700 dark:text-neutral-300 dark:hover:bg-primary-400 dark:hover:text-neutral-800" href="https://www.linkedin.com/shareArticle?mini=true&url=https://preview-blog.1q77.com/2016/03/evaluate-docker-swarm-part4/&title=Docker%20Swarm%20%e3%82%92%e8%a9%a6%e3%81%99%20%e2%80%93%20%e3%81%9d%e3%81%ae4" title=LinkedInでシェアする aria-label=LinkedInでシェアする>
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path fill="currentcolor" d="M416 32H31.9C14.3 32 0 46.5.0 64.3v383.4C0 465.5 14.3 480 31.9 480H416c17.6.0 32-14.5 32-32.3V64.3c0-17.8-14.4-32.3-32-32.3zM135.4 416H69V202.2h66.5V416zm-33.2-243c-21.3.0-38.5-17.3-38.5-38.5S80.9 96 102.2 96c21.2.0 38.5 17.3 38.5 38.5.0 21.3-17.2 38.5-38.5 38.5zm282.1 243h-66.4V312c0-24.8-.5-56.7-34.5-56.7-34.6.0-39.9 27-39.9 54.9V416h-66.4V202.2h63.7v29.2h.9c8.9-16.8 30.6-34.5 62.9-34.5 67.2.0 79.7 44.3 79.7 101.9V416z"/></svg>
+</span>
+</a>
+<a class="m-1 inline-block min-w-[2.4rem] rounded bg-neutral-300 p-1 text-center text-neutral-700 hover:bg-primary-500 hover:text-neutral dark:bg-neutral-700 dark:text-neutral-300 dark:hover:bg-primary-400 dark:hover:text-neutral-800" href="https://twitter.com/intent/tweet/?url=https://preview-blog.1q77.com/2016/03/evaluate-docker-swarm-part4/&text=Docker%20Swarm%20%e3%82%92%e8%a9%a6%e3%81%99%20%e2%80%93%20%e3%81%9d%e3%81%ae4" title=Twitterに投稿する aria-label=Twitterに投稿する>
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentcolor" d="M459.37 151.716c.325 4.548.325 9.097.325 13.645.0 138.72-105.583 298.558-298.558 298.558-59.452.0-114.68-17.219-161.137-47.106 8.447.974 16.568 1.299 25.34 1.299 49.055.0 94.213-16.568 130.274-44.832-46.132-.975-84.792-31.188-98.112-72.772 6.498.974 12.995 1.624 19.818 1.624 9.421.0 18.843-1.3 27.614-3.573-48.081-9.747-84.143-51.98-84.143-102.985v-1.299c13.969 7.797 30.214 12.67 47.431 13.319-28.264-18.843-46.781-51.005-46.781-87.391.0-19.492 5.197-37.36 14.294-52.954 51.655 63.675 129.3 105.258 216.365 109.807-1.624-7.797-2.599-15.918-2.599-24.04.0-57.828 46.782-104.934 104.934-104.934 30.213.0 57.502 12.67 76.67 33.137 23.715-4.548 46.456-13.32 66.599-25.34-7.798 24.366-24.366 44.833-46.132 57.827 21.117-2.273 41.584-8.122 60.426-16.243-14.292 20.791-32.161 39.308-52.628 54.253z"/></svg>
+</span>
+</a>
+</section>
+<div class=pt-8>
+<hr class="border-dotted border-neutral-300 dark:border-neutral-600">
+<div class="flex justify-between pt-3">
+<span>
+<a class="flex group" href=/2016/03/evaluate-docker-swarm-part3/>
+<span class="mr-3 text-neutral-700 group-hover:text-primary-600 ltr:inline rtl:hidden dark:text-neutral dark:group-hover:text-primary-400">&larr;</span>
+<span class="ml-3 text-neutral-700 group-hover:text-primary-600 ltr:hidden rtl:inline dark:text-neutral dark:group-hover:text-primary-400">&rarr;</span>
+<span class="flex flex-col">
+<span class="mt-[0.1rem] leading-6 group-hover:underline group-hover:decoration-primary-500">Docker Swarm を試す – その3</span>
+<span class="mt-[0.1rem] text-xs text-neutral-500 dark:text-neutral-400">
+<time datetime="2016-03-17 15:48:43 +0000 UTC">2016年3月17日</time>
+</span>
+</span>
+</a>
+</span>
+<span>
+<a class="flex text-right group" href=/2016/03/connect-to-private-network-on-digitalocean-using-openvpn/>
+<span class="flex flex-col">
+<span class="mt-[0.1rem] leading-6 group-hover:underline group-hover:decoration-primary-500">OpenVPN で DigitalOcean の Private Network へアクセスする</span>
+<span class="mt-[0.1rem] text-xs text-neutral-500 dark:text-neutral-400">
+<time datetime="2016-03-26 14:56:32 +0000 UTC">2016年3月26日</time>
+</span>
+</span>
+<span class="ml-3 text-neutral-700 group-hover:text-primary-600 ltr:inline rtl:hidden dark:text-neutral dark:group-hover:text-primary-400">&rarr;</span>
+<span class="mr-3 text-neutral-700 group-hover:text-primary-600 ltr:hidden rtl:inline dark:text-neutral dark:group-hover:text-primary-400">&larr;</span>
+</a>
+</span>
+</div>
+</div>
+</footer>
+</article>
+<div class="pointer-events-none absolute top-[100vh] bottom-0 w-12 ltr:right-0 rtl:left-0">
+<a href=#the-top class="pointer-events-auto sticky top-[calc(100vh-5.5rem)] flex h-12 w-12 items-center justify-center rounded-full bg-neutral/50 text-xl text-neutral-700 backdrop-blur hover:text-primary-600 dark:bg-neutral-800/50 dark:text-neutral dark:hover:text-primary-400" aria-label=TOPへスクロール title=TOPへスクロール>
+&uarr;
+</a>
+</div>
+</main><footer class="py-10 print:hidden">
+<div class="flex items-center justify-between">
+<p class="text-sm text-neutral-500 dark:text-neutral-400">
+&copy;
+2022
+Yoshinori Teraoka
+</p>
+</div>
+<script>mediumZoom(document.querySelectorAll("img:not(.nozoom)"),{margin:24,background:'rgba(0,0,0,0.5)',scrollOffset:0})</script>
+<script type=text/javascript src=/js/process.min.48d08339b8a087b59c7b8cb42b6717aeeed3e07bfc68b1654cac27f00583284dac59cae47fb686dd7c0e9ff1d2745689dc2071230dff432ca6d7fc24b9f2e036.js integrity="sha512-SNCDObigh7Wce4y0K2cXru7T4Hv8aLFlTKwn8AWDKE2sWcrkf7aG3XwOn/HSdFaJ3CBxIw3/Qyym1/wkufLgNg=="></script>
+</footer><div id=search-wrapper class="invisible fixed inset-0 z-50 flex h-screen w-screen cursor-default flex-col bg-neutral-500/50 p-4 backdrop-blur-sm dark:bg-neutral-900/50 sm:p-6 md:p-[10vh] lg:p-[12vh]" data-url=https://preview-blog.1q77.com/>
+<div id=search-modal class="flex flex-col w-full max-w-3xl min-h-0 mx-auto border rounded-md shadow-lg top-20 border-neutral-200 bg-neutral dark:border-neutral-700 dark:bg-neutral-800">
+<header class="relative z-10 flex items-center justify-between flex-none px-2">
+<form class="flex items-center flex-auto min-w-0">
+<div class="flex items-center justify-center w-8 h-8 text-neutral-400">
+<span class="relative inline-block align-text-bottom icon"><svg aria-hidden="true" focusable="false" data-prefix="fas" data-icon="search" class="svg-inline--fa fa-search fa-w-16" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentcolor" d="M505 442.7 405.3 343c-4.5-4.5-10.6-7-17-7H372c27.6-35.3 44-79.7 44-128C416 93.1 322.9.0 208 0S0 93.1.0 208s93.1 208 208 208c48.3.0 92.7-16.4 128-44v16.3c0 6.4 2.5 12.5 7 17l99.7 99.7c9.4 9.4 24.6 9.4 33.9.0l28.3-28.3c9.4-9.4 9.4-24.6.1-34zM208 336c-70.7.0-128-57.2-128-128 0-70.7 57.2-128 128-128 70.7.0 128 57.2 128 128 0 70.7-57.2 128-128 128z"/></svg>
+</span>
+</div>
+<input type=search id=search-query class="flex flex-auto h-12 mx-1 bg-transparent appearance-none focus:outline-dotted focus:outline-2 focus:outline-transparent" placeholder=Search tabindex=0>
+</form>
+<button id=close-search-button class="flex items-center justify-center w-8 h-8 text-neutral-700 hover:text-primary-600 dark:text-neutral dark:hover:text-primary-400" title="閉じる (Esc)">
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><path fill="currentcolor" d="M310.6 361.4c12.5 12.5 12.5 32.75.0 45.25C304.4 412.9 296.2 416 288 416s-16.38-3.125-22.62-9.375L160 301.3 54.63 406.6C48.38 412.9 40.19 416 32 416S15.63 412.9 9.375 406.6c-12.5-12.5-12.5-32.75.0-45.25l105.4-105.4L9.375 150.6c-12.5-12.5-12.5-32.75.0-45.25s32.75-12.5 45.25.0L160 210.8l105.4-105.4c12.5-12.5 32.75-12.5 45.25.0s12.5 32.75.0 45.25l-105.4 105.4L310.6 361.4z"/></svg>
+</span>
+</button>
+</header>
+<section class="flex-auto px-2 overflow-auto">
+<ul id=search-results>
+</ul>
+</section>
+</div>
+</div>
+</div>
+</body>
+</html>

@@ -1,0 +1,761 @@
+<!doctype html><html lang=ja dir=ltr class=scroll-smooth data-default-appearance=light data-auto-appearance=true><head>
+<meta charset=utf-8>
+<meta http-equiv=content-language content="ja">
+<meta name=viewport content="width=device-width,initial-scale=1">
+<meta http-equiv=x-ua-compatible content="ie=edge">
+<title>CentOS7のMariaDB(MySQL)をDRBDでHA化 &#183; 1Q77</title>
+<meta name=title content="CentOS7のMariaDB(MySQL)をDRBDでHA化 &#183; 1Q77">
+<link rel=canonical href=https://preview-blog.1q77.com/2017/06/mariadb-on-centos7-ha-using-drbd/>
+<link type=text/css rel=stylesheet href=/css/main.bundle.min.a9d40529d239a91ecb75447e67ee6c80c1f1c28593904b4052651b12220121e13ec42904268b0193a6858f039cf8bfdd2b1331529ed341ddc7488cec3bdcbc2e.css integrity="sha512-qdQFKdI5qR7LdUR+Z+5sgMHxwoWTkEtAUmUbEiIBIeE+xCkEJosBk6aFjwOc+L/dKxMxUp7TQd3HSIzsO9y8Lg==">
+<script type=text/javascript src=/js/main.min.cf83e1357eefb8bdf1542850d66d8007d620e4050b5715dc83f4a921d36ce9ce47d0d13c5d85f2b0ff8318d2877eec2f63b931bd47417a81a538327af927da3e.js integrity="sha512-z4PhNX7vuL3xVChQ1m2AB9Yg5AULVxXcg/SpIdNs6c5H0NE8XYXysP+DGNKHfuwvY7kxvUdBeoGlODJ6+SfaPg=="></script>
+<script type=text/javascript src=/js/appearance.min.49025a779c36ad37a5bf9f1cc6bffd35ccb69ce15560ef1b10057ddf31576265b19f8bcc1733207336c9144926f7b18aea2e5895f29e858b24271332a2fa5cd5.js integrity="sha512-SQJad5w2rTelv58cxr/9Ncy2nOFVYO8bEAV93zFXYmWxn4vMFzMgczbJFEkm97GK6i5YlfKehYskJxMyovpc1Q=="></script>
+<script defer type=text/javascript id=script-bundle src=/js/main.bundle.min.34ee8372ff77835535e486c6ed01ff6993374a1cec8108898cad793fc6ae7520778e24db68e085c762d25af6fa7d00b57d7a791438dc68b676581f8c8344f6e0.js integrity="sha512-NO6Dcv93g1U15IbG7QH/aZM3ShzsgQiJjK15P8audSB3jiTbaOCFx2LSWvb6fQC1fXp5FDjcaLZ2WB+Mg0T24A==" data-copy data-copied></script>
+<script src=/js/zoom.min.js></script>
+<link rel=apple-touch-icon sizes=180x180 href=/apple-touch-icon.png>
+<link rel=icon type=image/png sizes=32x32 href=/favicon-32x32.png>
+<link rel=icon type=image/png sizes=16x16 href=/favicon-16x16.png>
+<link rel=manifest href=/site.webmanifest>
+<meta property="og:title" content="CentOS7のMariaDB(MySQL)をDRBDでHA化">
+<meta property="og:description" content="Rancher の冗長構成には MySQL の冗長化が必要になります。そこで Replication より単純かなということでまずは DRBD + Pacemaker + Corosync 構成を試してみます。 構成 # db1 [192.168.122.11], db2 [192.16.122.12] という2台のホ">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://preview-blog.1q77.com/2017/06/mariadb-on-centos7-ha-using-drbd/"><meta property="article:section" content="posts">
+<meta property="article:published_time" content="2017-06-13T14:45:31+00:00">
+<meta property="article:modified_time" content="2017-06-13T14:45:31+00:00">
+<meta name=twitter:card content="summary">
+<meta name=twitter:title content="CentOS7のMariaDB(MySQL)をDRBDでHA化">
+<meta name=twitter:description content="Rancher の冗長構成には MySQL の冗長化が必要になります。そこで Replication より単純かなということでまずは DRBD + Pacemaker + Corosync 構成を試してみます。 構成 # db1 [192.168.122.11], db2 [192.16.122.12] という2台のホ">
+<script type=application/ld+json>[{"@context":"https://schema.org","@type":"Article","articleSection":"Posts","name":"CentOS7のMariaDB(MySQL)をDRBDでHA化","headline":"CentOS7のMariaDB(MySQL)をDRBDでHA化","abstract":"Rancher の冗長構成には MySQL の冗長化が必要になります。そこで Replication より単純かなということでまずは DRBD \u002b Pacemaker \u002b Corosync 構成を試してみます。 構成 # db1 [192.168.122.11], db2 [192.16.122.12] という2台のホ","inLanguage":"ja","url":"https:\/\/preview-blog.1q77.com\/2017\/06\/mariadb-on-centos7-ha-using-drbd\/","author":{"@type":"Person","name":"Yoshinori Teraoka"},"copyrightYear":"2017","dateCreated":"2017-06-13T14:45:31\u002b00:00","datePublished":"2017-06-13T14:45:31\u002b00:00","dateModified":"2017-06-13T14:45:31\u002b00:00","keywords":["Corosync","DRBD","MariaDB","MySQL","Pacemaker"],"mainEntityOfPage":"true","wordCount":"2458"}]</script>
+<meta name=author content="Yoshinori Teraoka">
+<link href=https://twitter.com/yteraoka rel=me>
+<link href=https://github.com/yteraoka rel=me>
+<link href=https://linkedin.com/in/fa5b66b7-9c77-4e1b-8b97-40ba4a5a2c13/ rel=me>
+<link href=https://medium.com/@yteraoka rel=me>
+<link rel=stylesheet href=https://rsms.me/inter/inter.css>
+</head><body class="flex flex-col h-screen px-6 m-auto text-lg leading-7 max-w-7xl bg-neutral text-neutral-900 dark:bg-neutral-800 dark:text-neutral sm:px-14 md:px-24 lg:px-32">
+<div id=the-top class="absolute flex self-center">
+<a class="px-3 py-1 text-sm -translate-y-8 rounded-b-lg bg-primary-200 focus:translate-y-0 dark:bg-neutral-600" href=#main-content><span class="font-bold text-primary-600 ltr:pr-2 rtl:pl-2 dark:text-primary-400">&darr;</span>メインコンテンツへスキップ</a>
+</div>
+<div style=padding-left:0;padding-right:0 class="flex items-center justify-between px-4 py-6 sm:px-6 md:justify-start space-x-3">
+<div class="flex flex-1 items-center justify-between">
+<nav class="flex space-x-3">
+<a href=/ class="text-base font-medium text-gray-500 hover:text-gray-900">1Q77</a>
+</nav>
+<div class="hidden md:flex items-center space-x-5 md:ml-12">
+<a href=/posts/ class="text-base font-medium text-gray-500 hover:text-gray-900" title=Posts>
+Blog
+</a>
+<a href=/tags/ class="text-base font-medium text-gray-500 hover:text-gray-900" title=Tags>
+Tags
+</a>
+<a href=https://github.com/yteraoka class="text-base font-medium text-gray-500 hover:text-gray-900" title>
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><path fill="currentcolor" d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6.0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6.0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3.0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1.0-6.2-.3-40.4-.3-61.4.0.0-70 15-84.7-29.8.0.0-11.4-29.1-27.8-36.6.0.0-22.9-15.7 1.6-15.4.0.0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5.0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9.0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4.0 33.7-.3 75.4-.3 83.6.0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6.0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9.0-6.2-1.4-2.3-4-3.3-5.6-2z"/></svg>
+</span>
+&nbsp;
+GitHub
+</a>
+<a href=https://twitter.com/yteraoka class="text-base font-medium text-gray-500 hover:text-gray-900" title>
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentcolor" d="M459.37 151.716c.325 4.548.325 9.097.325 13.645.0 138.72-105.583 298.558-298.558 298.558-59.452.0-114.68-17.219-161.137-47.106 8.447.974 16.568 1.299 25.34 1.299 49.055.0 94.213-16.568 130.274-44.832-46.132-.975-84.792-31.188-98.112-72.772 6.498.974 12.995 1.624 19.818 1.624 9.421.0 18.843-1.3 27.614-3.573-48.081-9.747-84.143-51.98-84.143-102.985v-1.299c13.969 7.797 30.214 12.67 47.431 13.319-28.264-18.843-46.781-51.005-46.781-87.391.0-19.492 5.197-37.36 14.294-52.954 51.655 63.675 129.3 105.258 216.365 109.807-1.624-7.797-2.599-15.918-2.599-24.04.0-57.828 46.782-104.934 104.934-104.934 30.213.0 57.502 12.67 76.67 33.137 23.715-4.548 46.456-13.32 66.599-25.34-7.798 24.366-24.366 44.833-46.132 57.827 21.117-2.273 41.584-8.122 60.426-16.243-14.292 20.791-32.161 39.308-52.628 54.253z"/></svg>
+</span>
+&nbsp;
+Twitter
+</a>
+<a href=https://qiita.com/yteraoka class="text-base font-medium text-gray-500 hover:text-gray-900" title>
+Qiita
+</a>
+<button id=search-button class="text-base hover:text-primary-600 dark:hover:text-primary-400" title>
+<span class="relative inline-block align-text-bottom icon"><svg aria-hidden="true" focusable="false" data-prefix="fas" data-icon="search" class="svg-inline--fa fa-search fa-w-16" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentcolor" d="M505 442.7 405.3 343c-4.5-4.5-10.6-7-17-7H372c27.6-35.3 44-79.7 44-128C416 93.1 322.9.0 208 0S0 93.1.0 208s93.1 208 208 208c48.3.0 92.7-16.4 128-44v16.3c0 6.4 2.5 12.5 7 17l99.7 99.7c9.4 9.4 24.6 9.4 33.9.0l28.3-28.3c9.4-9.4 9.4-24.6.1-34zM208 336c-70.7.0-128-57.2-128-128 0-70.7 57.2-128 128-128 70.7.0 128 57.2 128 128 0 70.7-57.2 128-128 128z"/></svg>
+</span>
+</button>
+<div class="ltr:mr-14 rtl:ml-14 cursor-pointer text-sm text-neutral-700 hover:text-primary-600 dark:text-neutral dark:hover:text-primary-400">
+<button id=appearance-switcher type=button>
+<div class="flex items-center justify-center h-12 dark:hidden">
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentcolor" d="M32 256C32 132.2 132.3 32 255.8 32c11.36.0 29.7 1.668 40.9 3.746 9.616 1.777 11.75 14.63 3.279 19.44C245 86.5 211.2 144.6 211.2 207.8c0 109.7 99.71 193 208.3 172.3 9.561-1.805 16.28 9.324 10.11 16.95C387.9 448.6 324.8 480 255.8 480 132.1 480 32 379.6 32 256z"/></svg>
+</span>
+</div>
+<div class="items-center justify-center hidden h-12 dark:flex">
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentcolor" d="M256 159.1c-53.02.0-95.1 42.98-95.1 95.1s41.2 96.9 95.1 96.9 95.1-42.98 95.1-95.1S309 159.1 256 159.1zM509.3 347l-63.2-91.9 63.15-91.01c6.332-9.125 1.104-21.74-9.826-23.72l-109-19.7-19.7-109c-1.975-10.93-14.59-16.16-23.72-9.824L256 65.89 164.1 2.736c-9.125-6.332-21.74-1.107-23.72 9.824L121.6 121.6 12.56 141.3C1.633 143.2-3.596 155.9 2.736 164.1L65.89 256 2.74 347.01c-6.332 9.125-1.105 21.74 9.824 23.72l109 19.7 19.7 109c1.975 10.93 14.59 16.16 23.72 9.824L256 446.1l91.01 63.15c9.127 6.334 21.75 1.107 23.72-9.822l19.7-109 109-19.7C510.4 368.8 515.6 356.1 509.3 347zM256 383.1c-70.69.0-127.1-57.31-127.1-127.1.0-70.69 57.31-127.1 127.1-127.1S383.1 186.2 383.1 256c0 70.7-56.4 127.1-127.1 127.1z"/></svg>
+</span>
+</div>
+</button>
+</div>
+</div>
+<div class="flex md:hidden items-center space-x-5 md:ml-12">
+<span></span>
+<button id=search-button-mobile class="text-base hover:text-primary-600 dark:hover:text-primary-400" title>
+<span class="relative inline-block align-text-bottom icon"><svg aria-hidden="true" focusable="false" data-prefix="fas" data-icon="search" class="svg-inline--fa fa-search fa-w-16" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentcolor" d="M505 442.7 405.3 343c-4.5-4.5-10.6-7-17-7H372c27.6-35.3 44-79.7 44-128C416 93.1 322.9.0 208 0S0 93.1.0 208s93.1 208 208 208c48.3.0 92.7-16.4 128-44v16.3c0 6.4 2.5 12.5 7 17l99.7 99.7c9.4 9.4 24.6 9.4 33.9.0l28.3-28.3c9.4-9.4 9.4-24.6.1-34zM208 336c-70.7.0-128-57.2-128-128 0-70.7 57.2-128 128-128 70.7.0 128 57.2 128 128 0 70.7-57.2 128-128 128z"/></svg>
+</span>
+</button>
+<button id=appearance-switcher-mobile type=button style=margin-right:5px>
+<div class="flex items-center justify-center h-12 dark:hidden">
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentcolor" d="M32 256C32 132.2 132.3 32 255.8 32c11.36.0 29.7 1.668 40.9 3.746 9.616 1.777 11.75 14.63 3.279 19.44C245 86.5 211.2 144.6 211.2 207.8c0 109.7 99.71 193 208.3 172.3 9.561-1.805 16.28 9.324 10.11 16.95C387.9 448.6 324.8 480 255.8 480 132.1 480 32 379.6 32 256z"/></svg>
+</span>
+</div>
+<div class="items-center justify-center hidden h-12 dark:flex">
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentcolor" d="M256 159.1c-53.02.0-95.1 42.98-95.1 95.1s41.2 96.9 95.1 96.9 95.1-42.98 95.1-95.1S309 159.1 256 159.1zM509.3 347l-63.2-91.9 63.15-91.01c6.332-9.125 1.104-21.74-9.826-23.72l-109-19.7-19.7-109c-1.975-10.93-14.59-16.16-23.72-9.824L256 65.89 164.1 2.736c-9.125-6.332-21.74-1.107-23.72 9.824L121.6 121.6 12.56 141.3C1.633 143.2-3.596 155.9 2.736 164.1L65.89 256 2.74 347.01c-6.332 9.125-1.105 21.74 9.824 23.72l109 19.7 19.7 109c1.975 10.93 14.59 16.16 23.72 9.824L256 446.1l91.01 63.15c9.127 6.334 21.75 1.107 23.72-9.822l19.7-109 109-19.7C510.4 368.8 515.6 356.1 509.3 347zM256 383.1c-70.69.0-127.1-57.31-127.1-127.1.0-70.69 57.31-127.1 127.1-127.1S383.1 186.2 383.1 256c0 70.7-56.4 127.1-127.1 127.1z"/></svg>
+</span>
+</div>
+</button>
+</div>
+</div>
+<div class="-my-2 -mr-2 md:hidden">
+<label id=menu-button for=menu-controller class=block>
+<input type=checkbox id=menu-controller class=hidden>
+<div class="cursor-pointer hover:text-primary-600 dark:hover:text-primary-400">
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path fill="currentcolor" d="M0 96C0 78.33 14.33 64 32 64H416c17.7.0 32 14.33 32 32 0 17.7-14.3 32-32 32H32C14.33 128 0 113.7.0 96zM0 256c0-17.7 14.33-32 32-32H416c17.7.0 32 14.3 32 32s-14.3 32-32 32H32c-17.67.0-32-14.3-32-32zM416 448H32c-17.67.0-32-14.3-32-32s14.33-32 32-32H416c17.7.0 32 14.3 32 32s-14.3 32-32 32z"/></svg>
+</span>
+</div>
+<div id=menu-wrapper style=padding-top:25px class="fixed inset-0 z-30 invisible w-screen h-screen m-auto overflow-auto transition-opacity opacity-0 cursor-default bg-neutral-100/50 backdrop-blur-sm dark:bg-neutral-900/50">
+<ul class="flex movedown flex-col w-full px-6 py-6 mx-auto overflow-visible list-none ltr:text-right rtl:text-left max-w-7xl sm:px-14 md:px-24 lg:px-32 sm:py-10 sm:pt-10">
+<li class=mb-1>
+<span class="cursor-pointer hover:text-primary-600 dark:hover:text-primary-400">
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><path fill="currentcolor" d="M310.6 361.4c12.5 12.5 12.5 32.75.0 45.25C304.4 412.9 296.2 416 288 416s-16.38-3.125-22.62-9.375L160 301.3 54.63 406.6C48.38 412.9 40.19 416 32 416S15.63 412.9 9.375 406.6c-12.5-12.5-12.5-32.75.0-45.25l105.4-105.4L9.375 150.6c-12.5-12.5-12.5-32.75.0-45.25s32.75-12.5 45.25.0L160 210.8l105.4-105.4c12.5-12.5 32.75-12.5 45.25.0s12.5 32.75.0 45.25l-105.4 105.4L310.6 361.4z"/></svg>
+</span>
+</span>
+</li>
+<li class=mb-1>
+<a class="decoration-primary-500 hover:underline hover:decoration-2 hover:underline-offset-2" href=/posts/ title=Posts>
+Blog
+</a>
+</li>
+<li class=mb-1>
+<a class="decoration-primary-500 hover:underline hover:decoration-2 hover:underline-offset-2" href=/tags/ title=Tags>
+Tags
+</a>
+</li>
+<li class=mb-1>
+<a class="decoration-primary-500 hover:underline hover:decoration-2 hover:underline-offset-2" href=https://github.com/yteraoka title>
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><path fill="currentcolor" d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6.0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6.0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3.0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1.0-6.2-.3-40.4-.3-61.4.0.0-70 15-84.7-29.8.0.0-11.4-29.1-27.8-36.6.0.0-22.9-15.7 1.6-15.4.0.0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5.0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9.0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4.0 33.7-.3 75.4-.3 83.6.0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6.0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9.0-6.2-1.4-2.3-4-3.3-5.6-2z"/></svg>
+</span>
+&nbsp;
+GitHub
+</a>
+</li>
+<li class=mb-1>
+<a class="decoration-primary-500 hover:underline hover:decoration-2 hover:underline-offset-2" href=https://twitter.com/yteraoka title>
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentcolor" d="M459.37 151.716c.325 4.548.325 9.097.325 13.645.0 138.72-105.583 298.558-298.558 298.558-59.452.0-114.68-17.219-161.137-47.106 8.447.974 16.568 1.299 25.34 1.299 49.055.0 94.213-16.568 130.274-44.832-46.132-.975-84.792-31.188-98.112-72.772 6.498.974 12.995 1.624 19.818 1.624 9.421.0 18.843-1.3 27.614-3.573-48.081-9.747-84.143-51.98-84.143-102.985v-1.299c13.969 7.797 30.214 12.67 47.431 13.319-28.264-18.843-46.781-51.005-46.781-87.391.0-19.492 5.197-37.36 14.294-52.954 51.655 63.675 129.3 105.258 216.365 109.807-1.624-7.797-2.599-15.918-2.599-24.04.0-57.828 46.782-104.934 104.934-104.934 30.213.0 57.502 12.67 76.67 33.137 23.715-4.548 46.456-13.32 66.599-25.34-7.798 24.366-24.366 44.833-46.132 57.827 21.117-2.273 41.584-8.122 60.426-16.243-14.292 20.791-32.161 39.308-52.628 54.253z"/></svg>
+</span>
+&nbsp;
+Twitter
+</a>
+</li>
+<li class=mb-1>
+<a class="decoration-primary-500 hover:underline hover:decoration-2 hover:underline-offset-2" href=https://qiita.com/yteraoka title>
+Qiita
+</a>
+</li>
+</ul>
+</div>
+</label>
+</div>
+</div>
+<div id=mobile-menu class="fixed inset-0 z-30 invisible w-screen h-screen m-auto overflow-auto transition-opacity opacity-0 cursor-default bg-neutral-100/50 backdrop-blur-sm dark:bg-neutral-900/50">
+<ul class="flex movedown flex-col w-full px-6 py-6 mx-auto overflow-visible list-none ltr:text-right rtl:text-left max-w-7xl sm:px-14 md:px-24 lg:px-32 sm:py-10 sm:pt-10">
+<li class=mb-1>
+<span class="cursor-pointer hover:text-primary-600 dark:hover:text-primary-400">
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><path fill="currentcolor" d="M310.6 361.4c12.5 12.5 12.5 32.75.0 45.25C304.4 412.9 296.2 416 288 416s-16.38-3.125-22.62-9.375L160 301.3 54.63 406.6C48.38 412.9 40.19 416 32 416S15.63 412.9 9.375 406.6c-12.5-12.5-12.5-32.75.0-45.25l105.4-105.4L9.375 150.6c-12.5-12.5-12.5-32.75.0-45.25s32.75-12.5 45.25.0L160 210.8l105.4-105.4c12.5-12.5 32.75-12.5 45.25.0s12.5 32.75.0 45.25l-105.4 105.4L310.6 361.4z"/></svg>
+</span>
+</span>
+</li>
+<li class=mb-1>
+<a class="decoration-primary-500 hover:underline hover:decoration-2 hover:underline-offset-2" href=/posts/ title=Posts>Blog</a>
+</li>
+<li class=mb-1>
+<a class="decoration-primary-500 hover:underline hover:decoration-2 hover:underline-offset-2" href=/tags/ title=Tags>Tags</a>
+</li>
+<li class=mb-1>
+<a class="decoration-primary-500 hover:underline hover:decoration-2 hover:underline-offset-2" href=https://github.com/yteraoka title>GitHub</a>
+</li>
+<li class=mb-1>
+<a class="decoration-primary-500 hover:underline hover:decoration-2 hover:underline-offset-2" href=https://twitter.com/yteraoka title>Twitter</a>
+</li>
+<li class=mb-1>
+<a class="decoration-primary-500 hover:underline hover:decoration-2 hover:underline-offset-2" href=https://qiita.com/yteraoka title>Qiita</a>
+</li>
+<li>
+<button id=search-button-mobile class="text-base hover:text-primary-600 dark:hover:text-primary-400">
+<span class="relative inline-block align-text-bottom icon"><svg aria-hidden="true" focusable="false" data-prefix="fas" data-icon="search" class="svg-inline--fa fa-search fa-w-16" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentcolor" d="M505 442.7 405.3 343c-4.5-4.5-10.6-7-17-7H372c27.6-35.3 44-79.7 44-128C416 93.1 322.9.0 208 0S0 93.1.0 208s93.1 208 208 208c48.3.0 92.7-16.4 128-44v16.3c0 6.4 2.5 12.5 7 17l99.7 99.7c9.4 9.4 24.6 9.4 33.9.0l28.3-28.3c9.4-9.4 9.4-24.6.1-34zM208 336c-70.7.0-128-57.2-128-128 0-70.7 57.2-128 128-128 70.7.0 128 57.2 128 128 0 70.7-57.2 128-128 128z"/></svg>
+</span>
+</button>
+</li>
+</ul>
+</div>
+<div class="relative flex flex-col grow">
+<main id=main-content class=grow>
+<article>
+<header class=max-w-prose>
+<ol class="text-sm text-neutral-500 dark:text-neutral-400 print:hidden">
+<li class="inline hidden">
+<a class="hover:underline decoration-neutral-300 dark:underline-neutral-600" href=/>1Q77</a><span class="px-1 text-primary-500">/</span>
+</li>
+<li class=inline>
+<a class="hover:underline decoration-neutral-300 dark:underline-neutral-600" href=/posts/>Posts</a><span class="px-1 text-primary-500">/</span>
+</li>
+<li class="inline hidden">
+<a class="hover:underline decoration-neutral-300 dark:underline-neutral-600" href=/2017/06/mariadb-on-centos7-ha-using-drbd/>CentOS7のMariaDB(MySQL)をDRBDでHA化</a><span class="px-1 text-primary-500">/</span>
+</li>
+</ol>
+<h1 class="mt-0 text-4xl font-extrabold text-neutral-900 dark:text-neutral">
+CentOS7のMariaDB(MySQL)をDRBDでHA化
+</h1>
+<div class="mt-8 mb-12 text-base text-neutral-500 dark:text-neutral-400 print:hidden">
+<div class="flex flex-row flex-wrap items-center">
+<time datetime="2017-06-13 14:45:31 +0000 UTC">2017年6月13日</time>
+</div>
+<div class="flex flex-row flex-wrap items-center">
+<span style=margin-top:.5rem class=mr-2 onclick='window.open("/tags/corosync/")'>
+<span class=flex>
+<span class="rounded-md border border-primary-400 px-1 py-[1px] text-xs font-normal text-primary-700 dark:border-primary-600 dark:text-primary-400">
+Corosync
+</span>
+</span>
+</span>
+<span style=margin-top:.5rem class=mr-2 onclick='window.open("/tags/drbd/")'>
+<span class=flex>
+<span class="rounded-md border border-primary-400 px-1 py-[1px] text-xs font-normal text-primary-700 dark:border-primary-600 dark:text-primary-400">
+DRBD
+</span>
+</span>
+</span>
+<span style=margin-top:.5rem class=mr-2 onclick='window.open("/tags/mariadb/")'>
+<span class=flex>
+<span class="rounded-md border border-primary-400 px-1 py-[1px] text-xs font-normal text-primary-700 dark:border-primary-600 dark:text-primary-400">
+MariaDB
+</span>
+</span>
+</span>
+<span style=margin-top:.5rem class=mr-2 onclick='window.open("/tags/mysql/")'>
+<span class=flex>
+<span class="rounded-md border border-primary-400 px-1 py-[1px] text-xs font-normal text-primary-700 dark:border-primary-600 dark:text-primary-400">
+MySQL
+</span>
+</span>
+</span>
+<span style=margin-top:.5rem class=mr-2 onclick='window.open("/tags/pacemaker/")'>
+<span class=flex>
+<span class="rounded-md border border-primary-400 px-1 py-[1px] text-xs font-normal text-primary-700 dark:border-primary-600 dark:text-primary-400">
+Pacemaker
+</span>
+</span>
+</span>
+</div>
+</div>
+</header>
+<section class="flex flex-col max-w-full mt-0 prose dark:prose-invert lg:flex-row">
+<div class="order-first px-0 lg:order-last lg:max-w-xs ltr:lg:pl-8 rtl:lg:pr-8">
+<div class="toc ltr:pl-5 rtl:pr-5 print:hidden lg:sticky lg:top-10">
+<details open class="mt-0 overflow-hidden rounded-lg ltr:-ml-5 ltr:pl-5 rtl:-mr-5 rtl:pr-5 hidden lg:block">
+<summary class="block py-1 text-lg font-semibold cursor-pointer bg-neutral-100 text-neutral-800 ltr:-ml-5 ltr:pl-5 rtl:-mr-5 rtl:pr-5 dark:bg-neutral-700 dark:text-neutral-100 lg:hidden">
+目次
+</summary>
+<div class="py-2 border-dotted border-neutral-300 ltr:-ml-5 ltr:border-l ltr:pl-5 rtl:-mr-5 rtl:border-r rtl:pr-5 dark:border-neutral-600">
+<nav id=TableOfContents>
+<ul>
+<li>
+<ul>
+<li><a href=#構成>構成</a></li>
+<li><a href=#ホスト名設定>ホスト名設定</a></li>
+<li><a href=#ipv6-を無効にする>IPv6 を無効にする</a></li>
+<li><a href=#firewalld-設定>firewalld 設定</a></li>
+<li><a href=#pcs-pacemaker-corosync-のインストール>pcs, pacemaker, corosync のインストール</a></li>
+<li><a href=#クラスタの作成>クラスタの作成</a></li>
+<li><a href=#クラスタの起動>クラスタの起動</a></li>
+<li><a href=#drbd-のインストール>DRBD のインストール</a></li>
+<li><a href=#drbd-通信を許可する>DRBD 通信を許可する</a></li>
+<li><a href=#drbd-のリソースを作成する>DRBD のリソースを作成する</a></li>
+<li><a href=#drbd-デバイスをフォーマット>DRBD デバイスをフォーマット</a></li>
+<li><a href=#mariadb-のインストール>MariaDB のインストール</a></li>
+<li><a href=#pacemaker-設定>Pacemaker 設定</a></li>
+<li><a href=#参考ドキュメント>参考ドキュメント</a></li>
+</ul>
+</li>
+</ul>
+</nav>
+</div>
+</details>
+<details class="mt-0 overflow-hidden rounded-lg ltr:-ml-5 ltr:pl-5 rtl:-mr-5 rtl:pr-5 lg:hidden">
+<summary class="py-1 text-lg font-semibold cursor-pointer bg-neutral-100 text-neutral-800 ltr:-ml-5 ltr:pl-5 rtl:-mr-5 rtl:pr-5 dark:bg-neutral-700 dark:text-neutral-100 lg:hidden">
+目次
+</summary>
+<div class="py-2 border-dotted border-neutral-300 ltr:-ml-5 ltr:border-l ltr:pl-5 rtl:-mr-5 rtl:border-r rtl:pr-5 dark:border-neutral-600">
+<nav id=TableOfContents>
+<ul>
+<li>
+<ul>
+<li><a href=#構成>構成</a></li>
+<li><a href=#ホスト名設定>ホスト名設定</a></li>
+<li><a href=#ipv6-を無効にする>IPv6 を無効にする</a></li>
+<li><a href=#firewalld-設定>firewalld 設定</a></li>
+<li><a href=#pcs-pacemaker-corosync-のインストール>pcs, pacemaker, corosync のインストール</a></li>
+<li><a href=#クラスタの作成>クラスタの作成</a></li>
+<li><a href=#クラスタの起動>クラスタの起動</a></li>
+<li><a href=#drbd-のインストール>DRBD のインストール</a></li>
+<li><a href=#drbd-通信を許可する>DRBD 通信を許可する</a></li>
+<li><a href=#drbd-のリソースを作成する>DRBD のリソースを作成する</a></li>
+<li><a href=#drbd-デバイスをフォーマット>DRBD デバイスをフォーマット</a></li>
+<li><a href=#mariadb-のインストール>MariaDB のインストール</a></li>
+<li><a href=#pacemaker-設定>Pacemaker 設定</a></li>
+<li><a href=#参考ドキュメント>参考ドキュメント</a></li>
+</ul>
+</li>
+</ul>
+</nav>
+</div>
+</details>
+</div>
+</div>
+<div class="min-w-0 min-h-0 max-w-prose">
+<p><a href=/2017/01/rancher-on-digitalocean-part2/>Rancher の冗長構成</a>には MySQL の冗長化が必要になります。そこで Replication より単純かなということでまずは DRBD + Pacemaker + Corosync 構成を試してみます。</p>
+<h3 id=構成 class="relative group">構成 <span class="absolute top-0 w-6 transition-opacity opacity-0 ltr:-left-6 rtl:-right-6 not-prose group-hover:opacity-100"><a class="group-hover:text-primary-300 dark:group-hover:text-neutral-700" style=text-decoration-line:none!important href=#%e6%a7%8b%e6%88%90 aria-label=アンカー>#</a></span></h3>
+<p>db1 [192.168.122.11], db2 [192.16.122.12] という2台のホストで VIP [192.168.122.10] をもたせます。 KVM に CentOS 7 をインストールして試しました。/dev/cl/drbd0 という LogicalVolume を DRBD に使用した。</p>
+<h3 id=ホスト名設定 class="relative group">ホスト名設定 <span class="absolute top-0 w-6 transition-opacity opacity-0 ltr:-left-6 rtl:-right-6 not-prose group-hover:opacity-100"><a class="group-hover:text-primary-300 dark:group-hover:text-neutral-700" style=text-decoration-line:none!important href=#%e3%83%9b%e3%82%b9%e3%83%88%e5%90%8d%e8%a8%ad%e5%ae%9a aria-label=アンカー>#</a></span></h3>
+<p>DRBD の設定でのサーバー指定は <code>hostname</code> コマンドの出力と一致する必要があるので <code>db1</code>, <code>db2</code> としておきます。</p>
+<pre tabindex=0><code>[db1]# hostnamectl set-hostname db1
+[db2]# hostnamectl set-hostname db2
+</code></pre><h3 id=ipv6-を無効にする class="relative group">IPv6 を無効にする <span class="absolute top-0 w-6 transition-opacity opacity-0 ltr:-left-6 rtl:-right-6 not-prose group-hover:opacity-100"><a class="group-hover:text-primary-300 dark:group-hover:text-neutral-700" style=text-decoration-line:none!important href=#ipv6-%e3%82%92%e7%84%a1%e5%8a%b9%e3%81%ab%e3%81%99%e3%82%8b aria-label=アンカー>#</a></span></h3>
+<pre tabindex=0><code>[ALL]# echo &quot;net.ipv6.conf.all.disable_ipv6 = 1&quot; &gt; /etc/sysctl.d/disable-ipv6.conf
+[ALL]# echo &quot;net.ipv6.conf.default.disable_ipv6 = 1&quot; &gt;&gt; /etc/sysctl.d/disable-ipv6.conf
+[ALL]# sysctl -p
+</code></pre><h3 id=firewalld-設定 class="relative group">firewalld 設定 <span class="absolute top-0 w-6 transition-opacity opacity-0 ltr:-left-6 rtl:-right-6 not-prose group-hover:opacity-100"><a class="group-hover:text-primary-300 dark:group-hover:text-neutral-700" style=text-decoration-line:none!important href=#firewalld-%e8%a8%ad%e5%ae%9a aria-label=アンカー>#</a></span></h3>
+<pre tabindex=0><code>[ALL]# systemctl start firewalld
+[ALL]# systemctl enable firewalld
+[ALL]# firewall-cmd --add-service high-availability
+[ALL]# firewall-cmd --add-service high-availability --permanent
+</code></pre><h3 id=pcs-pacemaker-corosync-のインストール class="relative group">pcs, pacemaker, corosync のインストール <span class="absolute top-0 w-6 transition-opacity opacity-0 ltr:-left-6 rtl:-right-6 not-prose group-hover:opacity-100"><a class="group-hover:text-primary-300 dark:group-hover:text-neutral-700" style=text-decoration-line:none!important href=#pcs-pacemaker-corosync-%e3%81%ae%e3%82%a4%e3%83%b3%e3%82%b9%e3%83%88%e3%83%bc%e3%83%ab aria-label=アンカー>#</a></span></h3>
+<pre tabindex=0><code>[ALL]# yum install -y pcs
+</code></pre><p>pcs の依存で pacemaker, corosync, resource-agents などもインストールされます pcs で使われる <code>hacluster</code> ユーザーのパスワード設定</p>
+<pre tabindex=0><code>[ALL]# echo passwd | passwd hacluster --stdin
+</code></pre><p><code>pcsd</code> の起動</p>
+<pre tabindex=0><code>[ALL]# systemctl start pcsd
+[ALL]# systemctl enable pcsd
+</code></pre><p>1方のサーバーでクラスタ間の認証を通す</p>
+<pre tabindex=0><code>[db1]# pcs cluster auth db1 db2 -u hacluster -p passwd
+</code></pre><p><code>/var/lib/pcsd/tokens</code> に token が保存される</p>
+<h3 id=クラスタの作成 class="relative group">クラスタの作成 <span class="absolute top-0 w-6 transition-opacity opacity-0 ltr:-left-6 rtl:-right-6 not-prose group-hover:opacity-100"><a class="group-hover:text-primary-300 dark:group-hover:text-neutral-700" style=text-decoration-line:none!important href=#%e3%82%af%e3%83%a9%e3%82%b9%e3%82%bf%e3%81%ae%e4%bd%9c%e6%88%90 aria-label=アンカー>#</a></span></h3>
+<p><code>mysql_cluster</code> という名前のクラスタをセットアップします</p>
+<pre tabindex=0><code>[db1]# pcs cluster setup --name mysql_cluster db1 db2
+</code></pre><pre tabindex=0><code>[root@db1 ~]# pcs cluster setup --name mysql_cluster db1 db2
+Destroying cluster on nodes: db1, db2...
+db1: Stopping Cluster (pacemaker)...
+db2: Stopping Cluster (pacemaker)...
+db1: Successfully destroyed cluster
+db2: Successfully destroyed cluster
+
+Sending cluster config files to the nodes...
+db1: Succeeded
+db2: Succeeded
+
+Synchronizing pcsd certificates on nodes db1, db2...
+db1: Success
+db2: Success
+
+Restarting pcsd on the nodes in order to reload the certificates...
+db1: Success
+db2: Success
+</code></pre><p><code>/etc/corosync/corosync.conf</code> が作成されています</p>
+<pre tabindex=0><code>[root@db1 ~]# cat /etc/corosync/corosync.conf
+totem {
+    version: 2
+    secauth: off
+    cluster_name: mysql_cluster
+    transport: udpu
+}
+
+nodelist {
+    node {
+        ring0_addr: db1
+        nodeid: 1
+    }
+
+    node {
+        ring0_addr: db2
+        nodeid: 2
+    }
+}
+
+quorum {
+    provider: corosync_votequorum
+    two_node: 1
+}
+
+logging {
+    to_logfile: yes
+    logfile: /var/log/cluster/corosync.log
+    to_syslog: yes
+}
+</code></pre><h3 id=クラスタの起動 class="relative group">クラスタの起動 <span class="absolute top-0 w-6 transition-opacity opacity-0 ltr:-left-6 rtl:-right-6 not-prose group-hover:opacity-100"><a class="group-hover:text-primary-300 dark:group-hover:text-neutral-700" style=text-decoration-line:none!important href=#%e3%82%af%e3%83%a9%e3%82%b9%e3%82%bf%e3%81%ae%e8%b5%b7%e5%8b%95 aria-label=アンカー>#</a></span></h3>
+<pre tabindex=0><code>[db1]# pcs cluster start --all
+</code></pre><pre tabindex=0><code>[root@db1 ~]# pcs cluster start --all
+db1: Starting Cluster...
+db2: Starting Cluster...
+</code></pre><p><code>corosync</code> の状態確認</p>
+<pre tabindex=0><code>[root@db1 ~]# pcs status corosync
+
+Membership information
+----------------------
+    Nodeid      Votes Name
+         1          1 db1 (local)
+         2          1 db2
+</code></pre><pre tabindex=0><code>[root@db1 ~]# pcs status
+Cluster name: mysql_cluster
+WARNING: no stonith devices and stonith-enabled is not false
+Stack: corosync
+Current DC: db2 (version 1.1.15-11.el7_3.4-e174ec8) - partition with quorum
+Last updated: Sun Jun 11 15:29:22 2017		Last change: Sun Jun 11 15:25:58 2017 by hacluster via crmd on db2
+
+2 nodes and 0 resources configured
+
+Online: [ db1 db2 ]
+
+No resources
+
+
+Daemon Status:
+  corosync: active/disabled
+  pacemaker: active/disabled
+  pcsd: active/enabled
+</code></pre><h3 id=drbd-のインストール class="relative group">DRBD のインストール <span class="absolute top-0 w-6 transition-opacity opacity-0 ltr:-left-6 rtl:-right-6 not-prose group-hover:opacity-100"><a class="group-hover:text-primary-300 dark:group-hover:text-neutral-700" style=text-decoration-line:none!important href=#drbd-%e3%81%ae%e3%82%a4%e3%83%b3%e3%82%b9%e3%83%88%e3%83%bc%e3%83%ab aria-label=アンカー>#</a></span></h3>
+<pre tabindex=0><code>[ALL]# rpm --import https://www.elrepo.org/RPM-GPG-KEY-elrepo.org
+[ALL]# rpm -Uvh http://www.elrepo.org/elrepo-release-7.0-2.el7.elrepo.noarch.rpm
+[ALL]# yum install -y kmod-drbd84 drbd84-utils
+</code></pre><p>DRBD は SELinux が <code>enforcing</code> な環境では問題があるらしく次のようにして回避する</p>
+<pre tabindex=0><code>[ALL]# yum install -y policycoreutils-python
+[ALL]# semanage permissive -a drbd_t
+</code></pre><h3 id=drbd-通信を許可する class="relative group">DRBD 通信を許可する <span class="absolute top-0 w-6 transition-opacity opacity-0 ltr:-left-6 rtl:-right-6 not-prose group-hover:opacity-100"><a class="group-hover:text-primary-300 dark:group-hover:text-neutral-700" style=text-decoration-line:none!important href=#drbd-%e9%80%9a%e4%bf%a1%e3%82%92%e8%a8%b1%e5%8f%af%e3%81%99%e3%82%8b aria-label=アンカー>#</a></span></h3>
+<p>互いに 7789/tcp ポートへアクセスできるようにする</p>
+<pre tabindex=0><code>[db1]# firewall-cmd --add-rich-rule='rule family=ipv4 source address=192.168.122.12 port port=7789 protocol=tcp accept'
+[db1]# firewall-cmd --add-rich-rule='rule family=ipv4 source address=192.168.122.12 port port=7789 protocol=tcp accept' --permanent
+</code></pre><pre tabindex=0><code>[db2]# firewall-cmd --add-rich-rule='rule family=ipv4 source address=192.168.122.11 port port=7789 protocol=tcp accept'
+[db2]# firewall-cmd --add-rich-rule='rule family=ipv4 source address=192.168.122.11 port port=7789 protocol=tcp accept' --permanent
+</code></pre><h3 id=drbd-のリソースを作成する class="relative group">DRBD のリソースを作成する <span class="absolute top-0 w-6 transition-opacity opacity-0 ltr:-left-6 rtl:-right-6 not-prose group-hover:opacity-100"><a class="group-hover:text-primary-300 dark:group-hover:text-neutral-700" style=text-decoration-line:none!important href=#drbd-%e3%81%ae%e3%83%aa%e3%82%bd%e3%83%bc%e3%82%b9%e3%82%92%e4%bd%9c%e6%88%90%e3%81%99%e3%82%8b aria-label=アンカー>#</a></span></h3>
+<pre tabindex=0><code>[ALL]# cat &lt; /etc/drbd.d/mysql.res
+resource mysql {
+  protocol C;
+  meta-disk internal;
+  device /dev/drbd0;
+  disk /dev/cl/drbd0;
+  handlers {
+    split-brain &quot;/usr/lib/drbd/notify-split-brain.sh root&quot;;
+  }
+  # スプリットブレインからの自動復旧ポリシー
+  net {
+    allow-two-primaries no;
+
+    # スプリットブレインが検出されたときに両ノードともセカンダリロールの場合に適用されるポリシーの定義
+    after-sb-0pri discard-zero-changes;  # 変更がなかったホストでは、他方に加えられたすべての変更内容を適用して続行
+
+    # スプリットブレインが検出されたときにどちらか1つのノードがプライマリロールである場合に適用されるポリシーの定義
+    after-sb-1pri discard-secondary;  # クラスタからノードを強制的に削除
+
+    # スプリットブレインが検出されたときに両ノードともプライマリロールである場合に適用されるポリシーの定義
+    after-sb-2pri disconnect;  # split-brain ハンドラスクリプト(構成されている場合)を呼び出し、コネクションを切断して切断モードで続行
+
+    rr-conflict disconnect;
+  }
+  disk {
+    on-io-error detach;
+  }
+  syncer {
+    verify-alg sha1;
+  }
+  on db1 {
+    address 192.168.122.11:7789;
+  }
+  on db2 {
+    address 192.168.122.12:7789;
+  }
+}
+EOF 
+</code></pre><p><a href=https://blog.3ware.co.jp/drbd-users-guide-8.3/s-configure-split-brain-behavior.html>https://blog.3ware.co.jp/drbd-users-guide-8.3/s-configure-split-brain-behavior.html</a></p>
+<pre tabindex=0><code>[ALL]# drbdadm create-md mysql
+</code></pre><pre tabindex=0><code>[root@db1 ~]# drbdadm create-md mysql
+[ 9270.237905] Request for unknown module key 'The ELRepo Project (http://elrepo.org): ELRepo.org Secure Boot Key: f365ad3481a7b20e3427b61b2a26635b83fe427b' err -11
+[ 9270.240696] drbd: loading out-of-tree module taints kernel.
+[ 9270.241865] drbd: module verification failed: signature and/or required key missing - tainting kernel
+[ 9270.256491] drbd: initialized. Version: 8.4.9-1 (api:1/proto:86-101)
+[ 9270.257797] drbd: GIT-hash: 9976da086367a2476503ef7f6b13d4567327a280 build by akemi@Build64R7, 2016-12-04 01:08:48
+[ 9270.260611] drbd: registered as block device major 147
+initializing activity log
+NOT initializing bitmap
+Writing meta data...
+New drbd meta data block successfully created.
+success
+</code></pre><pre tabindex=0><code>[ALL]# drbdadm up mysql
+</code></pre><p>db1 側を primary と指定することで同期が始まる</p>
+<pre tabindex=0><code>[db1]# drbdadm primary --force mysql
+</code></pre><p><code>drbd-overview</code> で同期の進捗が確認できる</p>
+<pre tabindex=0><code>[root@db1 ~]# drbd-overview
+ 0:mysql/0  SyncSource Primary/Secondary UpToDate/Inconsistent 
+	[&gt;....................] sync'ed:  2.8% (1022252/1048508)K           
+</code></pre><pre tabindex=0><code>[root@db1 ~]# drbd-overview
+ 0:mysql/0  SyncSource Primary/Secondary UpToDate/Inconsistent 
+	[=&gt;..................] sync'ed: 11.8% (929188/1048508)K           
+</code></pre><pre tabindex=0><code>[root@db1 ~]# drbd-overview
+ 0:mysql/0  Connected Primary/Secondary UpToDate/UpToDate
+</code></pre><p>同期完了</p>
+<h3 id=drbd-デバイスをフォーマット class="relative group">DRBD デバイスをフォーマット <span class="absolute top-0 w-6 transition-opacity opacity-0 ltr:-left-6 rtl:-right-6 not-prose group-hover:opacity-100"><a class="group-hover:text-primary-300 dark:group-hover:text-neutral-700" style=text-decoration-line:none!important href=#drbd-%e3%83%87%e3%83%90%e3%82%a4%e3%82%b9%e3%82%92%e3%83%95%e3%82%a9%e3%83%bc%e3%83%9e%e3%83%83%e3%83%88 aria-label=アンカー>#</a></span></h3>
+<p>DRBD によってできたデバイスを XFS でフォーマットする</p>
+<pre tabindex=0><code>[db1]# mkfs.xfs /dev/drbd0
+</code></pre><h3 id=mariadb-のインストール class="relative group">MariaDB のインストール <span class="absolute top-0 w-6 transition-opacity opacity-0 ltr:-left-6 rtl:-right-6 not-prose group-hover:opacity-100"><a class="group-hover:text-primary-300 dark:group-hover:text-neutral-700" style=text-decoration-line:none!important href=#mariadb-%e3%81%ae%e3%82%a4%e3%83%b3%e3%82%b9%e3%83%88%e3%83%bc%e3%83%ab aria-label=アンカー>#</a></span></h3>
+<p>MySQL でも良いのだけれど CentOS 7 の標準 repository は MariaDB に変わっているのでこれを使います。そういえば最近 MariaDB の話聞かないね。</p>
+<pre tabindex=0><code>[ALL]# yum install -y mariadb-server mariadb
+</code></pre><p>DRBD デバイスを仮に /mnt にマウント</p>
+<pre tabindex=0><code>[db1]# mount /dev/drbd0 /mnt
+</code></pre><p>/mnt に MySQL(?) をセットアップ</p>
+<pre tabindex=0><code>[db1]# mysql_install_db --datadir=/mnt --user=mysql
+</code></pre><p>/var/lib/mysql と同じように SELinux の context を設定</p>
+<pre tabindex=0><code>[db1]# semanage fcontext -a -t mysqld_db_t &quot;/mnt(/.*)?&quot;
+[db1]# restorecon -Rv /mnt
+</code></pre><p>準備ができたので umount</p>
+<pre tabindex=0><code>[db1]# umount /mnt
+</code></pre><p>my.cnf の設定</p>
+<pre tabindex=0><code>[ALL]# cat &lt;&lt; EOL &gt; /etc/my.cnf
+[mysqld]
+symbolic-links=0
+bind_address            = 0.0.0.0
+datadir                 = /var/lib/mysql
+pid_file                = /var/run/mariadb/mysqld.pid
+socket                  = /var/run/mariadb/mysqld.sock
+
+[mysqld_safe]
+bind_address            = 0.0.0.0
+datadir                 = /var/lib/mysql
+pid_file                = /var/run/mariadb/mysqld.pid
+socket                  = /var/run/mariadb/mysqld.sock
+
+!includedir /etc/my.cnf.d
+EOL
+</code></pre><h3 id=pacemaker-設定 class="relative group">Pacemaker 設定 <span class="absolute top-0 w-6 transition-opacity opacity-0 ltr:-left-6 rtl:-right-6 not-prose group-hover:opacity-100"><a class="group-hover:text-primary-300 dark:group-hover:text-neutral-700" style=text-decoration-line:none!important href=#pacemaker-%e8%a8%ad%e5%ae%9a aria-label=アンカー>#</a></span></h3>
+<p><a href=https://access.redhat.com/documentation/ja-JP/Red_Hat_Enterprise_Linux/7/html/High_Availability_Add-On_Reference/ch-clusteropts-HAAR.html>第12章 PACEMAKER クラスターのプロパティ</a></p>
+<pre tabindex=0><code>[db1]# pcs cluster cib clust_cfg
+</code></pre><p>stonith の無効化（使えるなら使ったほうが良い）</p>
+<pre tabindex=0><code>[db1]# pcs -f clust_cfg property set stonith-enabled=false
+</code></pre><p>quorum の無効化（2台構成では過半数はとれない）</p>
+<pre tabindex=0><code>[db1]# pcs -f clust_cfg property set no-quorum-policy=ignore
+</code></pre><p>failback を抑制する</p>
+<pre tabindex=0><code>[db1]# pcs -f clust\_cfg resource defaults resource-stickiness=200
+</code></pre><p>DRBD の resource として mysql (/etc/drbd.d/mysql.res で設定したやつ) を指定</p>
+<pre tabindex=0><code>[db1]# pcs -f clust_cfg resource create mysql_data ocf:linbit:drbd \
+  drbd_resource=mysql \
+  op monitor interval=30s
+</code></pre><pre tabindex=0><code>[db1]# pcs -f clust_cfg resource master MySQLClone mysql_data \
+  master-max=1 master-node-max=1 \
+  clone-max=2 clone-node-max=1 \
+  notify=true
+</code></pre><p>master-max=1</p>
+<p>マスターに昇格させることができるリソースのコピー数</p>
+<p>master-node-max=1</p>
+<p>1つのノード上でマスターに昇格させることができるリソースのコピー数</p>
+<p>clone-max=2</p>
+<p>いくつのリソースコピーを開始するか。デフォルトはクラスタ内のノード数</p>
+<p>clone-node-max=1</p>
+<p>1つのノードで開始状態にできるリソースのコピー数</p>
+<p>notify=true</p>
+<p>クローンのコピーを開始、停止する前後に他の全てのコピーに伝える</p>
+<p><code>mysql_fs</code> という名前で /dev/drbd0 を /var/lib/mysql にマウントする resource を定義</p>
+<pre tabindex=0><code>[db1]# pcs -f clust_cfg resource create mysql_fs Filesystem \
+  device=&quot;/dev/drbd0&quot; \
+  directory=&quot;/var/lib/mysql&quot; \
+  fstype=&quot;xfs&quot;
+</code></pre><p><code>MySQLClone</code> には <code>mysql_fs</code> が必須</p>
+<pre tabindex=0><code>[db1]# pcs -f clust_cfg constraint colocation add mysql_fs with MySQLClone \
+  INFINITY with-rsc-role=Master
+</code></pre><p><code>MySQLClone</code> を master に昇格させるときに <code>mysql_fs</code> を開始する</p>
+<pre tabindex=0><code>[db1]# pcs -f clust_cfg constraint order promote MySQLClone then start mysql_fs
+</code></pre><p><code>mysql_service</code> resource の作成、MariaDB (MySQL) の起動設定 (ocf💓mysql のファイルは /usr/lib/ocf/resource.d/heartbeat/mysql にあります) monitor interval はもっと短い方が良いかな</p>
+<pre tabindex=0><code>[db1]# pcs -f clust_cfg resource create mysql_service ocf💓mysql \
+  binary=&quot;/usr/bin/mysqld_safe&quot; \
+  config=&quot;/etc/my.cnf&quot; \
+  datadir=&quot;/var/lib/mysql&quot; \
+  pid=&quot;/var/lib/mysql/mysql.pid&quot; \
+  socket=&quot;/var/lib/mysql/mysql.sock&quot; \
+  additional_parameters=&quot;--bind-address=0.0.0.0&quot; \
+  op start timeout=60s \
+  op stop timeout=60s \
+  op monitor interval=20s timeout=30s
+</code></pre><p><code>mysql_fs</code> resource 起動しているノードで <code>mysql_service</code> を起動する (<a href=https://access.redhat.com/documentation/ja-JP/Red_Hat_Enterprise_Linux/7/html/High_Availability_Add-On_Reference/s1-colocationconstraints-HAAR.html>7.3. リソースのコロケーション (constraint colocation)</a>)</p>
+<pre tabindex=0><code>[db1]# pcs -f clust_cfg constraint colocation add mysql_service with mysql_fs INFINITY
+</code></pre><p><code>mysql_fs</code> の後に <code>mysql_service</code> を開始 (<a href=https://access.redhat.com/documentation/ja-JP/Red_Hat_Enterprise_Linux/7/html/High_Availability_Add-On_Reference/s1-orderconstraints-HAAR.html>7.2. 順序の制約 (constraint order)</a>)</p>
+<pre tabindex=0><code>[db1]# pcs -f clust_cfg constraint order mysql_fs then mysql_service
+</code></pre><p>VIP resource を定義 (IPaddr2 は Linux 向けの VIP 設定、場所は /usr/lib/ocf/resource.d/heartbeat/IPaddr2)</p>
+<pre tabindex=0><code>[db1]# pcs -f clust_cfg resource create mysql_VIP ocf💓IPaddr2 \
+ ip=192.168.122.10 cidr_netmask=32 \
+ op monitor interval=30s
+</code></pre><p>IPaddr</p>
+<p>manages virtual IPv4 addresses (portable version)</p>
+<p>IPaddr2</p>
+<p>manages virtual IPv4 addresses (Linux specific version).</p>
+<p><code>mysql_VIP</code> は <code>mysql_service</code> の実行ノードで実行</p>
+<pre tabindex=0><code>[db1]# pcs -f clust_cfg constraint colocation add mysql_VIP with mysql_service INFINITY
+</code></pre><p><code>mysql_service</code> の後に <code>mysql_VIP</code> を開始</p>
+<pre tabindex=0><code>[db1]# pcs -f clust_cfg constraint order mysql_service then mysql_VIP
+</code></pre><p>制約確認</p>
+<pre tabindex=0><code>[db1]# pcs -f clust_cfg constraint
+</code></pre><p>実行例</p>
+<pre tabindex=0><code>[root@db1 ~]# pcs -f clust_cfg constraint
+Location Constraints:
+Ordering Constraints:
+  promote MySQLClone then start mysql_fs (kind:Mandatory)
+  start mysql_fs then start mysql_service (kind:Mandatory)
+  start mysql_service then start mysql_VIP (kind:Mandatory)
+Colocation Constraints:
+  mysql_fs with MySQLClone (score:INFINITY) (with-rsc-role:Master)
+  mysql_service with mysql_fs (score:INFINITY)
+  mysql_VIP with mysql_service (score:INFINITY)
+Ticket Constraints:
+</code></pre><p><code>MySQLClone</code> という Master / Slave な clone があり、これを Master に昇格させると <code>mysql_fs</code>, <code>mysql_service</code>, <code>mysql_VIP</code> の順に起動させる</p>
+<pre tabindex=0><code>[db1]# pcs -f clust_cfg resource show
+</code></pre><pre tabindex=0><code>[root@db1 ~]# pcs -f clust_cfg resource show
+ Master/Slave Set: MySQLClone [mysql_data]
+     Stopped: [ db1 db2 ]
+ mysql_fs	(ocf:💓Filesystem):	Stopped
+ mysql_service	(ocf:💓mysql):	Stopped
+ mysql_VIP	(ocf:💓IPaddr2):	Stopped
+</code></pre><p>ここまで、cluster_cfg というファイルに設定を入れていたが、ここで cib に push することで <code>/var/lib/pacemaker/cib/cib.xml</code> に保存されます</p>
+<pre tabindex=0><code>[db1]# pcs cluster cib-push clust_cfg
+</code></pre><p>Pacemaker の状態確認</p>
+<pre tabindex=0><code>[db1]# pcs status
+</code></pre><pre tabindex=0><code>[root@db1 ~]# pcs status
+Cluster name: mysql_cluster
+Stack: corosync
+Current DC: db2 (version 1.1.15-11.el7_3.4-e174ec8) - partition with quorum
+Last updated: Tue Jun 13 23:44:58 2017		Last change: Tue Jun 13 20:22:08 2017 by root via crm_attribute on db2
+
+2 nodes and 5 resources configured
+
+Online: [ db1 db2 ]
+
+Full list of resources:
+
+ Master/Slave Set: MySQLClone [mysql_data]
+     Masters: [ db1 ]
+     Slaves: [ db2 ]
+ mysql_fs	(ocf:💓Filesystem):	Started db1
+ mysql_service	(ocf:💓mysql):	Started db1
+ mysql_VIP	(ocf:💓IPaddr2):	Started db1
+
+Daemon Status:
+  corosync: active/enabled
+  pacemaker: active/enabled
+  pcsd: active/enabled
+</code></pre><h3 id=参考ドキュメント class="relative group">参考ドキュメント <span class="absolute top-0 w-6 transition-opacity opacity-0 ltr:-left-6 rtl:-right-6 not-prose group-hover:opacity-100"><a class="group-hover:text-primary-300 dark:group-hover:text-neutral-700" style=text-decoration-line:none!important href=#%e5%8f%82%e8%80%83%e3%83%89%e3%82%ad%e3%83%a5%e3%83%a1%e3%83%b3%e3%83%88 aria-label=アンカー>#</a></span></h3>
+<ul>
+<li><a href=https://www.lisenet.com/2016/activepassive-mysql-high-availability-pacemaker-cluster-with-drbd-on-centos-7/>Active/Passive MySQL High Availability Pacemaker Cluster with DRBD on CentOS 7 | Lisenet.com :: Linux | Security | Networking</a></li>
+<li><a href=http://clusterlabs.org/doc/it-IT/Pacemaker/1.1/html/Clusters_from_Scratch/ch07.html>Capitolo 7. Replicate Storage Using DRBD</a></li>
+<li><a href=https://blog.3ware.co.jp/drbd-users-guide-8.3/s-configure-split-brain-behavior.html>スプリットブレイン時の動作の設定</a></li>
+<li><a href=http://qiita.com/sion_cojp/items/a6a329df0415a843fb12>DRBD 8.4 の設定、切り替え手順（マルチPrimaryバージョン） - Qiita</a></li>
+<li><a href=http://elrepo.org/tiki/tiki-index.php>ELRepo : HomePage</a></li>
+</ul>
+</div>
+<script>var liked_article=!1,oid,id,viewed,oid_likes,id_likes,liked;typeof auth!='undefined'&&(oid="views_posts/mariadb-on-centos7-ha-using-drbd.md",id=oid&&oid.replaceAll("/","-"),viewed=localStorage.getItem(id),viewed||auth.signInAnonymously().then(()=>{var a=db.collection('views').doc(id);localStorage.setItem(id,!0),a.get().then(a=>{a.exists?db.collection('views').doc(id).update({views:firebase.firestore.FieldValue.increment(1)}):db.collection('views').doc(id).set({views:1})}).catch(a=>{console.log("Error getting document:",a)})}).catch(a=>{var b=a.code,c=a.message;console.error(b,c)}),oid_likes="likes_posts/mariadb-on-centos7-ha-using-drbd.md",id_likes=oid_likes&&oid_likes.replaceAll("/","-"),liked=localStorage.getItem(id_likes),liked&&(liked_article=!0,document.querySelectorAll("button[id='likes_button']")[0].innerText="Remove Like"));function like_article(a){console.log("add"),liked_article=!0,localStorage.setItem(a,!0),document.querySelectorAll("button[id='likes_button']")[0].innerText="Remove Like",auth.signInAnonymously().then(()=>{var b=db.collection('likes').doc(a);b.get().then(b=>{b.exists?db.collection('likes').doc(a).update({likes:firebase.firestore.FieldValue.increment(1)}):db.collection('likes').doc(a).set({likes:1})}).catch(a=>{console.log("Error getting document:",a)})}).catch(a=>{var b=a.code,c=a.message;console.error(b,c)})}function remove_like_article(a){console.log("remove"),liked_article=!1,localStorage.setItem(a,!1),document.querySelectorAll("button[id='likes_button']")[0].innerText="Like",auth.signInAnonymously().then(()=>{var b=db.collection('likes').doc(a);b.get().then(b=>{b.exists?db.collection('likes').doc(a).update({likes:firebase.firestore.FieldValue.increment(-1)}):db.collection('likes').doc(a).set({likes:0})}).catch(a=>{console.log("Error getting document:",a)})}).catch(a=>{var b=a.code,c=a.message;console.error(b,c)})}function process_article(){var a="likes_posts/mariadb-on-centos7-ha-using-drbd.md",b=a&&a.replaceAll("/","-");liked_article?remove_like_article(b):like_article(b)}</script>
+</section>
+<footer class="pt-8 max-w-prose print:hidden">
+<div class=flex>
+<div class=place-self-center>
+<div class="text-[0.6rem] uppercase leading-3 text-neutral-500 dark:text-neutral-400">
+著者
+</div>
+<div class="font-semibold leading-6 text-neutral-800 dark:text-neutral-300">
+Yoshinori Teraoka
+</div>
+<div class="text-2xl sm:text-lg">
+<div class="flex flex-wrap text-neutral-400 dark:text-neutral-500">
+<a class="px-1 hover:text-primary-700 dark:hover:text-primary-400" href=https://twitter.com/yteraoka target=_blank aria-label=Twitter rel="me noopener noreferrer">
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentcolor" d="M459.37 151.716c.325 4.548.325 9.097.325 13.645.0 138.72-105.583 298.558-298.558 298.558-59.452.0-114.68-17.219-161.137-47.106 8.447.974 16.568 1.299 25.34 1.299 49.055.0 94.213-16.568 130.274-44.832-46.132-.975-84.792-31.188-98.112-72.772 6.498.974 12.995 1.624 19.818 1.624 9.421.0 18.843-1.3 27.614-3.573-48.081-9.747-84.143-51.98-84.143-102.985v-1.299c13.969 7.797 30.214 12.67 47.431 13.319-28.264-18.843-46.781-51.005-46.781-87.391.0-19.492 5.197-37.36 14.294-52.954 51.655 63.675 129.3 105.258 216.365 109.807-1.624-7.797-2.599-15.918-2.599-24.04.0-57.828 46.782-104.934 104.934-104.934 30.213.0 57.502 12.67 76.67 33.137 23.715-4.548 46.456-13.32 66.599-25.34-7.798 24.366-24.366 44.833-46.132 57.827 21.117-2.273 41.584-8.122 60.426-16.243-14.292 20.791-32.161 39.308-52.628 54.253z"/></svg>
+</span>
+</a>
+<a class="px-1 hover:text-primary-700 dark:hover:text-primary-400" href=https://github.com/yteraoka target=_blank aria-label=Github rel="me noopener noreferrer">
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><path fill="currentcolor" d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6.0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6.0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3.0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1.0-6.2-.3-40.4-.3-61.4.0.0-70 15-84.7-29.8.0.0-11.4-29.1-27.8-36.6.0.0-22.9-15.7 1.6-15.4.0.0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5.0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9.0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4.0 33.7-.3 75.4-.3 83.6.0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6.0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9.0-6.2-1.4-2.3-4-3.3-5.6-2z"/></svg>
+</span>
+</a>
+<a class="px-1 hover:text-primary-700 dark:hover:text-primary-400" href=https://linkedin.com/in/fa5b66b7-9c77-4e1b-8b97-40ba4a5a2c13/ target=_blank aria-label=Linkedin rel="me noopener noreferrer">
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path fill="currentcolor" d="M416 32H31.9C14.3 32 0 46.5.0 64.3v383.4C0 465.5 14.3 480 31.9 480H416c17.6.0 32-14.5 32-32.3V64.3c0-17.8-14.4-32.3-32-32.3zM135.4 416H69V202.2h66.5V416zm-33.2-243c-21.3.0-38.5-17.3-38.5-38.5S80.9 96 102.2 96c21.2.0 38.5 17.3 38.5 38.5.0 21.3-17.2 38.5-38.5 38.5zm282.1 243h-66.4V312c0-24.8-.5-56.7-34.5-56.7-34.6.0-39.9 27-39.9 54.9V416h-66.4V202.2h63.7v29.2h.9c8.9-16.8 30.6-34.5 62.9-34.5 67.2.0 79.7 44.3 79.7 101.9V416z"/></svg>
+</span>
+</a>
+<a class="px-1 hover:text-primary-700 dark:hover:text-primary-400" href=https://medium.com/@yteraoka target=_blank aria-label=Medium rel="me noopener noreferrer">
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512"><path fill="currentcolor" d="M180.5 74.262C80.813 74.262.0 155.633.0 256S80.819 437.738 180.5 437.738 361 356.373 361 256 280.191 74.262 180.5 74.262zm288.25 10.646c-49.845.0-90.245 76.619-90.245 171.095s40.406 171.1 90.251 171.1 90.251-76.619 90.251-171.1H559C559 161.5 518.6 84.908 468.752 84.908zm139.506 17.821c-17.526.0-31.735 68.628-31.735 153.274s14.2 153.274 31.735 153.274S640 340.631 640 256c0-84.649-14.215-153.271-31.742-153.271z"/></svg>
+</span>
+</a>
+</div>
+</div>
+</div>
+</div>
+<section class="flex flex-row flex-wrap justify-center pt-4 text-xl">
+<a class="m-1 inline-block min-w-[2.4rem] rounded bg-neutral-300 p-1 text-center text-neutral-700 hover:bg-primary-500 hover:text-neutral dark:bg-neutral-700 dark:text-neutral-300 dark:hover:bg-primary-400 dark:hover:text-neutral-800" href="https://www.linkedin.com/shareArticle?mini=true&url=https://preview-blog.1q77.com/2017/06/mariadb-on-centos7-ha-using-drbd/&title=CentOS7%e3%81%aeMariaDB%28MySQL%29%e3%82%92DRBD%e3%81%a7HA%e5%8c%96" title=LinkedInでシェアする aria-label=LinkedInでシェアする>
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path fill="currentcolor" d="M416 32H31.9C14.3 32 0 46.5.0 64.3v383.4C0 465.5 14.3 480 31.9 480H416c17.6.0 32-14.5 32-32.3V64.3c0-17.8-14.4-32.3-32-32.3zM135.4 416H69V202.2h66.5V416zm-33.2-243c-21.3.0-38.5-17.3-38.5-38.5S80.9 96 102.2 96c21.2.0 38.5 17.3 38.5 38.5.0 21.3-17.2 38.5-38.5 38.5zm282.1 243h-66.4V312c0-24.8-.5-56.7-34.5-56.7-34.6.0-39.9 27-39.9 54.9V416h-66.4V202.2h63.7v29.2h.9c8.9-16.8 30.6-34.5 62.9-34.5 67.2.0 79.7 44.3 79.7 101.9V416z"/></svg>
+</span>
+</a>
+<a class="m-1 inline-block min-w-[2.4rem] rounded bg-neutral-300 p-1 text-center text-neutral-700 hover:bg-primary-500 hover:text-neutral dark:bg-neutral-700 dark:text-neutral-300 dark:hover:bg-primary-400 dark:hover:text-neutral-800" href="https://twitter.com/intent/tweet/?url=https://preview-blog.1q77.com/2017/06/mariadb-on-centos7-ha-using-drbd/&text=CentOS7%e3%81%aeMariaDB%28MySQL%29%e3%82%92DRBD%e3%81%a7HA%e5%8c%96" title=Twitterに投稿する aria-label=Twitterに投稿する>
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentcolor" d="M459.37 151.716c.325 4.548.325 9.097.325 13.645.0 138.72-105.583 298.558-298.558 298.558-59.452.0-114.68-17.219-161.137-47.106 8.447.974 16.568 1.299 25.34 1.299 49.055.0 94.213-16.568 130.274-44.832-46.132-.975-84.792-31.188-98.112-72.772 6.498.974 12.995 1.624 19.818 1.624 9.421.0 18.843-1.3 27.614-3.573-48.081-9.747-84.143-51.98-84.143-102.985v-1.299c13.969 7.797 30.214 12.67 47.431 13.319-28.264-18.843-46.781-51.005-46.781-87.391.0-19.492 5.197-37.36 14.294-52.954 51.655 63.675 129.3 105.258 216.365 109.807-1.624-7.797-2.599-15.918-2.599-24.04.0-57.828 46.782-104.934 104.934-104.934 30.213.0 57.502 12.67 76.67 33.137 23.715-4.548 46.456-13.32 66.599-25.34-7.798 24.366-24.366 44.833-46.132 57.827 21.117-2.273 41.584-8.122 60.426-16.243-14.292 20.791-32.161 39.308-52.628 54.253z"/></svg>
+</span>
+</a>
+</section>
+<div class=pt-8>
+<hr class="border-dotted border-neutral-300 dark:border-neutral-600">
+<div class="flex justify-between pt-3">
+<span>
+<a class="flex group" href=/2017/06/building-ha-nfs-server-part5/>
+<span class="mr-3 text-neutral-700 group-hover:text-primary-600 ltr:inline rtl:hidden dark:text-neutral dark:group-hover:text-primary-400">&larr;</span>
+<span class="ml-3 text-neutral-700 group-hover:text-primary-600 ltr:hidden rtl:inline dark:text-neutral dark:group-hover:text-primary-400">&rarr;</span>
+<span class="flex flex-col">
+<span class="mt-[0.1rem] leading-6 group-hover:underline group-hover:decoration-primary-500">GlusterFS + NFS-Ganesha で HA な NFS サーバーを構築する (5)</span>
+<span class="mt-[0.1rem] text-xs text-neutral-500 dark:text-neutral-400">
+<time datetime="2017-06-10 13:34:49 +0000 UTC">2017年6月10日</time>
+</span>
+</span>
+</a>
+</span>
+<span>
+<a class="flex text-right group" href=/2017/06/retry-function-of-reverseproxy/>
+<span class="flex flex-col">
+<span class="mt-[0.1rem] leading-6 group-hover:underline group-hover:decoration-primary-500">ReverseProxyのretry機能を調査</span>
+<span class="mt-[0.1rem] text-xs text-neutral-500 dark:text-neutral-400">
+<time datetime="2017-06-15 15:44:44 +0000 UTC">2017年6月15日</time>
+</span>
+</span>
+<span class="ml-3 text-neutral-700 group-hover:text-primary-600 ltr:inline rtl:hidden dark:text-neutral dark:group-hover:text-primary-400">&rarr;</span>
+<span class="mr-3 text-neutral-700 group-hover:text-primary-600 ltr:hidden rtl:inline dark:text-neutral dark:group-hover:text-primary-400">&larr;</span>
+</a>
+</span>
+</div>
+</div>
+</footer>
+</article>
+<div class="pointer-events-none absolute top-[100vh] bottom-0 w-12 ltr:right-0 rtl:left-0">
+<a href=#the-top class="pointer-events-auto sticky top-[calc(100vh-5.5rem)] flex h-12 w-12 items-center justify-center rounded-full bg-neutral/50 text-xl text-neutral-700 backdrop-blur hover:text-primary-600 dark:bg-neutral-800/50 dark:text-neutral dark:hover:text-primary-400" aria-label=TOPへスクロール title=TOPへスクロール>
+&uarr;
+</a>
+</div>
+</main><footer class="py-10 print:hidden">
+<div class="flex items-center justify-between">
+<p class="text-sm text-neutral-500 dark:text-neutral-400">
+&copy;
+2022
+Yoshinori Teraoka
+</p>
+</div>
+<script>mediumZoom(document.querySelectorAll("img:not(.nozoom)"),{margin:24,background:'rgba(0,0,0,0.5)',scrollOffset:0})</script>
+<script type=text/javascript src=/js/process.min.48d08339b8a087b59c7b8cb42b6717aeeed3e07bfc68b1654cac27f00583284dac59cae47fb686dd7c0e9ff1d2745689dc2071230dff432ca6d7fc24b9f2e036.js integrity="sha512-SNCDObigh7Wce4y0K2cXru7T4Hv8aLFlTKwn8AWDKE2sWcrkf7aG3XwOn/HSdFaJ3CBxIw3/Qyym1/wkufLgNg=="></script>
+</footer><div id=search-wrapper class="invisible fixed inset-0 z-50 flex h-screen w-screen cursor-default flex-col bg-neutral-500/50 p-4 backdrop-blur-sm dark:bg-neutral-900/50 sm:p-6 md:p-[10vh] lg:p-[12vh]" data-url=https://preview-blog.1q77.com/>
+<div id=search-modal class="flex flex-col w-full max-w-3xl min-h-0 mx-auto border rounded-md shadow-lg top-20 border-neutral-200 bg-neutral dark:border-neutral-700 dark:bg-neutral-800">
+<header class="relative z-10 flex items-center justify-between flex-none px-2">
+<form class="flex items-center flex-auto min-w-0">
+<div class="flex items-center justify-center w-8 h-8 text-neutral-400">
+<span class="relative inline-block align-text-bottom icon"><svg aria-hidden="true" focusable="false" data-prefix="fas" data-icon="search" class="svg-inline--fa fa-search fa-w-16" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentcolor" d="M505 442.7 405.3 343c-4.5-4.5-10.6-7-17-7H372c27.6-35.3 44-79.7 44-128C416 93.1 322.9.0 208 0S0 93.1.0 208s93.1 208 208 208c48.3.0 92.7-16.4 128-44v16.3c0 6.4 2.5 12.5 7 17l99.7 99.7c9.4 9.4 24.6 9.4 33.9.0l28.3-28.3c9.4-9.4 9.4-24.6.1-34zM208 336c-70.7.0-128-57.2-128-128 0-70.7 57.2-128 128-128 70.7.0 128 57.2 128 128 0 70.7-57.2 128-128 128z"/></svg>
+</span>
+</div>
+<input type=search id=search-query class="flex flex-auto h-12 mx-1 bg-transparent appearance-none focus:outline-dotted focus:outline-2 focus:outline-transparent" placeholder=Search tabindex=0>
+</form>
+<button id=close-search-button class="flex items-center justify-center w-8 h-8 text-neutral-700 hover:text-primary-600 dark:text-neutral dark:hover:text-primary-400" title="閉じる (Esc)">
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><path fill="currentcolor" d="M310.6 361.4c12.5 12.5 12.5 32.75.0 45.25C304.4 412.9 296.2 416 288 416s-16.38-3.125-22.62-9.375L160 301.3 54.63 406.6C48.38 412.9 40.19 416 32 416S15.63 412.9 9.375 406.6c-12.5-12.5-12.5-32.75.0-45.25l105.4-105.4L9.375 150.6c-12.5-12.5-12.5-32.75.0-45.25s32.75-12.5 45.25.0L160 210.8l105.4-105.4c12.5-12.5 32.75-12.5 45.25.0s12.5 32.75.0 45.25l-105.4 105.4L310.6 361.4z"/></svg>
+</span>
+</button>
+</header>
+<section class="flex-auto px-2 overflow-auto">
+<ul id=search-results>
+</ul>
+</section>
+</div>
+</div>
+</div>
+</body>
+</html>

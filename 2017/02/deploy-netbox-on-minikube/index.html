@@ -1,0 +1,791 @@
+<!doctype html><html lang=ja dir=ltr class=scroll-smooth data-default-appearance=light data-auto-appearance=true><head>
+<meta charset=utf-8>
+<meta http-equiv=content-language content="ja">
+<meta name=viewport content="width=device-width,initial-scale=1">
+<meta http-equiv=x-ua-compatible content="ie=edge">
+<title>Kubernetes Secrets を使って minikube に netbox を deploy してみる &#183; 1Q77</title>
+<meta name=title content="Kubernetes Secrets を使って minikube に netbox を deploy してみる &#183; 1Q77">
+<link rel=canonical href=https://preview-blog.1q77.com/2017/02/deploy-netbox-on-minikube/>
+<link type=text/css rel=stylesheet href=/css/main.bundle.min.a9d40529d239a91ecb75447e67ee6c80c1f1c28593904b4052651b12220121e13ec42904268b0193a6858f039cf8bfdd2b1331529ed341ddc7488cec3bdcbc2e.css integrity="sha512-qdQFKdI5qR7LdUR+Z+5sgMHxwoWTkEtAUmUbEiIBIeE+xCkEJosBk6aFjwOc+L/dKxMxUp7TQd3HSIzsO9y8Lg==">
+<script type=text/javascript src=/js/main.min.cf83e1357eefb8bdf1542850d66d8007d620e4050b5715dc83f4a921d36ce9ce47d0d13c5d85f2b0ff8318d2877eec2f63b931bd47417a81a538327af927da3e.js integrity="sha512-z4PhNX7vuL3xVChQ1m2AB9Yg5AULVxXcg/SpIdNs6c5H0NE8XYXysP+DGNKHfuwvY7kxvUdBeoGlODJ6+SfaPg=="></script>
+<script type=text/javascript src=/js/appearance.min.49025a779c36ad37a5bf9f1cc6bffd35ccb69ce15560ef1b10057ddf31576265b19f8bcc1733207336c9144926f7b18aea2e5895f29e858b24271332a2fa5cd5.js integrity="sha512-SQJad5w2rTelv58cxr/9Ncy2nOFVYO8bEAV93zFXYmWxn4vMFzMgczbJFEkm97GK6i5YlfKehYskJxMyovpc1Q=="></script>
+<script defer type=text/javascript id=script-bundle src=/js/main.bundle.min.34ee8372ff77835535e486c6ed01ff6993374a1cec8108898cad793fc6ae7520778e24db68e085c762d25af6fa7d00b57d7a791438dc68b676581f8c8344f6e0.js integrity="sha512-NO6Dcv93g1U15IbG7QH/aZM3ShzsgQiJjK15P8audSB3jiTbaOCFx2LSWvb6fQC1fXp5FDjcaLZ2WB+Mg0T24A==" data-copy data-copied></script>
+<script src=/js/zoom.min.js></script>
+<link rel=apple-touch-icon sizes=180x180 href=/apple-touch-icon.png>
+<link rel=icon type=image/png sizes=32x32 href=/favicon-32x32.png>
+<link rel=icon type=image/png sizes=16x16 href=/favicon-16x16.png>
+<link rel=manifest href=/site.webmanifest>
+<meta property="og:title" content="Kubernetes Secrets を使って minikube に netbox を deploy してみる">
+<meta property="og:description" content="Kubernetes お試し中です。Rancher で構築するべきか悩み中。 今回は YAML を書いて Deployment, Service を作成して Kubernetes 上に netbox を構築してみます。(netbox は Django + PostgreSQL のデータ">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://preview-blog.1q77.com/2017/02/deploy-netbox-on-minikube/"><meta property="article:section" content="posts">
+<meta property="article:published_time" content="2017-02-22T15:59:40+00:00">
+<meta property="article:modified_time" content="2017-02-22T15:59:40+00:00">
+<meta name=twitter:card content="summary">
+<meta name=twitter:title content="Kubernetes Secrets を使って minikube に netbox を deploy してみる">
+<meta name=twitter:description content="Kubernetes お試し中です。Rancher で構築するべきか悩み中。 今回は YAML を書いて Deployment, Service を作成して Kubernetes 上に netbox を構築してみます。(netbox は Django + PostgreSQL のデータ">
+<script type=application/ld+json>[{"@context":"https://schema.org","@type":"Article","articleSection":"Posts","name":"Kubernetes Secrets を使って minikube に netbox を deploy してみる","headline":"Kubernetes Secrets を使って minikube に netbox を deploy してみる","abstract":"Kubernetes お試し中です。Rancher で構築するべきか悩み中。 今回は YAML を書いて Deployment, Service を作成して Kubernetes 上に netbox を構築してみます。(netbox は Django \u002b PostgreSQL のデータ","inLanguage":"ja","url":"https:\/\/preview-blog.1q77.com\/2017\/02\/deploy-netbox-on-minikube\/","author":{"@type":"Person","name":"Yoshinori Teraoka"},"copyrightYear":"2017","dateCreated":"2017-02-22T15:59:40\u002b00:00","datePublished":"2017-02-22T15:59:40\u002b00:00","dateModified":"2017-02-22T15:59:40\u002b00:00","keywords":["Docker","Docker","Kubernetes","Kubernetes","minikube","netbox"],"mainEntityOfPage":"true","wordCount":"3134"}]</script>
+<meta name=author content="Yoshinori Teraoka">
+<link href=https://twitter.com/yteraoka rel=me>
+<link href=https://github.com/yteraoka rel=me>
+<link href=https://linkedin.com/in/fa5b66b7-9c77-4e1b-8b97-40ba4a5a2c13/ rel=me>
+<link href=https://medium.com/@yteraoka rel=me>
+<link rel=stylesheet href=https://rsms.me/inter/inter.css>
+</head><body class="flex flex-col h-screen px-6 m-auto text-lg leading-7 max-w-7xl bg-neutral text-neutral-900 dark:bg-neutral-800 dark:text-neutral sm:px-14 md:px-24 lg:px-32">
+<div id=the-top class="absolute flex self-center">
+<a class="px-3 py-1 text-sm -translate-y-8 rounded-b-lg bg-primary-200 focus:translate-y-0 dark:bg-neutral-600" href=#main-content><span class="font-bold text-primary-600 ltr:pr-2 rtl:pl-2 dark:text-primary-400">&darr;</span>メインコンテンツへスキップ</a>
+</div>
+<div style=padding-left:0;padding-right:0 class="flex items-center justify-between px-4 py-6 sm:px-6 md:justify-start space-x-3">
+<div class="flex flex-1 items-center justify-between">
+<nav class="flex space-x-3">
+<a href=/ class="text-base font-medium text-gray-500 hover:text-gray-900">1Q77</a>
+</nav>
+<div class="hidden md:flex items-center space-x-5 md:ml-12">
+<a href=/posts/ class="text-base font-medium text-gray-500 hover:text-gray-900" title=Posts>
+Blog
+</a>
+<a href=/tags/ class="text-base font-medium text-gray-500 hover:text-gray-900" title=Tags>
+Tags
+</a>
+<a href=https://github.com/yteraoka class="text-base font-medium text-gray-500 hover:text-gray-900" title>
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><path fill="currentcolor" d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6.0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6.0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3.0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1.0-6.2-.3-40.4-.3-61.4.0.0-70 15-84.7-29.8.0.0-11.4-29.1-27.8-36.6.0.0-22.9-15.7 1.6-15.4.0.0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5.0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9.0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4.0 33.7-.3 75.4-.3 83.6.0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6.0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9.0-6.2-1.4-2.3-4-3.3-5.6-2z"/></svg>
+</span>
+&nbsp;
+GitHub
+</a>
+<a href=https://twitter.com/yteraoka class="text-base font-medium text-gray-500 hover:text-gray-900" title>
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentcolor" d="M459.37 151.716c.325 4.548.325 9.097.325 13.645.0 138.72-105.583 298.558-298.558 298.558-59.452.0-114.68-17.219-161.137-47.106 8.447.974 16.568 1.299 25.34 1.299 49.055.0 94.213-16.568 130.274-44.832-46.132-.975-84.792-31.188-98.112-72.772 6.498.974 12.995 1.624 19.818 1.624 9.421.0 18.843-1.3 27.614-3.573-48.081-9.747-84.143-51.98-84.143-102.985v-1.299c13.969 7.797 30.214 12.67 47.431 13.319-28.264-18.843-46.781-51.005-46.781-87.391.0-19.492 5.197-37.36 14.294-52.954 51.655 63.675 129.3 105.258 216.365 109.807-1.624-7.797-2.599-15.918-2.599-24.04.0-57.828 46.782-104.934 104.934-104.934 30.213.0 57.502 12.67 76.67 33.137 23.715-4.548 46.456-13.32 66.599-25.34-7.798 24.366-24.366 44.833-46.132 57.827 21.117-2.273 41.584-8.122 60.426-16.243-14.292 20.791-32.161 39.308-52.628 54.253z"/></svg>
+</span>
+&nbsp;
+Twitter
+</a>
+<a href=https://qiita.com/yteraoka class="text-base font-medium text-gray-500 hover:text-gray-900" title>
+Qiita
+</a>
+<button id=search-button class="text-base hover:text-primary-600 dark:hover:text-primary-400" title>
+<span class="relative inline-block align-text-bottom icon"><svg aria-hidden="true" focusable="false" data-prefix="fas" data-icon="search" class="svg-inline--fa fa-search fa-w-16" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentcolor" d="M505 442.7 405.3 343c-4.5-4.5-10.6-7-17-7H372c27.6-35.3 44-79.7 44-128C416 93.1 322.9.0 208 0S0 93.1.0 208s93.1 208 208 208c48.3.0 92.7-16.4 128-44v16.3c0 6.4 2.5 12.5 7 17l99.7 99.7c9.4 9.4 24.6 9.4 33.9.0l28.3-28.3c9.4-9.4 9.4-24.6.1-34zM208 336c-70.7.0-128-57.2-128-128 0-70.7 57.2-128 128-128 70.7.0 128 57.2 128 128 0 70.7-57.2 128-128 128z"/></svg>
+</span>
+</button>
+<div class="ltr:mr-14 rtl:ml-14 cursor-pointer text-sm text-neutral-700 hover:text-primary-600 dark:text-neutral dark:hover:text-primary-400">
+<button id=appearance-switcher type=button>
+<div class="flex items-center justify-center h-12 dark:hidden">
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentcolor" d="M32 256C32 132.2 132.3 32 255.8 32c11.36.0 29.7 1.668 40.9 3.746 9.616 1.777 11.75 14.63 3.279 19.44C245 86.5 211.2 144.6 211.2 207.8c0 109.7 99.71 193 208.3 172.3 9.561-1.805 16.28 9.324 10.11 16.95C387.9 448.6 324.8 480 255.8 480 132.1 480 32 379.6 32 256z"/></svg>
+</span>
+</div>
+<div class="items-center justify-center hidden h-12 dark:flex">
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentcolor" d="M256 159.1c-53.02.0-95.1 42.98-95.1 95.1s41.2 96.9 95.1 96.9 95.1-42.98 95.1-95.1S309 159.1 256 159.1zM509.3 347l-63.2-91.9 63.15-91.01c6.332-9.125 1.104-21.74-9.826-23.72l-109-19.7-19.7-109c-1.975-10.93-14.59-16.16-23.72-9.824L256 65.89 164.1 2.736c-9.125-6.332-21.74-1.107-23.72 9.824L121.6 121.6 12.56 141.3C1.633 143.2-3.596 155.9 2.736 164.1L65.89 256 2.74 347.01c-6.332 9.125-1.105 21.74 9.824 23.72l109 19.7 19.7 109c1.975 10.93 14.59 16.16 23.72 9.824L256 446.1l91.01 63.15c9.127 6.334 21.75 1.107 23.72-9.822l19.7-109 109-19.7C510.4 368.8 515.6 356.1 509.3 347zM256 383.1c-70.69.0-127.1-57.31-127.1-127.1.0-70.69 57.31-127.1 127.1-127.1S383.1 186.2 383.1 256c0 70.7-56.4 127.1-127.1 127.1z"/></svg>
+</span>
+</div>
+</button>
+</div>
+</div>
+<div class="flex md:hidden items-center space-x-5 md:ml-12">
+<span></span>
+<button id=search-button-mobile class="text-base hover:text-primary-600 dark:hover:text-primary-400" title>
+<span class="relative inline-block align-text-bottom icon"><svg aria-hidden="true" focusable="false" data-prefix="fas" data-icon="search" class="svg-inline--fa fa-search fa-w-16" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentcolor" d="M505 442.7 405.3 343c-4.5-4.5-10.6-7-17-7H372c27.6-35.3 44-79.7 44-128C416 93.1 322.9.0 208 0S0 93.1.0 208s93.1 208 208 208c48.3.0 92.7-16.4 128-44v16.3c0 6.4 2.5 12.5 7 17l99.7 99.7c9.4 9.4 24.6 9.4 33.9.0l28.3-28.3c9.4-9.4 9.4-24.6.1-34zM208 336c-70.7.0-128-57.2-128-128 0-70.7 57.2-128 128-128 70.7.0 128 57.2 128 128 0 70.7-57.2 128-128 128z"/></svg>
+</span>
+</button>
+<button id=appearance-switcher-mobile type=button style=margin-right:5px>
+<div class="flex items-center justify-center h-12 dark:hidden">
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentcolor" d="M32 256C32 132.2 132.3 32 255.8 32c11.36.0 29.7 1.668 40.9 3.746 9.616 1.777 11.75 14.63 3.279 19.44C245 86.5 211.2 144.6 211.2 207.8c0 109.7 99.71 193 208.3 172.3 9.561-1.805 16.28 9.324 10.11 16.95C387.9 448.6 324.8 480 255.8 480 132.1 480 32 379.6 32 256z"/></svg>
+</span>
+</div>
+<div class="items-center justify-center hidden h-12 dark:flex">
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentcolor" d="M256 159.1c-53.02.0-95.1 42.98-95.1 95.1s41.2 96.9 95.1 96.9 95.1-42.98 95.1-95.1S309 159.1 256 159.1zM509.3 347l-63.2-91.9 63.15-91.01c6.332-9.125 1.104-21.74-9.826-23.72l-109-19.7-19.7-109c-1.975-10.93-14.59-16.16-23.72-9.824L256 65.89 164.1 2.736c-9.125-6.332-21.74-1.107-23.72 9.824L121.6 121.6 12.56 141.3C1.633 143.2-3.596 155.9 2.736 164.1L65.89 256 2.74 347.01c-6.332 9.125-1.105 21.74 9.824 23.72l109 19.7 19.7 109c1.975 10.93 14.59 16.16 23.72 9.824L256 446.1l91.01 63.15c9.127 6.334 21.75 1.107 23.72-9.822l19.7-109 109-19.7C510.4 368.8 515.6 356.1 509.3 347zM256 383.1c-70.69.0-127.1-57.31-127.1-127.1.0-70.69 57.31-127.1 127.1-127.1S383.1 186.2 383.1 256c0 70.7-56.4 127.1-127.1 127.1z"/></svg>
+</span>
+</div>
+</button>
+</div>
+</div>
+<div class="-my-2 -mr-2 md:hidden">
+<label id=menu-button for=menu-controller class=block>
+<input type=checkbox id=menu-controller class=hidden>
+<div class="cursor-pointer hover:text-primary-600 dark:hover:text-primary-400">
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path fill="currentcolor" d="M0 96C0 78.33 14.33 64 32 64H416c17.7.0 32 14.33 32 32 0 17.7-14.3 32-32 32H32C14.33 128 0 113.7.0 96zM0 256c0-17.7 14.33-32 32-32H416c17.7.0 32 14.3 32 32s-14.3 32-32 32H32c-17.67.0-32-14.3-32-32zM416 448H32c-17.67.0-32-14.3-32-32s14.33-32 32-32H416c17.7.0 32 14.3 32 32s-14.3 32-32 32z"/></svg>
+</span>
+</div>
+<div id=menu-wrapper style=padding-top:25px class="fixed inset-0 z-30 invisible w-screen h-screen m-auto overflow-auto transition-opacity opacity-0 cursor-default bg-neutral-100/50 backdrop-blur-sm dark:bg-neutral-900/50">
+<ul class="flex movedown flex-col w-full px-6 py-6 mx-auto overflow-visible list-none ltr:text-right rtl:text-left max-w-7xl sm:px-14 md:px-24 lg:px-32 sm:py-10 sm:pt-10">
+<li class=mb-1>
+<span class="cursor-pointer hover:text-primary-600 dark:hover:text-primary-400">
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><path fill="currentcolor" d="M310.6 361.4c12.5 12.5 12.5 32.75.0 45.25C304.4 412.9 296.2 416 288 416s-16.38-3.125-22.62-9.375L160 301.3 54.63 406.6C48.38 412.9 40.19 416 32 416S15.63 412.9 9.375 406.6c-12.5-12.5-12.5-32.75.0-45.25l105.4-105.4L9.375 150.6c-12.5-12.5-12.5-32.75.0-45.25s32.75-12.5 45.25.0L160 210.8l105.4-105.4c12.5-12.5 32.75-12.5 45.25.0s12.5 32.75.0 45.25l-105.4 105.4L310.6 361.4z"/></svg>
+</span>
+</span>
+</li>
+<li class=mb-1>
+<a class="decoration-primary-500 hover:underline hover:decoration-2 hover:underline-offset-2" href=/posts/ title=Posts>
+Blog
+</a>
+</li>
+<li class=mb-1>
+<a class="decoration-primary-500 hover:underline hover:decoration-2 hover:underline-offset-2" href=/tags/ title=Tags>
+Tags
+</a>
+</li>
+<li class=mb-1>
+<a class="decoration-primary-500 hover:underline hover:decoration-2 hover:underline-offset-2" href=https://github.com/yteraoka title>
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><path fill="currentcolor" d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6.0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6.0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3.0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1.0-6.2-.3-40.4-.3-61.4.0.0-70 15-84.7-29.8.0.0-11.4-29.1-27.8-36.6.0.0-22.9-15.7 1.6-15.4.0.0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5.0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9.0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4.0 33.7-.3 75.4-.3 83.6.0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6.0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9.0-6.2-1.4-2.3-4-3.3-5.6-2z"/></svg>
+</span>
+&nbsp;
+GitHub
+</a>
+</li>
+<li class=mb-1>
+<a class="decoration-primary-500 hover:underline hover:decoration-2 hover:underline-offset-2" href=https://twitter.com/yteraoka title>
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentcolor" d="M459.37 151.716c.325 4.548.325 9.097.325 13.645.0 138.72-105.583 298.558-298.558 298.558-59.452.0-114.68-17.219-161.137-47.106 8.447.974 16.568 1.299 25.34 1.299 49.055.0 94.213-16.568 130.274-44.832-46.132-.975-84.792-31.188-98.112-72.772 6.498.974 12.995 1.624 19.818 1.624 9.421.0 18.843-1.3 27.614-3.573-48.081-9.747-84.143-51.98-84.143-102.985v-1.299c13.969 7.797 30.214 12.67 47.431 13.319-28.264-18.843-46.781-51.005-46.781-87.391.0-19.492 5.197-37.36 14.294-52.954 51.655 63.675 129.3 105.258 216.365 109.807-1.624-7.797-2.599-15.918-2.599-24.04.0-57.828 46.782-104.934 104.934-104.934 30.213.0 57.502 12.67 76.67 33.137 23.715-4.548 46.456-13.32 66.599-25.34-7.798 24.366-24.366 44.833-46.132 57.827 21.117-2.273 41.584-8.122 60.426-16.243-14.292 20.791-32.161 39.308-52.628 54.253z"/></svg>
+</span>
+&nbsp;
+Twitter
+</a>
+</li>
+<li class=mb-1>
+<a class="decoration-primary-500 hover:underline hover:decoration-2 hover:underline-offset-2" href=https://qiita.com/yteraoka title>
+Qiita
+</a>
+</li>
+</ul>
+</div>
+</label>
+</div>
+</div>
+<div id=mobile-menu class="fixed inset-0 z-30 invisible w-screen h-screen m-auto overflow-auto transition-opacity opacity-0 cursor-default bg-neutral-100/50 backdrop-blur-sm dark:bg-neutral-900/50">
+<ul class="flex movedown flex-col w-full px-6 py-6 mx-auto overflow-visible list-none ltr:text-right rtl:text-left max-w-7xl sm:px-14 md:px-24 lg:px-32 sm:py-10 sm:pt-10">
+<li class=mb-1>
+<span class="cursor-pointer hover:text-primary-600 dark:hover:text-primary-400">
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><path fill="currentcolor" d="M310.6 361.4c12.5 12.5 12.5 32.75.0 45.25C304.4 412.9 296.2 416 288 416s-16.38-3.125-22.62-9.375L160 301.3 54.63 406.6C48.38 412.9 40.19 416 32 416S15.63 412.9 9.375 406.6c-12.5-12.5-12.5-32.75.0-45.25l105.4-105.4L9.375 150.6c-12.5-12.5-12.5-32.75.0-45.25s32.75-12.5 45.25.0L160 210.8l105.4-105.4c12.5-12.5 32.75-12.5 45.25.0s12.5 32.75.0 45.25l-105.4 105.4L310.6 361.4z"/></svg>
+</span>
+</span>
+</li>
+<li class=mb-1>
+<a class="decoration-primary-500 hover:underline hover:decoration-2 hover:underline-offset-2" href=/posts/ title=Posts>Blog</a>
+</li>
+<li class=mb-1>
+<a class="decoration-primary-500 hover:underline hover:decoration-2 hover:underline-offset-2" href=/tags/ title=Tags>Tags</a>
+</li>
+<li class=mb-1>
+<a class="decoration-primary-500 hover:underline hover:decoration-2 hover:underline-offset-2" href=https://github.com/yteraoka title>GitHub</a>
+</li>
+<li class=mb-1>
+<a class="decoration-primary-500 hover:underline hover:decoration-2 hover:underline-offset-2" href=https://twitter.com/yteraoka title>Twitter</a>
+</li>
+<li class=mb-1>
+<a class="decoration-primary-500 hover:underline hover:decoration-2 hover:underline-offset-2" href=https://qiita.com/yteraoka title>Qiita</a>
+</li>
+<li>
+<button id=search-button-mobile class="text-base hover:text-primary-600 dark:hover:text-primary-400">
+<span class="relative inline-block align-text-bottom icon"><svg aria-hidden="true" focusable="false" data-prefix="fas" data-icon="search" class="svg-inline--fa fa-search fa-w-16" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentcolor" d="M505 442.7 405.3 343c-4.5-4.5-10.6-7-17-7H372c27.6-35.3 44-79.7 44-128C416 93.1 322.9.0 208 0S0 93.1.0 208s93.1 208 208 208c48.3.0 92.7-16.4 128-44v16.3c0 6.4 2.5 12.5 7 17l99.7 99.7c9.4 9.4 24.6 9.4 33.9.0l28.3-28.3c9.4-9.4 9.4-24.6.1-34zM208 336c-70.7.0-128-57.2-128-128 0-70.7 57.2-128 128-128 70.7.0 128 57.2 128 128 0 70.7-57.2 128-128 128z"/></svg>
+</span>
+</button>
+</li>
+</ul>
+</div>
+<div class="relative flex flex-col grow">
+<main id=main-content class=grow>
+<article>
+<header class=max-w-prose>
+<ol class="text-sm text-neutral-500 dark:text-neutral-400 print:hidden">
+<li class="inline hidden">
+<a class="hover:underline decoration-neutral-300 dark:underline-neutral-600" href=/>1Q77</a><span class="px-1 text-primary-500">/</span>
+</li>
+<li class=inline>
+<a class="hover:underline decoration-neutral-300 dark:underline-neutral-600" href=/posts/>Posts</a><span class="px-1 text-primary-500">/</span>
+</li>
+<li class="inline hidden">
+<a class="hover:underline decoration-neutral-300 dark:underline-neutral-600" href=/2017/02/deploy-netbox-on-minikube/>Kubernetes Secrets を使って minikube に netbox を deploy してみる</a><span class="px-1 text-primary-500">/</span>
+</li>
+</ol>
+<h1 class="mt-0 text-4xl font-extrabold text-neutral-900 dark:text-neutral">
+Kubernetes Secrets を使って minikube に netbox を deploy してみる
+</h1>
+<div class="mt-8 mb-12 text-base text-neutral-500 dark:text-neutral-400 print:hidden">
+<div class="flex flex-row flex-wrap items-center">
+<time datetime="2017-02-22 15:59:40 +0000 UTC">2017年2月22日</time>
+</div>
+<div class="flex flex-row flex-wrap items-center">
+<span style=margin-top:.5rem class=mr-2 onclick='window.open("/tags/docker/")'>
+<span class=flex>
+<span class="rounded-md border border-primary-400 px-1 py-[1px] text-xs font-normal text-primary-700 dark:border-primary-600 dark:text-primary-400">
+Docker
+</span>
+</span>
+</span>
+<span style=margin-top:.5rem class=mr-2 onclick='window.open("/tags/kubernetes/")'>
+<span class=flex>
+<span class="rounded-md border border-primary-400 px-1 py-[1px] text-xs font-normal text-primary-700 dark:border-primary-600 dark:text-primary-400">
+Kubernetes
+</span>
+</span>
+</span>
+<span style=margin-top:.5rem class=mr-2 onclick='window.open("/tags/minikube/")'>
+<span class=flex>
+<span class="rounded-md border border-primary-400 px-1 py-[1px] text-xs font-normal text-primary-700 dark:border-primary-600 dark:text-primary-400">
+minikube
+</span>
+</span>
+</span>
+<span style=margin-top:.5rem class=mr-2 onclick='window.open("/tags/netbox/")'>
+<span class=flex>
+<span class="rounded-md border border-primary-400 px-1 py-[1px] text-xs font-normal text-primary-700 dark:border-primary-600 dark:text-primary-400">
+netbox
+</span>
+</span>
+</span>
+</div>
+</div>
+</header>
+<section class="flex flex-col max-w-full mt-0 prose dark:prose-invert lg:flex-row">
+<div class="order-first px-0 lg:order-last lg:max-w-xs ltr:lg:pl-8 rtl:lg:pr-8">
+<div class="toc ltr:pl-5 rtl:pr-5 print:hidden lg:sticky lg:top-10">
+<details open class="mt-0 overflow-hidden rounded-lg ltr:-ml-5 ltr:pl-5 rtl:-mr-5 rtl:pr-5 hidden lg:block">
+<summary class="block py-1 text-lg font-semibold cursor-pointer bg-neutral-100 text-neutral-800 ltr:-ml-5 ltr:pl-5 rtl:-mr-5 rtl:pr-5 dark:bg-neutral-700 dark:text-neutral-100 lg:hidden">
+目次
+</summary>
+<div class="py-2 border-dotted border-neutral-300 ltr:-ml-5 ltr:border-l ltr:pl-5 rtl:-mr-5 rtl:border-r rtl:pr-5 dark:border-neutral-600">
+<nav id=TableOfContents>
+<ul>
+<li>
+<ul>
+<li><a href=#構成図>構成図</a></li>
+<li><a href=#version>Version</a></li>
+<li><a href=#secret-を作成>Secret を作成</a></li>
+<li><a href=#postgresql-deployment-の-yaml-ファイル作成>PostgreSQL Deployment の YAML ファイル作成</a></li>
+<li><a href=#アプリの-deployment-の-yaml-ファイル作成>アプリの Deployment の YAML ファイル作成</a></li>
+<li><a href=#service-の作成>Service の作成</a></li>
+<li><a href=#service-deployment-の作成>Service, Deployment の作成</a></li>
+<li><a href=#お掃除>お掃除</a></li>
+</ul>
+</li>
+</ul>
+</nav>
+</div>
+</details>
+<details class="mt-0 overflow-hidden rounded-lg ltr:-ml-5 ltr:pl-5 rtl:-mr-5 rtl:pr-5 lg:hidden">
+<summary class="py-1 text-lg font-semibold cursor-pointer bg-neutral-100 text-neutral-800 ltr:-ml-5 ltr:pl-5 rtl:-mr-5 rtl:pr-5 dark:bg-neutral-700 dark:text-neutral-100 lg:hidden">
+目次
+</summary>
+<div class="py-2 border-dotted border-neutral-300 ltr:-ml-5 ltr:border-l ltr:pl-5 rtl:-mr-5 rtl:border-r rtl:pr-5 dark:border-neutral-600">
+<nav id=TableOfContents>
+<ul>
+<li>
+<ul>
+<li><a href=#構成図>構成図</a></li>
+<li><a href=#version>Version</a></li>
+<li><a href=#secret-を作成>Secret を作成</a></li>
+<li><a href=#postgresql-deployment-の-yaml-ファイル作成>PostgreSQL Deployment の YAML ファイル作成</a></li>
+<li><a href=#アプリの-deployment-の-yaml-ファイル作成>アプリの Deployment の YAML ファイル作成</a></li>
+<li><a href=#service-の作成>Service の作成</a></li>
+<li><a href=#service-deployment-の作成>Service, Deployment の作成</a></li>
+<li><a href=#お掃除>お掃除</a></li>
+</ul>
+</li>
+</ul>
+</nav>
+</div>
+</details>
+</div>
+</div>
+<div class="min-w-0 min-h-0 max-w-prose">
+<p><a href=https://kubernetes.io/>Kubernetes</a> お試し中です。<a href=http://rancher.com/>Rancher</a> で構築するべきか悩み中。
+今回は YAML を書いて <a href=https://kubernetes.io/docs/user-guide/deployments/>Deployment</a>, <a href=https://kubernetes.io/docs/user-guide/services/>Service</a> を作成して Kubernetes 上に <a href=https://github.com/digitalocean/netbox>netbox</a> を構築してみます。(netbox は Django + PostgreSQL のデータセンターファシリティ管理ツールです、Wordpress のセットアップは飽きた) パスワードなどは Kubernetes <a href=https://kubernetes.io/docs/user-guide/secrets/>Secrets</a> を使います。 minikube の起動は</p>
+<pre tabindex=0><code>$ minikube start
+</code></pre><p>たったこれだけ。詳細は<a href=/2017/01/minikube-part2/>以前の投稿</a>で。</p>
+<h3 id=構成図 class="relative group">構成図 <span class="absolute top-0 w-6 transition-opacity opacity-0 ltr:-left-6 rtl:-right-6 not-prose group-hover:opacity-100"><a class="group-hover:text-primary-300 dark:group-hover:text-neutral-700" style=text-decoration-line:none!important href=#%e6%a7%8b%e6%88%90%e5%9b%b3 aria-label=アンカー>#</a></span></h3>
+<p>こんな構成にしてみます</p>
+<figure>
+<img class="my-0 rounded-md" srcset="/2017/02/deploy-netbox-on-minikube/kubernetes-netbox_hue1ecb37339ba9d5b6e32d3c39fa2903a_24045_330x0_resize_box_3.png 330w,
+/2017/02/deploy-netbox-on-minikube/kubernetes-netbox_hue1ecb37339ba9d5b6e32d3c39fa2903a_24045_660x0_resize_box_3.png 660w,
+/2017/02/deploy-netbox-on-minikube/kubernetes-netbox_hue1ecb37339ba9d5b6e32d3c39fa2903a_24045_1024x0_resize_box_3.png 1024w,
+/2017/02/deploy-netbox-on-minikube/kubernetes-netbox_hue1ecb37339ba9d5b6e32d3c39fa2903a_24045_1320x0_resize_box_3.png 2x" src=/2017/02/deploy-netbox-on-minikube/kubernetes-netbox_hue1ecb37339ba9d5b6e32d3c39fa2903a_24045_660x0_resize_box_3.png alt=deploy-netbox-on-minikube>
+<figcaption>kubernetes-netbox 構成図</figcaption>
+</figure>
+<h3 id=version class="relative group">Version <span class="absolute top-0 w-6 transition-opacity opacity-0 ltr:-left-6 rtl:-right-6 not-prose group-hover:opacity-100"><a class="group-hover:text-primary-300 dark:group-hover:text-neutral-700" style=text-decoration-line:none!important href=#version aria-label=アンカー>#</a></span></h3>
+<p>minikube の version は 0.16.0</p>
+<pre tabindex=0><code>$ minikube version
+minikube version: v0.16.0
+</code></pre><p>Kubernetes の version は</p>
+<pre tabindex=0><code>$ kubectl version
+Client Version: version.Info{Major:&quot;1&quot;, Minor:&quot;5&quot;, GitVersion:&quot;v1.5.1&quot;, GitCommit:&quot;82450d03cb057bab0950214ef122b67c83fb11df&quot;, GitTreeState:&quot;clean&quot;, BuildDate:&quot;2016-12-14T00:57:05Z&quot;, GoVersion:&quot;go1.7.4&quot;, Compiler:&quot;gc&quot;, Platform:&quot;linux/amd64&quot;}
+Server Version: version.Info{Major:&quot;1&quot;, Minor:&quot;5&quot;, GitVersion:&quot;v1.5.2&quot;, GitCommit:&quot;08e099554f3c31f6e6f07b448ab3ed78d0520507&quot;, GitTreeState:&quot;clean&quot;, BuildDate:&quot;1970-01-01T00:00:00Z&quot;, GoVersion:&quot;go1.7.1&quot;, Compiler:&quot;gc&quot;, Platform:&quot;linux/amd64&quot;}
+</code></pre><p>kubectl 更新しなきゃ</p>
+<h3 id=secret-を作成 class="relative group">Secret を作成 <span class="absolute top-0 w-6 transition-opacity opacity-0 ltr:-left-6 rtl:-right-6 not-prose group-hover:opacity-100"><a class="group-hover:text-primary-300 dark:group-hover:text-neutral-700" style=text-decoration-line:none!important href=#secret-%e3%82%92%e4%bd%9c%e6%88%90 aria-label=アンカー>#</a></span></h3>
+<p><a href=https://kubernetes.io/docs/user-guide/secrets/>https://kubernetes.io/docs/user-guide/secrets/</a> 実際に試した時にはまずは Secrets なしでやったので順序が違いますが、Secrets を使うとなったらまずはこれを作るところから。
+秘密なのでコマンドラインの履歴に残らないように <code>--from-file</code> を使いました。
+YAML や JSON からでも作れますが、値を Base64 に encode する手間が必要です。直接文字列を渡すには <code>--from-literal=username=testuser</code> という指定を使います。</p>
+<pre tabindex=0><code>$ kubectl create secret generic netbox-secret \
+  --from-file=secret_key=secrets/secret_key.txt \
+  --from-file=email_address=secrets/email_address.txt \
+  --from-file=email_password=secrets/email_password.txt \
+  --from-file=netbox_password=secrets/netbox_password.txt \
+  --from-file=db_password=secrets/db_password.txt \
+  --from-file=superuser_password=secrets/superuser_password.txt
+secret &quot;netbox-secret&quot; created
+</code></pre><p>ファイルで渡す場合は末尾の改行も含まれてしまうため、改行が入らないようの <code>echo -n</code> などで作ります。
+あれ？ echo コマンドが履歴に・・・</p>
+<pre tabindex=0><code>$ echo -n 'string' &gt; secret.txt
+</code></pre><p><strong>netbox-secret</strong> という名前の secret ができているので確認してみます。</p>
+<pre tabindex=0><code>$ kubectl get secrets netbox-secret
+NAME            TYPE      DATA      AGE
+netbox-secret   Opaque    6         52s
+</code></pre><pre tabindex=0><code>$ kubectl describe secrets netbox-secret
+Name:		netbox-secret
+Namespace:	default
+Labels:		&lt;none&gt;
+Annotations:	&lt;none&gt;
+
+Type:	Opaque
+
+Data
+====
+superuser_password:	5 bytes
+db_password:		16 bytes
+email_address:		27 bytes
+email_password:		16 bytes
+netbox_password:	5 bytes
+secret_key:		49 bytes
+</code></pre><p>ひとつの secret に複数の key / value のセットを登録されていることが確認できます。</p>
+<p>これを volume としてマウントてファイルのようにしてアクセスしたり、環境変数として渡すことができます。今回は環境変数として設定します。
+<a href=/2017/02/docker-1-13-secrets/>Docker 1.13 の secret</a> では一度設定した値を更新できませんでしたが、Kubernetes の場合には更新が可能で、ファイルとしてアクセスする場合には定期的に更新がチェックされ、反映されます。
+マウント時にパーミッションも指定できるようなのでコンテナ側から更新できるのかな？試してないけど。</p>
+<p>ファイルから登録してファイルとして見せられるので TLS の証明書と秘密鍵とか SSH の private key などを渡すのにも便利に使えそうです。</p>
+<p>ドキュメントの <a href=https://kubernetes.io/docs/user-guide/secrets/#risks>Risks</a> に書かれていることは理解しておいたほうが良いです。Kubernetes で任意のコンテナを起動できる人には Secrets は丸見えだとか、etcd の中には平文で入っているので etcd のファイルにアクセスできてしまうとダメだとか書かれています。</p>
+<p>さらに、Kubernetes の Dashboard で値が見れちゃう、ええぇぇっ！
+ということは</p>
+<pre tabindex=0><code>$ kubectl get secret netbox-secret -o yaml
+</code></pre><p>とかで YAML や JSON には Base64 の文字列が含まれてるから簡単に値が読めちゃう。API にアクセス出来ちゃう人には丸見えってことだな。</p>
+<h3 id=postgresql-deployment-の-yaml-ファイル作成 class="relative group">PostgreSQL Deployment の YAML ファイル作成 <span class="absolute top-0 w-6 transition-opacity opacity-0 ltr:-left-6 rtl:-right-6 not-prose group-hover:opacity-100"><a class="group-hover:text-primary-300 dark:group-hover:text-neutral-700" style=text-decoration-line:none!important href=#postgresql-deployment-%e3%81%ae-yaml-%e3%83%95%e3%82%a1%e3%82%a4%e3%83%ab%e4%bd%9c%e6%88%90 aria-label=アンカー>#</a></span></h3>
+<p>近頃の Kubernetes では Pod を直接作るのではなく、Deployment というものを使うみたいですね。
+Deployment は template として設定した Pod を何個起動させるかを定義する感じです。</p>
+<p>マスタの DB は1個で良いので <strong>replicas: 1</strong> です。</p>
+<p>Pod のコンテナもここでは <strong>postgres</strong> の1個だけです。</p>
+<div class=highlight><pre tabindex=0 class=chroma><code class=language-yaml data-lang=yaml><span class=nt>apiVersion</span><span class=p>:</span><span class=w> </span><span class=l>extensions/v1beta1</span><span class=w>
+</span><span class=w></span><span class=nt>kind</span><span class=p>:</span><span class=w> </span><span class=l>Deployment</span><span class=w>
+</span><span class=w></span><span class=nt>metadata</span><span class=p>:</span><span class=w>
+</span><span class=w>  </span><span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>netbox-db-deployment</span><span class=w>
+</span><span class=w></span><span class=nt>spec</span><span class=p>:</span><span class=w>
+</span><span class=w>  </span><span class=nt>replicas</span><span class=p>:</span><span class=w> </span><span class=m>1</span><span class=w>
+</span><span class=w>  </span><span class=nt>template</span><span class=p>:</span><span class=w>
+</span><span class=w>    </span><span class=nt>metadata</span><span class=p>:</span><span class=w>
+</span><span class=w>      </span><span class=nt>labels</span><span class=p>:</span><span class=w>
+</span><span class=w>        </span><span class=nt>app</span><span class=p>:</span><span class=w> </span><span class=l>netbox-db</span><span class=w>
+</span><span class=w>    </span><span class=nt>spec</span><span class=p>:</span><span class=w>
+</span><span class=w>      </span><span class=nt>containers</span><span class=p>:</span><span class=w>
+</span><span class=w>        </span>- <span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>netbox-db</span><span class=w>
+</span><span class=w>          </span><span class=nt>image</span><span class=p>:</span><span class=w> </span><span class=l>postgres:9.6.2</span><span class=w>
+</span><span class=w>          </span><span class=nt>env</span><span class=p>:</span><span class=w>
+</span><span class=w>            </span>- <span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>POSTGRES_USER</span><span class=w>
+</span><span class=w>              </span><span class=nt>value</span><span class=p>:</span><span class=w> </span><span class=l>netbox</span><span class=w>
+</span><span class=w>            </span>- <span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>POSTGRES_PASSWORD</span><span class=w>
+</span><span class=w>              </span><span class=c># netbox-secret という secret volume から key で指定した値を環境変数に設定</span><span class=w>
+</span><span class=w>              </span><span class=nt>valueFrom</span><span class=p>:</span><span class=w>
+</span><span class=w>                </span><span class=nt>secretKeyRef</span><span class=p>:</span><span class=w>
+</span><span class=w>                  </span><span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>netbox-secret</span><span class=w>
+</span><span class=w>                  </span><span class=nt>key</span><span class=p>:</span><span class=w> </span><span class=l>db_password</span><span class=w>
+</span><span class=w>            </span>- <span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>POSTGRES_DB</span><span class=w>
+</span><span class=w>              </span><span class=nt>value</span><span class=p>:</span><span class=w> </span><span class=l>netbox</span><span class=w>
+</span><span class=w>          </span><span class=c># 5432/tcp を公開</span><span class=w>
+</span><span class=w>          </span><span class=nt>ports</span><span class=p>:</span><span class=w>
+</span><span class=w>            </span>- <span class=nt>containerPort</span><span class=p>:</span><span class=w> </span><span class=m>5432</span><span class=w>
+</span><span class=w>          </span><span class=nt>volumeMounts</span><span class=p>:</span><span class=w>
+</span><span class=w>            </span><span class=c># /var/lib/postgresql にデータ用 volume をマウント</span><span class=w>
+</span><span class=w>            </span>- <span class=nt>mountPath</span><span class=p>:</span><span class=w> </span><span class=l>/var/lib/postgresql</span><span class=w>
+</span><span class=w>              </span><span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>netbox-db-data</span><span class=w>
+</span><span class=w>      </span><span class=nt>restartPolicy</span><span class=p>:</span><span class=w> </span><span class=l>Always</span><span class=w>
+</span><span class=w>      </span><span class=nt>volumes</span><span class=p>:</span><span class=w>
+</span><span class=w>        </span><span class=c># データファイル用の volume を定義</span><span class=w>
+</span><span class=w>        </span>- <span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>netbox-db-data</span><span class=w>
+</span><span class=w>          </span><span class=nt>emptyDir</span><span class=p>:</span><span class=w> </span>{}<span class=w>
+</span><span class=w>        </span><span class=c># netbox-secret という名前の secret を netbox-secret という volume 名で定義</span><span class=w>
+</span><span class=w>        </span>- <span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>netbox-secret</span><span class=w>
+</span><span class=w>          </span><span class=nt>secret</span><span class=p>:</span><span class=w>
+</span><span class=w>            </span><span class=nt>secretName</span><span class=p>:</span><span class=w> </span><span class=l>netbox-secret</span><span class=w>
+</span></code></pre></div><h3 id=アプリの-deployment-の-yaml-ファイル作成 class="relative group">アプリの Deployment の YAML ファイル作成 <span class="absolute top-0 w-6 transition-opacity opacity-0 ltr:-left-6 rtl:-right-6 not-prose group-hover:opacity-100"><a class="group-hover:text-primary-300 dark:group-hover:text-neutral-700" style=text-decoration-line:none!important href=#%e3%82%a2%e3%83%97%e3%83%aa%e3%81%ae-deployment-%e3%81%ae-yaml-%e3%83%95%e3%82%a1%e3%82%a4%e3%83%ab%e4%bd%9c%e6%88%90 aria-label=アンカー>#</a></span></h3>
+<p>こちらの Pod には Reveerse Proxy としての nginx と Django で書かれた netbox アプリの2つのコンテナを入れてあります。</p>
+<p>Django 側で持っている制定ファイルを nginx が直接返したいために volume を共有してあります。</p>
+<p>また、冗長化、負荷分散として <strong>replicas: 2</strong> として2セット立ち上げるようにしてあります。
+<strong>replicas</strong> は起動後にも増減が可能です。</p>
+<p>netbox は <a href=https://github.com/digitalocean/netbox/blob/develop/docker/docker-entrypoint.sh>docker-entrypoint.sh</a> で起動されるようになっています。</p>
+<p>netbox の repository には <a href=https://github.com/digitalocean/netbox/blob/develop/docker-compose.yml>docker-compose.yml</a> が置いてあるのでこれを参考に YAML ファイルを作りました。
+Docker イメージは公開されていないようなので作りました。<a href=https://hub.docker.com/r/yteraoka/netbox/>yteraoka/netbox</a>, <a href=https://hub.docker.com/r/yteraoka/netbox-nginx/>yteraoka/netbox-nginx</a></p>
+<p>環境変数は文字列として定義しないとダメというのになかなか気付けずにしばらくハマってしまいました。</p>
+<div class=highlight><pre tabindex=0 class=chroma><code class=language-yaml data-lang=yaml><span class=nt>apiVersion</span><span class=p>:</span><span class=w> </span><span class=l>extensions/v1beta1</span><span class=w>
+</span><span class=w></span><span class=nt>kind</span><span class=p>:</span><span class=w> </span><span class=l>Deployment</span><span class=w>
+</span><span class=w></span><span class=nt>metadata</span><span class=p>:</span><span class=w>
+</span><span class=w>  </span><span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>netbox-app-deployment</span><span class=w>
+</span><span class=w></span><span class=nt>spec</span><span class=p>:</span><span class=w>
+</span><span class=w>  </span><span class=nt>replicas</span><span class=p>:</span><span class=w> </span><span class=m>2</span><span class=w>
+</span><span class=w>  </span><span class=nt>template</span><span class=p>:</span><span class=w>
+</span><span class=w>    </span><span class=nt>metadata</span><span class=p>:</span><span class=w>
+</span><span class=w>      </span><span class=nt>labels</span><span class=p>:</span><span class=w>
+</span><span class=w>        </span><span class=nt>app</span><span class=p>:</span><span class=w> </span><span class=l>netbox-app</span><span class=w>
+</span><span class=w>    </span><span class=nt>spec</span><span class=p>:</span><span class=w>
+</span><span class=w>      </span><span class=nt>containers</span><span class=p>:</span><span class=w>
+</span><span class=w>        </span><span class=c># nginx コンテナ</span><span class=w>
+</span><span class=w>        </span>- <span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>netbox-nginx</span><span class=w>
+</span><span class=w>          </span><span class=nt>image</span><span class=p>:</span><span class=w> </span><span class=l>yteraoka/netbox-nginx:1.11.10</span><span class=w>
+</span><span class=w>          </span><span class=nt>command</span><span class=p>:</span><span class=w>
+</span><span class=w>            </span>- <span class=l>nginx</span><span class=w>
+</span><span class=w>          </span><span class=c># 80/tcp を公開する</span><span class=w>
+</span><span class=w>          </span><span class=nt>ports</span><span class=p>:</span><span class=w>
+</span><span class=w>            </span>- <span class=nt>containerPort</span><span class=p>:</span><span class=w> </span><span class=m>80</span><span class=w>
+</span><span class=w>          </span><span class=c># アプリ側と共有する volume を /opt/netbox/netbox/static にマウントする</span><span class=w>
+</span><span class=w>          </span><span class=c># /static/ はここのファイルを返すように nginx.conf で指定してある</span><span class=w>
+</span><span class=w>          </span><span class=nt>volumeMounts</span><span class=p>:</span><span class=w>
+</span><span class=w>            </span>- <span class=nt>mountPath</span><span class=p>:</span><span class=w> </span><span class=l>/opt/netbox/netbox/static</span><span class=w>
+</span><span class=w>              </span><span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>netbox-static-files</span><span class=w>
+</span><span class=w>
+</span><span class=w>        </span><span class=c># netbox アプリコンテナ</span><span class=w>
+</span><span class=w>        </span>- <span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>netbox-app</span><span class=w>
+</span><span class=w>          </span><span class=nt>image</span><span class=p>:</span><span class=w> </span><span class=l>yteraoka/netbox:1.8.3</span><span class=w>
+</span><span class=w>          </span><span class=c># 環境変数指定</span><span class=w>
+</span><span class=w>          </span><span class=nt>env</span><span class=p>:</span><span class=w>
+</span><span class=w>            </span>- <span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>SUPERUSER_NAME</span><span class=w>
+</span><span class=w>              </span><span class=nt>value</span><span class=p>:</span><span class=w> </span><span class=l>admin</span><span class=w>
+</span><span class=w>            </span>- <span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>SUPERUSER_EMAIL</span><span class=w>
+</span><span class=w>              </span><span class=c># netbox-secret volume から key で指定した secret の値を環境変数として指定</span><span class=w>
+</span><span class=w>              </span><span class=nt>valueFrom</span><span class=p>:</span><span class=w>
+</span><span class=w>                </span><span class=nt>secretKeyRef</span><span class=p>:</span><span class=w>
+</span><span class=w>                  </span><span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>netbox-secret</span><span class=w>
+</span><span class=w>                  </span><span class=nt>key</span><span class=p>:</span><span class=w> </span><span class=l>email_address</span><span class=w>
+</span><span class=w>            </span>- <span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>SUPERUSER_PASSWORD</span><span class=w>
+</span><span class=w>              </span><span class=nt>valueFrom</span><span class=p>:</span><span class=w>
+</span><span class=w>                </span><span class=nt>secretKeyRef</span><span class=p>:</span><span class=w>
+</span><span class=w>                  </span><span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>netbox-secret</span><span class=w>
+</span><span class=w>                  </span><span class=nt>key</span><span class=p>:</span><span class=w> </span><span class=l>superuser_password</span><span class=w>
+</span><span class=w>            </span>- <span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>ALLOWED_HOSTS</span><span class=w>
+</span><span class=w>              </span><span class=nt>value</span><span class=p>:</span><span class=w> </span><span class=s1>&#39;*&#39;</span><span class=w>
+</span><span class=w>            </span>- <span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>DB_NAME</span><span class=w>
+</span><span class=w>              </span><span class=nt>value</span><span class=p>:</span><span class=w> </span><span class=l>netbox</span><span class=w>
+</span><span class=w>            </span>- <span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>DB_USER</span><span class=w>
+</span><span class=w>              </span><span class=nt>value</span><span class=p>:</span><span class=w> </span><span class=l>netbox</span><span class=w>
+</span><span class=w>            </span>- <span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>DB_PASSWORD</span><span class=w>
+</span><span class=w>              </span><span class=nt>valueFrom</span><span class=p>:</span><span class=w>
+</span><span class=w>                </span><span class=nt>secretKeyRef</span><span class=p>:</span><span class=w>
+</span><span class=w>                  </span><span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>netbox-secret</span><span class=w>
+</span><span class=w>                  </span><span class=nt>key</span><span class=p>:</span><span class=w> </span><span class=l>db_password</span><span class=w>
+</span><span class=w>            </span>- <span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>DB_HOST</span><span class=w>
+</span><span class=w>              </span><span class=nt>value</span><span class=p>:</span><span class=w> </span><span class=l>netbox-db</span><span class=w>
+</span><span class=w>            </span>- <span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>SECRET_KEY</span><span class=w>
+</span><span class=w>              </span><span class=nt>valueFrom</span><span class=p>:</span><span class=w>
+</span><span class=w>                </span><span class=nt>secretKeyRef</span><span class=p>:</span><span class=w>
+</span><span class=w>                  </span><span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>netbox-secret</span><span class=w>
+</span><span class=w>                  </span><span class=nt>key</span><span class=p>:</span><span class=w> </span><span class=l>secret_key</span><span class=w>
+</span><span class=w>            </span>- <span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>EMAIL_SERVER</span><span class=w>
+</span><span class=w>              </span><span class=nt>value</span><span class=p>:</span><span class=w> </span><span class=l>smtp.gmail.com</span><span class=w>
+</span><span class=w>            </span>- <span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>EMAIL_PORT</span><span class=w>
+</span><span class=w>              </span><span class=c># ハマりポイント！環境変数は文字列として定義する必要があるので数値はクオートが必要</span><span class=w>
+</span><span class=w>              </span><span class=nt>value</span><span class=p>:</span><span class=w> </span><span class=s2>&#34;587&#34;</span><span class=w>
+</span><span class=w>            </span>- <span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>EMAIL_USERNAME</span><span class=w>
+</span><span class=w>              </span><span class=nt>valueFrom</span><span class=p>:</span><span class=w>
+</span><span class=w>                </span><span class=nt>secretKeyRef</span><span class=p>:</span><span class=w>
+</span><span class=w>                  </span><span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>netbox-secret</span><span class=w>
+</span><span class=w>                  </span><span class=nt>key</span><span class=p>:</span><span class=w> </span><span class=l>email_address</span><span class=w>
+</span><span class=w>            </span>- <span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>EMAIL_PASSWORD</span><span class=w>
+</span><span class=w>              </span><span class=nt>valueFrom</span><span class=p>:</span><span class=w>
+</span><span class=w>                </span><span class=nt>secretKeyRef</span><span class=p>:</span><span class=w>
+</span><span class=w>                  </span><span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>netbox-secret</span><span class=w>
+</span><span class=w>                  </span><span class=nt>key</span><span class=p>:</span><span class=w> </span><span class=l>email_password</span><span class=w>
+</span><span class=w>            </span>- <span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>EMAIL_TIMEOUT</span><span class=w>
+</span><span class=w>              </span><span class=nt>value</span><span class=p>:</span><span class=w> </span><span class=s2>&#34;10&#34;</span><span class=w>
+</span><span class=w>            </span>- <span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>EMAIL_FROM</span><span class=w>
+</span><span class=w>              </span><span class=nt>valueFrom</span><span class=p>:</span><span class=w>
+</span><span class=w>                </span><span class=nt>secretKeyRef</span><span class=p>:</span><span class=w>
+</span><span class=w>                  </span><span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>netbox-secret</span><span class=w>
+</span><span class=w>                  </span><span class=nt>key</span><span class=p>:</span><span class=w> </span><span class=l>email_address</span><span class=w>
+</span><span class=w>            </span>- <span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>NETBOX_USERNAME</span><span class=w>
+</span><span class=w>              </span><span class=nt>value</span><span class=p>:</span><span class=w> </span><span class=l>guest</span><span class=w>
+</span><span class=w>            </span>- <span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>NETBOX_PASSWORD</span><span class=w>
+</span><span class=w>              </span><span class=nt>valueFrom</span><span class=p>:</span><span class=w>
+</span><span class=w>                </span><span class=nt>secretKeyRef</span><span class=p>:</span><span class=w>
+</span><span class=w>                  </span><span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>netbox-secret</span><span class=w>
+</span><span class=w>                  </span><span class=nt>key</span><span class=p>:</span><span class=w> </span><span class=l>netbox_password</span><span class=w>
+</span><span class=w>          </span><span class=nt>volumeMounts</span><span class=p>:</span><span class=w>
+</span><span class=w>            </span>- <span class=nt>mountPath</span><span class=p>:</span><span class=w> </span><span class=l>/opt/netbox/netbox/static</span><span class=w>
+</span><span class=w>              </span><span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>netbox-static-files</span><span class=w>
+</span><span class=w>      </span><span class=nt>restartPolicy</span><span class=p>:</span><span class=w> </span><span class=l>Always</span><span class=w>
+</span><span class=w>      </span><span class=nt>volumes</span><span class=p>:</span><span class=w>
+</span><span class=w>        </span>- <span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>netbox-static-files</span><span class=w>
+</span><span class=w>          </span><span class=nt>emptyDir</span><span class=p>:</span><span class=w> </span>{}<span class=w>
+</span><span class=w>        </span><span class=c># netbox-secret という名前の secret を netbox-secret という volume 名で定義</span><span class=w>
+</span><span class=w>        </span>- <span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>netbox-secret</span><span class=w>
+</span><span class=w>          </span><span class=nt>secret</span><span class=p>:</span><span class=w>
+</span><span class=w>            </span><span class=nt>secretName</span><span class=p>:</span><span class=w> </span><span class=l>netbox-secret</span><span class=w>
+</span></code></pre></div><p>作った YAML ですぐに Deployment を作成しても良いのですが、後に回して次の Service の定義を作成します</p>
+<h3 id=service-の作成 class="relative group">Service の作成 <span class="absolute top-0 w-6 transition-opacity opacity-0 ltr:-left-6 rtl:-right-6 not-prose group-hover:opacity-100"><a class="group-hover:text-primary-300 dark:group-hover:text-neutral-700" style=text-decoration-line:none!important href=#service-%e3%81%ae%e4%bd%9c%e6%88%90 aria-label=アンカー>#</a></span></h3>
+<p>Deployment だけではコンテナは起動するものの外部からのアクセスはもちろん Pod 間の通信すらできません。
+これを可能にするために受け口である Service を作成する必要があります。</p>
+<p>PostgreSQL の Service</p>
+<div class=highlight><pre tabindex=0 class=chroma><code class=language-yaml data-lang=yaml><span class=nt>kind</span><span class=p>:</span><span class=w> </span><span class=l>Service</span><span class=w>
+</span><span class=w></span><span class=nt>apiVersion</span><span class=p>:</span><span class=w> </span><span class=l>v1</span><span class=w>
+</span><span class=w></span><span class=nt>metadata</span><span class=p>:</span><span class=w>
+</span><span class=w>  </span><span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>netbox-db</span><span class=w>
+</span><span class=w></span><span class=nt>spec</span><span class=p>:</span><span class=w>
+</span><span class=w>  </span><span class=nt>selector</span><span class=p>:</span><span class=w>
+</span><span class=w>    </span><span class=c># 紐付ける pod (deployment) を label で指定</span><span class=w>
+</span><span class=w>    </span><span class=nt>app</span><span class=p>:</span><span class=w> </span><span class=l>netbox-db</span><span class=w>
+</span><span class=w>  </span><span class=nt>ports</span><span class=p>:</span><span class=w>
+</span><span class=w>    </span>- <span class=nt>protocol</span><span class=p>:</span><span class=w> </span><span class=l>TCP</span><span class=w>
+</span><span class=w>      </span><span class=nt>port</span><span class=p>:</span><span class=w> </span><span class=m>5432</span><span class=w>
+</span><span class=w>      </span><span class=nt>targetPort</span><span class=p>:</span><span class=w> </span><span class=m>5432</span><span class=w>
+</span><span class=w>
+</span></code></pre></div><p>アプリ側の Service</p>
+<div class=highlight><pre tabindex=0 class=chroma><code class=language-yaml data-lang=yaml><span class=nt>kind</span><span class=p>:</span><span class=w> </span><span class=l>Service</span><span class=w>
+</span><span class=w></span><span class=nt>apiVersion</span><span class=p>:</span><span class=w> </span><span class=l>v1</span><span class=w>
+</span><span class=w></span><span class=nt>metadata</span><span class=p>:</span><span class=w>
+</span><span class=w>  </span><span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>netbox-app</span><span class=w>
+</span><span class=w></span><span class=nt>spec</span><span class=p>:</span><span class=w>
+</span><span class=w>  </span><span class=nt>selector</span><span class=p>:</span><span class=w>
+</span><span class=w>    </span><span class=c># 紐付ける pod (deployment) を label で指定</span><span class=w>
+</span><span class=w>    </span><span class=nt>app</span><span class=p>:</span><span class=w> </span><span class=l>netbox-app</span><span class=w>
+</span><span class=w>  </span><span class=nt>ports</span><span class=p>:</span><span class=w>
+</span><span class=w>    </span>- <span class=nt>protocol</span><span class=p>:</span><span class=w> </span><span class=s2>&#34;TCP&#34;</span><span class=w>
+</span><span class=w>      </span><span class=nt>port</span><span class=p>:</span><span class=w> </span><span class=m>80</span><span class=w>
+</span><span class=w>  </span><span class=c># minikube なので node の port にマッピングします</span><span class=w>
+</span><span class=w>  </span><span class=c># minikube node の ephemeral port が割り当てられます</span><span class=w>
+</span><span class=w>  </span><span class=nt>type</span><span class=p>:</span><span class=w> </span><span class=l>NodePort</span><span class=w>
+</span></code></pre></div><p>Deployment や Service の YAML は <code>---</code> 行を挟むことで複数をひとつのファイルにまとめることができるのでDBとアプリそれぞれを1つのファイルにして <strong>netbox-db-deployment.yaml</strong> <strong>netbox-app-deployment.yaml</strong> というファイルにしました。</p>
+<h3 id=service-deployment-の作成 class="relative group">Service, Deployment の作成 <span class="absolute top-0 w-6 transition-opacity opacity-0 ltr:-left-6 rtl:-right-6 not-prose group-hover:opacity-100"><a class="group-hover:text-primary-300 dark:group-hover:text-neutral-700" style=text-decoration-line:none!important href=#service-deployment-%e3%81%ae%e4%bd%9c%e6%88%90 aria-label=アンカー>#</a></span></h3>
+<p>Secret を作成し、Service と Deployment の定義ができたのでいよいよデプロイしてみます。</p>
+<p>DB の起動</p>
+<pre tabindex=0><code>$ kubectl create -f netbox-db-deployment.yaml --record
+service &quot;netbox-db&quot; created
+deployment &quot;netbox-db-deployment&quot; created
+</code></pre><p>アプリの起動</p>
+<pre tabindex=0><code>$ kubectl create -f netbox-app-deployment.yaml --record
+service &quot;netbox-app&quot; created
+deployment &quot;netbox-app-deployment&quot; created
+</code></pre><p><code>describe</code> コマンドで確認してみます</p>
+<p>DB の Deployment</p>
+<pre tabindex=0><code>$ kubectl describe deployment netbox-db
+Name:			netbox-db-deployment
+Namespace:		default
+CreationTimestamp:	Wed, 22 Feb 2017 23:00:03 +0900
+Labels:			app=netbox-db
+Selector:		app=netbox-db
+Replicas:		1 updated | 1 total | 1 available | 0 unavailable
+StrategyType:		RollingUpdate
+MinReadySeconds:	0
+RollingUpdateStrategy:	1 max unavailable, 1 max surge
+Conditions:
+  Type		Status	Reason
+  ----		------	------
+  Available 	True	MinimumReplicasAvailable
+OldReplicaSets:	 NewReplicaSet:	netbox-db-deployment-3568492614 (1/1 replicas created)
+Events:
+  FirstSeen	LastSeen	Count	From				SubObjectPath	Type		Reason			Message
+  ---------	--------	-----	----				-------------	--------	------			-------
+  1m		1m		1	{deployment-controller }			Normal		ScalingReplicaSet	Scaled up replica set netbox-db-deployment-3568492614 to 1 
+</code></pre><p>DB の Service</p>
+<pre tabindex=0><code>$ kubectl describe service netbox-db
+Name:			netbox-db
+Namespace:		default
+Labels:			 Selector:		app=netbox-db
+Type:			ClusterIP
+IP:			10.0.0.94
+Port:			 5432/TCP
+Endpoints:		172.17.0.4:5432
+Session Affinity:	None
+No events. 
+</code></pre><p>アプリの Deployment</p>
+<pre tabindex=0><code>$ kubectl describe deployment netbox-app
+Name:			netbox-app-deployment
+Namespace:		default
+CreationTimestamp:	Wed, 22 Feb 2017 23:00:16 +0900
+Labels:			app=netbox-app
+Selector:		app=netbox-app
+Replicas:		2 updated | 2 total | 2 available | 0 unavailable
+StrategyType:		RollingUpdate
+MinReadySeconds:	0
+RollingUpdateStrategy:	1 max unavailable, 1 max surge
+Conditions:
+  Type		Status	Reason
+  ----		------	------
+  Available 	True	MinimumReplicasAvailable
+OldReplicaSets:	 NewReplicaSet:	netbox-app-deployment-205279487 (2/2 replicas created)
+Events:
+  FirstSeen	LastSeen	Count	From				SubObjectPath	Type		Reason			Message
+  ---------	--------	-----	----				-------------	--------	------			-------
+  59s		59s		1	{deployment-controller }			Normal		ScalingReplicaSet	Scaled up replica set netbox-app-deployment-205279487 to 2 
+</code></pre><p>アプリの Service <strong>Endpoints</strong> に2つの登録があるので2つのサーバーにアクセスが割り振られそうです。実際に Pod のログを確認すると2つに割り振られていました。
+<strong>NodePort</strong> に <strong>31631</strong> とありますので http://192.168.99.100:31631/ で netbox にアクセスができます。
+IPアドレスは <strong>minikube ip</strong> コマンドで確認できます。</p>
+<pre tabindex=0><code>$ kubectl describe service netbox-app
+Name:			netbox-app
+Namespace:		default
+Labels:			 Selector:		app=netbox-app
+Type:			NodePort
+IP:			10.0.0.214
+Port:			 80/TCP
+NodePort:		 31631/TCP
+Endpoints:		172.17.0.5:80,172.17.0.6:80
+Session Affinity:	None
+No events. 
+</code></pre><p>前に教えてもらった <code>minikube service list</code> の方が便利なのでした</p>
+<pre tabindex=0><code>$ minikube service list
+|-------------|----------------------|-----------------------------|
+|  NAMESPACE  |         NAME         |             URL             |
+|-------------|----------------------|-----------------------------|
+| default     | kubernetes           | No node port                |
+| default     | netbox-app           | http://192.168.99.100:31631 |
+| default     | netbox-db            | No node port                |
+| kube-system | kube-dns             | No node port                |
+| kube-system | kubernetes-dashboard | http://192.168.99.100:30000 |
+|-------------|----------------------|-----------------------------|
+</code></pre><p>Pod の状況</p>
+<pre tabindex=0><code>$ kubectl get pods
+NAME                                    READY     STATUS    RESTARTS   AGE
+netbox-app-deployment-205279487-1lx6p   2/2       Running   0          1h
+netbox-app-deployment-205279487-r2ksc   2/2       Running   0          1h
+netbox-db-deployment-3568492614-qwblg   1/1       Running   0          1h
+</code></pre><p>netbox にアクセスしてログインできました！！</p>
+<figure>
+<img class="my-0 rounded-md" srcset="/2017/02/deploy-netbox-on-minikube/kubernetes-netbox-1_hu04c86ced64b2a3cf7f4b1aab4f5201a8_84776_330x0_resize_box_3.png 330w,
+/2017/02/deploy-netbox-on-minikube/kubernetes-netbox-1_hu04c86ced64b2a3cf7f4b1aab4f5201a8_84776_660x0_resize_box_3.png 660w,
+/2017/02/deploy-netbox-on-minikube/kubernetes-netbox-1_hu04c86ced64b2a3cf7f4b1aab4f5201a8_84776_1024x0_resize_box_3.png 1024w,
+/2017/02/deploy-netbox-on-minikube/kubernetes-netbox-1_hu04c86ced64b2a3cf7f4b1aab4f5201a8_84776_1320x0_resize_box_3.png 2x" src=/2017/02/deploy-netbox-on-minikube/kubernetes-netbox-1_hu04c86ced64b2a3cf7f4b1aab4f5201a8_84776_660x0_resize_box_3.png alt="Kubernetes Netbox">
+<figcaption>Kubernetes Netbox Screenshot</figcaption>
+</figure>
+<p>あとは rolling update や healthcheck、実際の network 環境での Service 設定、ログ収集の仕組みとかいろいろあるなあ</p>
+<h3 id=お掃除 class="relative group">お掃除 <span class="absolute top-0 w-6 transition-opacity opacity-0 ltr:-left-6 rtl:-right-6 not-prose group-hover:opacity-100"><a class="group-hover:text-primary-300 dark:group-hover:text-neutral-700" style=text-decoration-line:none!important href=#%e3%81%8a%e6%8e%83%e9%99%a4 aria-label=アンカー>#</a></span></h3>
+<p>作ったものの削除です。minikube をまるっと消すなら <code>minikube delete</code> で全部消えます。</p>
+<p>Service の削除</p>
+<pre tabindex=0><code>$ kubectl get services
+NAME         CLUSTER-IP   EXTERNAL-IP   PORT(S)        AGE
+kubernetes   10.0.0.1     443/TCP        12m
+netbox-app   10.0.0.117   80:32678/TCP   6m
+netbox-db    10.0.0.140   5432/TCP       6m 
+</code></pre><pre tabindex=0><code>$ kubectl delete service netbox-app
+service &quot;netbox-app&quot; deleted
+$ kubectl delete service netbox-db
+service &quot;netbox-db&quot; deleted
+</code></pre><p>Deployment の削除</p>
+<pre tabindex=0><code>$ kubectl get deployments
+NAME                    DESIRED   CURRENT   UP-TO-DATE   AVAILABLE   AGE
+netbox-app-deployment   2         2         2            0           6m
+netbox-db-deployment    1         1         1            1           6m
+</code></pre><pre tabindex=0><code>$ kubectl delete deployment netbox-app-deployment
+deployment &quot;netbox-app-deployment&quot; deleted
+$ kubectl delete deployment netbox-db-deployment
+deployment &quot;netbox-db-deployment&quot; deleted
+</code></pre><p>これで Pod も削除されますが、完全に消えるまでにはちょっと時間がかかります。</p>
+<p>Secret の削除</p>
+<pre tabindex=0><code>$ kubectl get secrets
+NAME                  TYPE                                  DATA      AGE
+default-token-8674j   kubernetes.io/service-account-token   3         52m
+netbox-secret         Opaque                                6         41m
+</code></pre><pre tabindex=0><code>$ kubectl delete secrets netbox-secret
+secret &quot;netbox-secret&quot; deleted
+</code></pre>
+</div>
+<script>var liked_article=!1,oid,id,viewed,oid_likes,id_likes,liked;typeof auth!='undefined'&&(oid="views_posts/deploy-netbox-on-minikube/index.md",id=oid&&oid.replaceAll("/","-"),viewed=localStorage.getItem(id),viewed||auth.signInAnonymously().then(()=>{var a=db.collection('views').doc(id);localStorage.setItem(id,!0),a.get().then(a=>{a.exists?db.collection('views').doc(id).update({views:firebase.firestore.FieldValue.increment(1)}):db.collection('views').doc(id).set({views:1})}).catch(a=>{console.log("Error getting document:",a)})}).catch(a=>{var b=a.code,c=a.message;console.error(b,c)}),oid_likes="likes_posts/deploy-netbox-on-minikube/index.md",id_likes=oid_likes&&oid_likes.replaceAll("/","-"),liked=localStorage.getItem(id_likes),liked&&(liked_article=!0,document.querySelectorAll("button[id='likes_button']")[0].innerText="Remove Like"));function like_article(a){console.log("add"),liked_article=!0,localStorage.setItem(a,!0),document.querySelectorAll("button[id='likes_button']")[0].innerText="Remove Like",auth.signInAnonymously().then(()=>{var b=db.collection('likes').doc(a);b.get().then(b=>{b.exists?db.collection('likes').doc(a).update({likes:firebase.firestore.FieldValue.increment(1)}):db.collection('likes').doc(a).set({likes:1})}).catch(a=>{console.log("Error getting document:",a)})}).catch(a=>{var b=a.code,c=a.message;console.error(b,c)})}function remove_like_article(a){console.log("remove"),liked_article=!1,localStorage.setItem(a,!1),document.querySelectorAll("button[id='likes_button']")[0].innerText="Like",auth.signInAnonymously().then(()=>{var b=db.collection('likes').doc(a);b.get().then(b=>{b.exists?db.collection('likes').doc(a).update({likes:firebase.firestore.FieldValue.increment(-1)}):db.collection('likes').doc(a).set({likes:0})}).catch(a=>{console.log("Error getting document:",a)})}).catch(a=>{var b=a.code,c=a.message;console.error(b,c)})}function process_article(){var a="likes_posts/deploy-netbox-on-minikube/index.md",b=a&&a.replaceAll("/","-");liked_article?remove_like_article(b):like_article(b)}</script>
+</section>
+<footer class="pt-8 max-w-prose print:hidden">
+<div class=flex>
+<div class=place-self-center>
+<div class="text-[0.6rem] uppercase leading-3 text-neutral-500 dark:text-neutral-400">
+著者
+</div>
+<div class="font-semibold leading-6 text-neutral-800 dark:text-neutral-300">
+Yoshinori Teraoka
+</div>
+<div class="text-2xl sm:text-lg">
+<div class="flex flex-wrap text-neutral-400 dark:text-neutral-500">
+<a class="px-1 hover:text-primary-700 dark:hover:text-primary-400" href=https://twitter.com/yteraoka target=_blank aria-label=Twitter rel="me noopener noreferrer">
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentcolor" d="M459.37 151.716c.325 4.548.325 9.097.325 13.645.0 138.72-105.583 298.558-298.558 298.558-59.452.0-114.68-17.219-161.137-47.106 8.447.974 16.568 1.299 25.34 1.299 49.055.0 94.213-16.568 130.274-44.832-46.132-.975-84.792-31.188-98.112-72.772 6.498.974 12.995 1.624 19.818 1.624 9.421.0 18.843-1.3 27.614-3.573-48.081-9.747-84.143-51.98-84.143-102.985v-1.299c13.969 7.797 30.214 12.67 47.431 13.319-28.264-18.843-46.781-51.005-46.781-87.391.0-19.492 5.197-37.36 14.294-52.954 51.655 63.675 129.3 105.258 216.365 109.807-1.624-7.797-2.599-15.918-2.599-24.04.0-57.828 46.782-104.934 104.934-104.934 30.213.0 57.502 12.67 76.67 33.137 23.715-4.548 46.456-13.32 66.599-25.34-7.798 24.366-24.366 44.833-46.132 57.827 21.117-2.273 41.584-8.122 60.426-16.243-14.292 20.791-32.161 39.308-52.628 54.253z"/></svg>
+</span>
+</a>
+<a class="px-1 hover:text-primary-700 dark:hover:text-primary-400" href=https://github.com/yteraoka target=_blank aria-label=Github rel="me noopener noreferrer">
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><path fill="currentcolor" d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6.0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6.0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3.0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1.0-6.2-.3-40.4-.3-61.4.0.0-70 15-84.7-29.8.0.0-11.4-29.1-27.8-36.6.0.0-22.9-15.7 1.6-15.4.0.0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5.0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9.0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4.0 33.7-.3 75.4-.3 83.6.0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6.0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9.0-6.2-1.4-2.3-4-3.3-5.6-2z"/></svg>
+</span>
+</a>
+<a class="px-1 hover:text-primary-700 dark:hover:text-primary-400" href=https://linkedin.com/in/fa5b66b7-9c77-4e1b-8b97-40ba4a5a2c13/ target=_blank aria-label=Linkedin rel="me noopener noreferrer">
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path fill="currentcolor" d="M416 32H31.9C14.3 32 0 46.5.0 64.3v383.4C0 465.5 14.3 480 31.9 480H416c17.6.0 32-14.5 32-32.3V64.3c0-17.8-14.4-32.3-32-32.3zM135.4 416H69V202.2h66.5V416zm-33.2-243c-21.3.0-38.5-17.3-38.5-38.5S80.9 96 102.2 96c21.2.0 38.5 17.3 38.5 38.5.0 21.3-17.2 38.5-38.5 38.5zm282.1 243h-66.4V312c0-24.8-.5-56.7-34.5-56.7-34.6.0-39.9 27-39.9 54.9V416h-66.4V202.2h63.7v29.2h.9c8.9-16.8 30.6-34.5 62.9-34.5 67.2.0 79.7 44.3 79.7 101.9V416z"/></svg>
+</span>
+</a>
+<a class="px-1 hover:text-primary-700 dark:hover:text-primary-400" href=https://medium.com/@yteraoka target=_blank aria-label=Medium rel="me noopener noreferrer">
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512"><path fill="currentcolor" d="M180.5 74.262C80.813 74.262.0 155.633.0 256S80.819 437.738 180.5 437.738 361 356.373 361 256 280.191 74.262 180.5 74.262zm288.25 10.646c-49.845.0-90.245 76.619-90.245 171.095s40.406 171.1 90.251 171.1 90.251-76.619 90.251-171.1H559C559 161.5 518.6 84.908 468.752 84.908zm139.506 17.821c-17.526.0-31.735 68.628-31.735 153.274s14.2 153.274 31.735 153.274S640 340.631 640 256c0-84.649-14.215-153.271-31.742-153.271z"/></svg>
+</span>
+</a>
+</div>
+</div>
+</div>
+</div>
+<section class="flex flex-row flex-wrap justify-center pt-4 text-xl">
+<a class="m-1 inline-block min-w-[2.4rem] rounded bg-neutral-300 p-1 text-center text-neutral-700 hover:bg-primary-500 hover:text-neutral dark:bg-neutral-700 dark:text-neutral-300 dark:hover:bg-primary-400 dark:hover:text-neutral-800" href="https://www.linkedin.com/shareArticle?mini=true&url=https://preview-blog.1q77.com/2017/02/deploy-netbox-on-minikube/&title=Kubernetes%20Secrets%20%e3%82%92%e4%bd%bf%e3%81%a3%e3%81%a6%20minikube%20%e3%81%ab%20netbox%20%e3%82%92%20deploy%20%e3%81%97%e3%81%a6%e3%81%bf%e3%82%8b" title=LinkedInでシェアする aria-label=LinkedInでシェアする>
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path fill="currentcolor" d="M416 32H31.9C14.3 32 0 46.5.0 64.3v383.4C0 465.5 14.3 480 31.9 480H416c17.6.0 32-14.5 32-32.3V64.3c0-17.8-14.4-32.3-32-32.3zM135.4 416H69V202.2h66.5V416zm-33.2-243c-21.3.0-38.5-17.3-38.5-38.5S80.9 96 102.2 96c21.2.0 38.5 17.3 38.5 38.5.0 21.3-17.2 38.5-38.5 38.5zm282.1 243h-66.4V312c0-24.8-.5-56.7-34.5-56.7-34.6.0-39.9 27-39.9 54.9V416h-66.4V202.2h63.7v29.2h.9c8.9-16.8 30.6-34.5 62.9-34.5 67.2.0 79.7 44.3 79.7 101.9V416z"/></svg>
+</span>
+</a>
+<a class="m-1 inline-block min-w-[2.4rem] rounded bg-neutral-300 p-1 text-center text-neutral-700 hover:bg-primary-500 hover:text-neutral dark:bg-neutral-700 dark:text-neutral-300 dark:hover:bg-primary-400 dark:hover:text-neutral-800" href="https://twitter.com/intent/tweet/?url=https://preview-blog.1q77.com/2017/02/deploy-netbox-on-minikube/&text=Kubernetes%20Secrets%20%e3%82%92%e4%bd%bf%e3%81%a3%e3%81%a6%20minikube%20%e3%81%ab%20netbox%20%e3%82%92%20deploy%20%e3%81%97%e3%81%a6%e3%81%bf%e3%82%8b" title=Twitterに投稿する aria-label=Twitterに投稿する>
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentcolor" d="M459.37 151.716c.325 4.548.325 9.097.325 13.645.0 138.72-105.583 298.558-298.558 298.558-59.452.0-114.68-17.219-161.137-47.106 8.447.974 16.568 1.299 25.34 1.299 49.055.0 94.213-16.568 130.274-44.832-46.132-.975-84.792-31.188-98.112-72.772 6.498.974 12.995 1.624 19.818 1.624 9.421.0 18.843-1.3 27.614-3.573-48.081-9.747-84.143-51.98-84.143-102.985v-1.299c13.969 7.797 30.214 12.67 47.431 13.319-28.264-18.843-46.781-51.005-46.781-87.391.0-19.492 5.197-37.36 14.294-52.954 51.655 63.675 129.3 105.258 216.365 109.807-1.624-7.797-2.599-15.918-2.599-24.04.0-57.828 46.782-104.934 104.934-104.934 30.213.0 57.502 12.67 76.67 33.137 23.715-4.548 46.456-13.32 66.599-25.34-7.798 24.366-24.366 44.833-46.132 57.827 21.117-2.273 41.584-8.122 60.426-16.243-14.292 20.791-32.161 39.308-52.628 54.253z"/></svg>
+</span>
+</a>
+</section>
+<div class=pt-8>
+<hr class="border-dotted border-neutral-300 dark:border-neutral-600">
+<div class="flex justify-between pt-3">
+<span>
+<a class="flex group" href=/2017/02/docker-1-13-secrets/>
+<span class="mr-3 text-neutral-700 group-hover:text-primary-600 ltr:inline rtl:hidden dark:text-neutral dark:group-hover:text-primary-400">&larr;</span>
+<span class="ml-3 text-neutral-700 group-hover:text-primary-600 ltr:hidden rtl:inline dark:text-neutral dark:group-hover:text-primary-400">&rarr;</span>
+<span class="flex flex-col">
+<span class="mt-[0.1rem] leading-6 group-hover:underline group-hover:decoration-primary-500">docker 1.13 の secrets を試す</span>
+<span class="mt-[0.1rem] text-xs text-neutral-500 dark:text-neutral-400">
+<time datetime="2017-02-10 14:54:59 +0000 UTC">2017年2月10日</time>
+</span>
+</span>
+</a>
+</span>
+<span>
+<a class="flex text-right group" href=/2017/04/rancheros-on-sacloud/>
+<span class="flex flex-col">
+<span class="mt-[0.1rem] leading-6 group-hover:underline group-hover:decoration-primary-500">さくらのクラウドで提供されたRancherOSを試す</span>
+<span class="mt-[0.1rem] text-xs text-neutral-500 dark:text-neutral-400">
+<time datetime="2017-04-26 15:22:13 +0000 UTC">2017年4月26日</time>
+</span>
+</span>
+<span class="ml-3 text-neutral-700 group-hover:text-primary-600 ltr:inline rtl:hidden dark:text-neutral dark:group-hover:text-primary-400">&rarr;</span>
+<span class="mr-3 text-neutral-700 group-hover:text-primary-600 ltr:hidden rtl:inline dark:text-neutral dark:group-hover:text-primary-400">&larr;</span>
+</a>
+</span>
+</div>
+</div>
+</footer>
+</article>
+<div class="pointer-events-none absolute top-[100vh] bottom-0 w-12 ltr:right-0 rtl:left-0">
+<a href=#the-top class="pointer-events-auto sticky top-[calc(100vh-5.5rem)] flex h-12 w-12 items-center justify-center rounded-full bg-neutral/50 text-xl text-neutral-700 backdrop-blur hover:text-primary-600 dark:bg-neutral-800/50 dark:text-neutral dark:hover:text-primary-400" aria-label=TOPへスクロール title=TOPへスクロール>
+&uarr;
+</a>
+</div>
+</main><footer class="py-10 print:hidden">
+<div class="flex items-center justify-between">
+<p class="text-sm text-neutral-500 dark:text-neutral-400">
+&copy;
+2022
+Yoshinori Teraoka
+</p>
+</div>
+<script>mediumZoom(document.querySelectorAll("img:not(.nozoom)"),{margin:24,background:'rgba(0,0,0,0.5)',scrollOffset:0})</script>
+<script type=text/javascript src=/js/process.min.48d08339b8a087b59c7b8cb42b6717aeeed3e07bfc68b1654cac27f00583284dac59cae47fb686dd7c0e9ff1d2745689dc2071230dff432ca6d7fc24b9f2e036.js integrity="sha512-SNCDObigh7Wce4y0K2cXru7T4Hv8aLFlTKwn8AWDKE2sWcrkf7aG3XwOn/HSdFaJ3CBxIw3/Qyym1/wkufLgNg=="></script>
+</footer><div id=search-wrapper class="invisible fixed inset-0 z-50 flex h-screen w-screen cursor-default flex-col bg-neutral-500/50 p-4 backdrop-blur-sm dark:bg-neutral-900/50 sm:p-6 md:p-[10vh] lg:p-[12vh]" data-url=https://preview-blog.1q77.com/>
+<div id=search-modal class="flex flex-col w-full max-w-3xl min-h-0 mx-auto border rounded-md shadow-lg top-20 border-neutral-200 bg-neutral dark:border-neutral-700 dark:bg-neutral-800">
+<header class="relative z-10 flex items-center justify-between flex-none px-2">
+<form class="flex items-center flex-auto min-w-0">
+<div class="flex items-center justify-center w-8 h-8 text-neutral-400">
+<span class="relative inline-block align-text-bottom icon"><svg aria-hidden="true" focusable="false" data-prefix="fas" data-icon="search" class="svg-inline--fa fa-search fa-w-16" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentcolor" d="M505 442.7 405.3 343c-4.5-4.5-10.6-7-17-7H372c27.6-35.3 44-79.7 44-128C416 93.1 322.9.0 208 0S0 93.1.0 208s93.1 208 208 208c48.3.0 92.7-16.4 128-44v16.3c0 6.4 2.5 12.5 7 17l99.7 99.7c9.4 9.4 24.6 9.4 33.9.0l28.3-28.3c9.4-9.4 9.4-24.6.1-34zM208 336c-70.7.0-128-57.2-128-128 0-70.7 57.2-128 128-128 70.7.0 128 57.2 128 128 0 70.7-57.2 128-128 128z"/></svg>
+</span>
+</div>
+<input type=search id=search-query class="flex flex-auto h-12 mx-1 bg-transparent appearance-none focus:outline-dotted focus:outline-2 focus:outline-transparent" placeholder=Search tabindex=0>
+</form>
+<button id=close-search-button class="flex items-center justify-center w-8 h-8 text-neutral-700 hover:text-primary-600 dark:text-neutral dark:hover:text-primary-400" title="閉じる (Esc)">
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><path fill="currentcolor" d="M310.6 361.4c12.5 12.5 12.5 32.75.0 45.25C304.4 412.9 296.2 416 288 416s-16.38-3.125-22.62-9.375L160 301.3 54.63 406.6C48.38 412.9 40.19 416 32 416S15.63 412.9 9.375 406.6c-12.5-12.5-12.5-32.75.0-45.25l105.4-105.4L9.375 150.6c-12.5-12.5-12.5-32.75.0-45.25s32.75-12.5 45.25.0L160 210.8l105.4-105.4c12.5-12.5 32.75-12.5 45.25.0s12.5 32.75.0 45.25l-105.4 105.4L310.6 361.4z"/></svg>
+</span>
+</button>
+</header>
+<section class="flex-auto px-2 overflow-auto">
+<ul id=search-results>
+</ul>
+</section>
+</div>
+</div>
+</div>
+</body>
+</html>

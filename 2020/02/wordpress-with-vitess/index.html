@@ -1,0 +1,771 @@
+<!doctype html><html lang=ja dir=ltr class=scroll-smooth data-default-appearance=light data-auto-appearance=true><head>
+<meta charset=utf-8>
+<meta http-equiv=content-language content="ja">
+<meta name=viewport content="width=device-width,initial-scale=1">
+<meta http-equiv=x-ua-compatible content="ie=edge">
+<title>Vitess で WordPress を動かしてみる &#183; 1Q77</title>
+<meta name=title content="Vitess で WordPress を動かしてみる &#183; 1Q77">
+<link rel=canonical href=https://preview-blog.1q77.com/2020/02/wordpress-with-vitess/>
+<link type=text/css rel=stylesheet href=/css/main.bundle.min.a9d40529d239a91ecb75447e67ee6c80c1f1c28593904b4052651b12220121e13ec42904268b0193a6858f039cf8bfdd2b1331529ed341ddc7488cec3bdcbc2e.css integrity="sha512-qdQFKdI5qR7LdUR+Z+5sgMHxwoWTkEtAUmUbEiIBIeE+xCkEJosBk6aFjwOc+L/dKxMxUp7TQd3HSIzsO9y8Lg==">
+<script type=text/javascript src=/js/main.min.cf83e1357eefb8bdf1542850d66d8007d620e4050b5715dc83f4a921d36ce9ce47d0d13c5d85f2b0ff8318d2877eec2f63b931bd47417a81a538327af927da3e.js integrity="sha512-z4PhNX7vuL3xVChQ1m2AB9Yg5AULVxXcg/SpIdNs6c5H0NE8XYXysP+DGNKHfuwvY7kxvUdBeoGlODJ6+SfaPg=="></script>
+<script type=text/javascript src=/js/appearance.min.49025a779c36ad37a5bf9f1cc6bffd35ccb69ce15560ef1b10057ddf31576265b19f8bcc1733207336c9144926f7b18aea2e5895f29e858b24271332a2fa5cd5.js integrity="sha512-SQJad5w2rTelv58cxr/9Ncy2nOFVYO8bEAV93zFXYmWxn4vMFzMgczbJFEkm97GK6i5YlfKehYskJxMyovpc1Q=="></script>
+<script defer type=text/javascript id=script-bundle src=/js/main.bundle.min.34ee8372ff77835535e486c6ed01ff6993374a1cec8108898cad793fc6ae7520778e24db68e085c762d25af6fa7d00b57d7a791438dc68b676581f8c8344f6e0.js integrity="sha512-NO6Dcv93g1U15IbG7QH/aZM3ShzsgQiJjK15P8audSB3jiTbaOCFx2LSWvb6fQC1fXp5FDjcaLZ2WB+Mg0T24A==" data-copy data-copied></script>
+<script src=/js/zoom.min.js></script>
+<link rel=apple-touch-icon sizes=180x180 href=/apple-touch-icon.png>
+<link rel=icon type=image/png sizes=32x32 href=/favicon-32x32.png>
+<link rel=icon type=image/png sizes=16x16 href=/favicon-16x16.png>
+<link rel=manifest href=/site.webmanifest>
+<meta property="og:title" content="Vitess で WordPress を動かしてみる">
+<meta property="og:description" content="最近、目にすることの増えた Vitess ですが、Tutorial を試してみてもなかなか分かった気になれません。Sharding するとそれによる制限は受け">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://preview-blog.1q77.com/2020/02/wordpress-with-vitess/"><meta property="article:section" content="posts">
+<meta property="article:published_time" content="2020-02-16T14:37:56+00:00">
+<meta property="article:modified_time" content="2020-02-16T14:37:56+00:00">
+<meta name=twitter:card content="summary">
+<meta name=twitter:title content="Vitess で WordPress を動かしてみる">
+<meta name=twitter:description content="最近、目にすることの増えた Vitess ですが、Tutorial を試してみてもなかなか分かった気になれません。Sharding するとそれによる制限は受け">
+<script type=application/ld+json>[{"@context":"https://schema.org","@type":"Article","articleSection":"Posts","name":"Vitess で WordPress を動かしてみる","headline":"Vitess で WordPress を動かしてみる","abstract":"最近、目にすることの増えた Vitess ですが、Tutorial を試してみてもなかなか分かった気になれません。Sharding するとそれによる制限は受け","inLanguage":"ja","url":"https:\/\/preview-blog.1q77.com\/2020\/02\/wordpress-with-vitess\/","author":{"@type":"Person","name":"Yoshinori Teraoka"},"copyrightYear":"2020","dateCreated":"2020-02-16T14:37:56\u002b00:00","datePublished":"2020-02-16T14:37:56\u002b00:00","dateModified":"2020-02-16T14:37:56\u002b00:00","keywords":["MySQL","WordPress","vitess","vitess"],"mainEntityOfPage":"true","wordCount":"4404"}]</script>
+<meta name=author content="Yoshinori Teraoka">
+<link href=https://twitter.com/yteraoka rel=me>
+<link href=https://github.com/yteraoka rel=me>
+<link href=https://linkedin.com/in/fa5b66b7-9c77-4e1b-8b97-40ba4a5a2c13/ rel=me>
+<link href=https://medium.com/@yteraoka rel=me>
+<link rel=stylesheet href=https://rsms.me/inter/inter.css>
+</head><body class="flex flex-col h-screen px-6 m-auto text-lg leading-7 max-w-7xl bg-neutral text-neutral-900 dark:bg-neutral-800 dark:text-neutral sm:px-14 md:px-24 lg:px-32">
+<div id=the-top class="absolute flex self-center">
+<a class="px-3 py-1 text-sm -translate-y-8 rounded-b-lg bg-primary-200 focus:translate-y-0 dark:bg-neutral-600" href=#main-content><span class="font-bold text-primary-600 ltr:pr-2 rtl:pl-2 dark:text-primary-400">&darr;</span>メインコンテンツへスキップ</a>
+</div>
+<div style=padding-left:0;padding-right:0 class="flex items-center justify-between px-4 py-6 sm:px-6 md:justify-start space-x-3">
+<div class="flex flex-1 items-center justify-between">
+<nav class="flex space-x-3">
+<a href=/ class="text-base font-medium text-gray-500 hover:text-gray-900">1Q77</a>
+</nav>
+<div class="hidden md:flex items-center space-x-5 md:ml-12">
+<a href=/posts/ class="text-base font-medium text-gray-500 hover:text-gray-900" title=Posts>
+Blog
+</a>
+<a href=/tags/ class="text-base font-medium text-gray-500 hover:text-gray-900" title=Tags>
+Tags
+</a>
+<a href=https://github.com/yteraoka class="text-base font-medium text-gray-500 hover:text-gray-900" title>
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><path fill="currentcolor" d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6.0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6.0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3.0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1.0-6.2-.3-40.4-.3-61.4.0.0-70 15-84.7-29.8.0.0-11.4-29.1-27.8-36.6.0.0-22.9-15.7 1.6-15.4.0.0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5.0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9.0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4.0 33.7-.3 75.4-.3 83.6.0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6.0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9.0-6.2-1.4-2.3-4-3.3-5.6-2z"/></svg>
+</span>
+&nbsp;
+GitHub
+</a>
+<a href=https://twitter.com/yteraoka class="text-base font-medium text-gray-500 hover:text-gray-900" title>
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentcolor" d="M459.37 151.716c.325 4.548.325 9.097.325 13.645.0 138.72-105.583 298.558-298.558 298.558-59.452.0-114.68-17.219-161.137-47.106 8.447.974 16.568 1.299 25.34 1.299 49.055.0 94.213-16.568 130.274-44.832-46.132-.975-84.792-31.188-98.112-72.772 6.498.974 12.995 1.624 19.818 1.624 9.421.0 18.843-1.3 27.614-3.573-48.081-9.747-84.143-51.98-84.143-102.985v-1.299c13.969 7.797 30.214 12.67 47.431 13.319-28.264-18.843-46.781-51.005-46.781-87.391.0-19.492 5.197-37.36 14.294-52.954 51.655 63.675 129.3 105.258 216.365 109.807-1.624-7.797-2.599-15.918-2.599-24.04.0-57.828 46.782-104.934 104.934-104.934 30.213.0 57.502 12.67 76.67 33.137 23.715-4.548 46.456-13.32 66.599-25.34-7.798 24.366-24.366 44.833-46.132 57.827 21.117-2.273 41.584-8.122 60.426-16.243-14.292 20.791-32.161 39.308-52.628 54.253z"/></svg>
+</span>
+&nbsp;
+Twitter
+</a>
+<a href=https://qiita.com/yteraoka class="text-base font-medium text-gray-500 hover:text-gray-900" title>
+Qiita
+</a>
+<button id=search-button class="text-base hover:text-primary-600 dark:hover:text-primary-400" title>
+<span class="relative inline-block align-text-bottom icon"><svg aria-hidden="true" focusable="false" data-prefix="fas" data-icon="search" class="svg-inline--fa fa-search fa-w-16" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentcolor" d="M505 442.7 405.3 343c-4.5-4.5-10.6-7-17-7H372c27.6-35.3 44-79.7 44-128C416 93.1 322.9.0 208 0S0 93.1.0 208s93.1 208 208 208c48.3.0 92.7-16.4 128-44v16.3c0 6.4 2.5 12.5 7 17l99.7 99.7c9.4 9.4 24.6 9.4 33.9.0l28.3-28.3c9.4-9.4 9.4-24.6.1-34zM208 336c-70.7.0-128-57.2-128-128 0-70.7 57.2-128 128-128 70.7.0 128 57.2 128 128 0 70.7-57.2 128-128 128z"/></svg>
+</span>
+</button>
+<div class="ltr:mr-14 rtl:ml-14 cursor-pointer text-sm text-neutral-700 hover:text-primary-600 dark:text-neutral dark:hover:text-primary-400">
+<button id=appearance-switcher type=button>
+<div class="flex items-center justify-center h-12 dark:hidden">
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentcolor" d="M32 256C32 132.2 132.3 32 255.8 32c11.36.0 29.7 1.668 40.9 3.746 9.616 1.777 11.75 14.63 3.279 19.44C245 86.5 211.2 144.6 211.2 207.8c0 109.7 99.71 193 208.3 172.3 9.561-1.805 16.28 9.324 10.11 16.95C387.9 448.6 324.8 480 255.8 480 132.1 480 32 379.6 32 256z"/></svg>
+</span>
+</div>
+<div class="items-center justify-center hidden h-12 dark:flex">
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentcolor" d="M256 159.1c-53.02.0-95.1 42.98-95.1 95.1s41.2 96.9 95.1 96.9 95.1-42.98 95.1-95.1S309 159.1 256 159.1zM509.3 347l-63.2-91.9 63.15-91.01c6.332-9.125 1.104-21.74-9.826-23.72l-109-19.7-19.7-109c-1.975-10.93-14.59-16.16-23.72-9.824L256 65.89 164.1 2.736c-9.125-6.332-21.74-1.107-23.72 9.824L121.6 121.6 12.56 141.3C1.633 143.2-3.596 155.9 2.736 164.1L65.89 256 2.74 347.01c-6.332 9.125-1.105 21.74 9.824 23.72l109 19.7 19.7 109c1.975 10.93 14.59 16.16 23.72 9.824L256 446.1l91.01 63.15c9.127 6.334 21.75 1.107 23.72-9.822l19.7-109 109-19.7C510.4 368.8 515.6 356.1 509.3 347zM256 383.1c-70.69.0-127.1-57.31-127.1-127.1.0-70.69 57.31-127.1 127.1-127.1S383.1 186.2 383.1 256c0 70.7-56.4 127.1-127.1 127.1z"/></svg>
+</span>
+</div>
+</button>
+</div>
+</div>
+<div class="flex md:hidden items-center space-x-5 md:ml-12">
+<span></span>
+<button id=search-button-mobile class="text-base hover:text-primary-600 dark:hover:text-primary-400" title>
+<span class="relative inline-block align-text-bottom icon"><svg aria-hidden="true" focusable="false" data-prefix="fas" data-icon="search" class="svg-inline--fa fa-search fa-w-16" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentcolor" d="M505 442.7 405.3 343c-4.5-4.5-10.6-7-17-7H372c27.6-35.3 44-79.7 44-128C416 93.1 322.9.0 208 0S0 93.1.0 208s93.1 208 208 208c48.3.0 92.7-16.4 128-44v16.3c0 6.4 2.5 12.5 7 17l99.7 99.7c9.4 9.4 24.6 9.4 33.9.0l28.3-28.3c9.4-9.4 9.4-24.6.1-34zM208 336c-70.7.0-128-57.2-128-128 0-70.7 57.2-128 128-128 70.7.0 128 57.2 128 128 0 70.7-57.2 128-128 128z"/></svg>
+</span>
+</button>
+<button id=appearance-switcher-mobile type=button style=margin-right:5px>
+<div class="flex items-center justify-center h-12 dark:hidden">
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentcolor" d="M32 256C32 132.2 132.3 32 255.8 32c11.36.0 29.7 1.668 40.9 3.746 9.616 1.777 11.75 14.63 3.279 19.44C245 86.5 211.2 144.6 211.2 207.8c0 109.7 99.71 193 208.3 172.3 9.561-1.805 16.28 9.324 10.11 16.95C387.9 448.6 324.8 480 255.8 480 132.1 480 32 379.6 32 256z"/></svg>
+</span>
+</div>
+<div class="items-center justify-center hidden h-12 dark:flex">
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentcolor" d="M256 159.1c-53.02.0-95.1 42.98-95.1 95.1s41.2 96.9 95.1 96.9 95.1-42.98 95.1-95.1S309 159.1 256 159.1zM509.3 347l-63.2-91.9 63.15-91.01c6.332-9.125 1.104-21.74-9.826-23.72l-109-19.7-19.7-109c-1.975-10.93-14.59-16.16-23.72-9.824L256 65.89 164.1 2.736c-9.125-6.332-21.74-1.107-23.72 9.824L121.6 121.6 12.56 141.3C1.633 143.2-3.596 155.9 2.736 164.1L65.89 256 2.74 347.01c-6.332 9.125-1.105 21.74 9.824 23.72l109 19.7 19.7 109c1.975 10.93 14.59 16.16 23.72 9.824L256 446.1l91.01 63.15c9.127 6.334 21.75 1.107 23.72-9.822l19.7-109 109-19.7C510.4 368.8 515.6 356.1 509.3 347zM256 383.1c-70.69.0-127.1-57.31-127.1-127.1.0-70.69 57.31-127.1 127.1-127.1S383.1 186.2 383.1 256c0 70.7-56.4 127.1-127.1 127.1z"/></svg>
+</span>
+</div>
+</button>
+</div>
+</div>
+<div class="-my-2 -mr-2 md:hidden">
+<label id=menu-button for=menu-controller class=block>
+<input type=checkbox id=menu-controller class=hidden>
+<div class="cursor-pointer hover:text-primary-600 dark:hover:text-primary-400">
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path fill="currentcolor" d="M0 96C0 78.33 14.33 64 32 64H416c17.7.0 32 14.33 32 32 0 17.7-14.3 32-32 32H32C14.33 128 0 113.7.0 96zM0 256c0-17.7 14.33-32 32-32H416c17.7.0 32 14.3 32 32s-14.3 32-32 32H32c-17.67.0-32-14.3-32-32zM416 448H32c-17.67.0-32-14.3-32-32s14.33-32 32-32H416c17.7.0 32 14.3 32 32s-14.3 32-32 32z"/></svg>
+</span>
+</div>
+<div id=menu-wrapper style=padding-top:25px class="fixed inset-0 z-30 invisible w-screen h-screen m-auto overflow-auto transition-opacity opacity-0 cursor-default bg-neutral-100/50 backdrop-blur-sm dark:bg-neutral-900/50">
+<ul class="flex movedown flex-col w-full px-6 py-6 mx-auto overflow-visible list-none ltr:text-right rtl:text-left max-w-7xl sm:px-14 md:px-24 lg:px-32 sm:py-10 sm:pt-10">
+<li class=mb-1>
+<span class="cursor-pointer hover:text-primary-600 dark:hover:text-primary-400">
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><path fill="currentcolor" d="M310.6 361.4c12.5 12.5 12.5 32.75.0 45.25C304.4 412.9 296.2 416 288 416s-16.38-3.125-22.62-9.375L160 301.3 54.63 406.6C48.38 412.9 40.19 416 32 416S15.63 412.9 9.375 406.6c-12.5-12.5-12.5-32.75.0-45.25l105.4-105.4L9.375 150.6c-12.5-12.5-12.5-32.75.0-45.25s32.75-12.5 45.25.0L160 210.8l105.4-105.4c12.5-12.5 32.75-12.5 45.25.0s12.5 32.75.0 45.25l-105.4 105.4L310.6 361.4z"/></svg>
+</span>
+</span>
+</li>
+<li class=mb-1>
+<a class="decoration-primary-500 hover:underline hover:decoration-2 hover:underline-offset-2" href=/posts/ title=Posts>
+Blog
+</a>
+</li>
+<li class=mb-1>
+<a class="decoration-primary-500 hover:underline hover:decoration-2 hover:underline-offset-2" href=/tags/ title=Tags>
+Tags
+</a>
+</li>
+<li class=mb-1>
+<a class="decoration-primary-500 hover:underline hover:decoration-2 hover:underline-offset-2" href=https://github.com/yteraoka title>
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><path fill="currentcolor" d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6.0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6.0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3.0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1.0-6.2-.3-40.4-.3-61.4.0.0-70 15-84.7-29.8.0.0-11.4-29.1-27.8-36.6.0.0-22.9-15.7 1.6-15.4.0.0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5.0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9.0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4.0 33.7-.3 75.4-.3 83.6.0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6.0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9.0-6.2-1.4-2.3-4-3.3-5.6-2z"/></svg>
+</span>
+&nbsp;
+GitHub
+</a>
+</li>
+<li class=mb-1>
+<a class="decoration-primary-500 hover:underline hover:decoration-2 hover:underline-offset-2" href=https://twitter.com/yteraoka title>
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentcolor" d="M459.37 151.716c.325 4.548.325 9.097.325 13.645.0 138.72-105.583 298.558-298.558 298.558-59.452.0-114.68-17.219-161.137-47.106 8.447.974 16.568 1.299 25.34 1.299 49.055.0 94.213-16.568 130.274-44.832-46.132-.975-84.792-31.188-98.112-72.772 6.498.974 12.995 1.624 19.818 1.624 9.421.0 18.843-1.3 27.614-3.573-48.081-9.747-84.143-51.98-84.143-102.985v-1.299c13.969 7.797 30.214 12.67 47.431 13.319-28.264-18.843-46.781-51.005-46.781-87.391.0-19.492 5.197-37.36 14.294-52.954 51.655 63.675 129.3 105.258 216.365 109.807-1.624-7.797-2.599-15.918-2.599-24.04.0-57.828 46.782-104.934 104.934-104.934 30.213.0 57.502 12.67 76.67 33.137 23.715-4.548 46.456-13.32 66.599-25.34-7.798 24.366-24.366 44.833-46.132 57.827 21.117-2.273 41.584-8.122 60.426-16.243-14.292 20.791-32.161 39.308-52.628 54.253z"/></svg>
+</span>
+&nbsp;
+Twitter
+</a>
+</li>
+<li class=mb-1>
+<a class="decoration-primary-500 hover:underline hover:decoration-2 hover:underline-offset-2" href=https://qiita.com/yteraoka title>
+Qiita
+</a>
+</li>
+</ul>
+</div>
+</label>
+</div>
+</div>
+<div id=mobile-menu class="fixed inset-0 z-30 invisible w-screen h-screen m-auto overflow-auto transition-opacity opacity-0 cursor-default bg-neutral-100/50 backdrop-blur-sm dark:bg-neutral-900/50">
+<ul class="flex movedown flex-col w-full px-6 py-6 mx-auto overflow-visible list-none ltr:text-right rtl:text-left max-w-7xl sm:px-14 md:px-24 lg:px-32 sm:py-10 sm:pt-10">
+<li class=mb-1>
+<span class="cursor-pointer hover:text-primary-600 dark:hover:text-primary-400">
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><path fill="currentcolor" d="M310.6 361.4c12.5 12.5 12.5 32.75.0 45.25C304.4 412.9 296.2 416 288 416s-16.38-3.125-22.62-9.375L160 301.3 54.63 406.6C48.38 412.9 40.19 416 32 416S15.63 412.9 9.375 406.6c-12.5-12.5-12.5-32.75.0-45.25l105.4-105.4L9.375 150.6c-12.5-12.5-12.5-32.75.0-45.25s32.75-12.5 45.25.0L160 210.8l105.4-105.4c12.5-12.5 32.75-12.5 45.25.0s12.5 32.75.0 45.25l-105.4 105.4L310.6 361.4z"/></svg>
+</span>
+</span>
+</li>
+<li class=mb-1>
+<a class="decoration-primary-500 hover:underline hover:decoration-2 hover:underline-offset-2" href=/posts/ title=Posts>Blog</a>
+</li>
+<li class=mb-1>
+<a class="decoration-primary-500 hover:underline hover:decoration-2 hover:underline-offset-2" href=/tags/ title=Tags>Tags</a>
+</li>
+<li class=mb-1>
+<a class="decoration-primary-500 hover:underline hover:decoration-2 hover:underline-offset-2" href=https://github.com/yteraoka title>GitHub</a>
+</li>
+<li class=mb-1>
+<a class="decoration-primary-500 hover:underline hover:decoration-2 hover:underline-offset-2" href=https://twitter.com/yteraoka title>Twitter</a>
+</li>
+<li class=mb-1>
+<a class="decoration-primary-500 hover:underline hover:decoration-2 hover:underline-offset-2" href=https://qiita.com/yteraoka title>Qiita</a>
+</li>
+<li>
+<button id=search-button-mobile class="text-base hover:text-primary-600 dark:hover:text-primary-400">
+<span class="relative inline-block align-text-bottom icon"><svg aria-hidden="true" focusable="false" data-prefix="fas" data-icon="search" class="svg-inline--fa fa-search fa-w-16" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentcolor" d="M505 442.7 405.3 343c-4.5-4.5-10.6-7-17-7H372c27.6-35.3 44-79.7 44-128C416 93.1 322.9.0 208 0S0 93.1.0 208s93.1 208 208 208c48.3.0 92.7-16.4 128-44v16.3c0 6.4 2.5 12.5 7 17l99.7 99.7c9.4 9.4 24.6 9.4 33.9.0l28.3-28.3c9.4-9.4 9.4-24.6.1-34zM208 336c-70.7.0-128-57.2-128-128 0-70.7 57.2-128 128-128 70.7.0 128 57.2 128 128 0 70.7-57.2 128-128 128z"/></svg>
+</span>
+</button>
+</li>
+</ul>
+</div>
+<div class="relative flex flex-col grow">
+<main id=main-content class=grow>
+<article>
+<header class=max-w-prose>
+<ol class="text-sm text-neutral-500 dark:text-neutral-400 print:hidden">
+<li class="inline hidden">
+<a class="hover:underline decoration-neutral-300 dark:underline-neutral-600" href=/>1Q77</a><span class="px-1 text-primary-500">/</span>
+</li>
+<li class=inline>
+<a class="hover:underline decoration-neutral-300 dark:underline-neutral-600" href=/posts/>Posts</a><span class="px-1 text-primary-500">/</span>
+</li>
+<li class="inline hidden">
+<a class="hover:underline decoration-neutral-300 dark:underline-neutral-600" href=/2020/02/wordpress-with-vitess/>Vitess で WordPress を動かしてみる</a><span class="px-1 text-primary-500">/</span>
+</li>
+</ol>
+<h1 class="mt-0 text-4xl font-extrabold text-neutral-900 dark:text-neutral">
+Vitess で WordPress を動かしてみる
+</h1>
+<div class="mt-8 mb-12 text-base text-neutral-500 dark:text-neutral-400 print:hidden">
+<div class="flex flex-row flex-wrap items-center">
+<time datetime="2020-02-16 14:37:56 +0000 UTC">2020年2月16日</time>
+</div>
+<div class="flex flex-row flex-wrap items-center">
+<span style=margin-top:.5rem class=mr-2 onclick='window.open("/tags/mysql/")'>
+<span class=flex>
+<span class="rounded-md border border-primary-400 px-1 py-[1px] text-xs font-normal text-primary-700 dark:border-primary-600 dark:text-primary-400">
+MySQL
+</span>
+</span>
+</span>
+<span style=margin-top:.5rem class=mr-2 onclick='window.open("/tags/wordpress/")'>
+<span class=flex>
+<span class="rounded-md border border-primary-400 px-1 py-[1px] text-xs font-normal text-primary-700 dark:border-primary-600 dark:text-primary-400">
+WordPress
+</span>
+</span>
+</span>
+<span style=margin-top:.5rem class=mr-2 onclick='window.open("/tags/vitess/")'>
+<span class=flex>
+<span class="rounded-md border border-primary-400 px-1 py-[1px] text-xs font-normal text-primary-700 dark:border-primary-600 dark:text-primary-400">
+vitess
+</span>
+</span>
+</span>
+</div>
+</div>
+</header>
+<section class="flex flex-col max-w-full mt-0 prose dark:prose-invert lg:flex-row">
+<div class="order-first px-0 lg:order-last lg:max-w-xs ltr:lg:pl-8 rtl:lg:pr-8">
+<div class="toc ltr:pl-5 rtl:pr-5 print:hidden lg:sticky lg:top-10">
+<details open class="mt-0 overflow-hidden rounded-lg ltr:-ml-5 ltr:pl-5 rtl:-mr-5 rtl:pr-5 hidden lg:block">
+<summary class="block py-1 text-lg font-semibold cursor-pointer bg-neutral-100 text-neutral-800 ltr:-ml-5 ltr:pl-5 rtl:-mr-5 rtl:pr-5 dark:bg-neutral-700 dark:text-neutral-100 lg:hidden">
+目次
+</summary>
+<div class="py-2 border-dotted border-neutral-300 ltr:-ml-5 ltr:border-l ltr:pl-5 rtl:-mr-5 rtl:border-r rtl:pr-5 dark:border-neutral-600">
+<nav id=TableOfContents>
+<ul>
+<li><a href=#minikube-で-kubernetes-環境を用意>minikube で Kubernetes 環境を用意</a></li>
+<li><a href=#helm-の準備>helm の準備</a></li>
+<li><a href=#etcd-operator-の-deploy>etcd-operator の deploy</a></li>
+<li><a href=#persistent-volume-の作成>Persistent Volume の作成</a></li>
+<li><a href=#persistent-volume-の-permission-設定>Persistent Volume の Permission 設定</a></li>
+<li><a href=#vtgate-用パスワードのための-secrets-登録>vtgate 用パスワードのための Secrets 登録</a></li>
+<li><a href=#vitess-の-deploy>Vitess の deploy</a></li>
+<li><a href=#wordpress-を-deploy-する>WordPress を deploy する</a>
+<ul>
+<li><a href=#追記>追記</a></li>
+</ul>
+</li>
+<li><a href=#おまけ>おまけ</a>
+<ul>
+<li><a href=#mysql-に直接接続する方法>MySQL に直接接続する方法</a></li>
+<li><a href=#mysql-側でのクエリ確認>MySQL 側でのクエリ確認</a></li>
+</ul>
+</li>
+<li><a href=#まとめ>まとめ</a></li>
+</ul>
+</nav>
+</div>
+</details>
+<details class="mt-0 overflow-hidden rounded-lg ltr:-ml-5 ltr:pl-5 rtl:-mr-5 rtl:pr-5 lg:hidden">
+<summary class="py-1 text-lg font-semibold cursor-pointer bg-neutral-100 text-neutral-800 ltr:-ml-5 ltr:pl-5 rtl:-mr-5 rtl:pr-5 dark:bg-neutral-700 dark:text-neutral-100 lg:hidden">
+目次
+</summary>
+<div class="py-2 border-dotted border-neutral-300 ltr:-ml-5 ltr:border-l ltr:pl-5 rtl:-mr-5 rtl:border-r rtl:pr-5 dark:border-neutral-600">
+<nav id=TableOfContents>
+<ul>
+<li><a href=#minikube-で-kubernetes-環境を用意>minikube で Kubernetes 環境を用意</a></li>
+<li><a href=#helm-の準備>helm の準備</a></li>
+<li><a href=#etcd-operator-の-deploy>etcd-operator の deploy</a></li>
+<li><a href=#persistent-volume-の作成>Persistent Volume の作成</a></li>
+<li><a href=#persistent-volume-の-permission-設定>Persistent Volume の Permission 設定</a></li>
+<li><a href=#vtgate-用パスワードのための-secrets-登録>vtgate 用パスワードのための Secrets 登録</a></li>
+<li><a href=#vitess-の-deploy>Vitess の deploy</a></li>
+<li><a href=#wordpress-を-deploy-する>WordPress を deploy する</a>
+<ul>
+<li><a href=#追記>追記</a></li>
+</ul>
+</li>
+<li><a href=#おまけ>おまけ</a>
+<ul>
+<li><a href=#mysql-に直接接続する方法>MySQL に直接接続する方法</a></li>
+<li><a href=#mysql-側でのクエリ確認>MySQL 側でのクエリ確認</a></li>
+</ul>
+</li>
+<li><a href=#まとめ>まとめ</a></li>
+</ul>
+</nav>
+</div>
+</details>
+</div>
+</div>
+<div class="min-w-0 min-h-0 max-w-prose">
+<p>最近、目にすることの増えた <a href=https://vitess.io/>Vitess</a> ですが、<a href=https://vitess.io/docs/get-started/kubernetes/>Tutorial</a> を試してみてもなかなか分かった気になれません。Sharding するとそれによる制限は受けそうだなというのと、実際にクエリを投げてみて <code>SELECT *</code> すると ORDER BY が使えない（SELECT で列を明示する必要がある）とか Sharding の key とした列を WHERE で指定するとちゃんとそれを持ってる tablet にだけ投げてくれる IN で複数指定してもその tablet のものだけにして投げてくれるとか、tablet を跨ぐ JOIN をすると Nested Loop がだいぶ辛そうだなというのは分かったけど。動かしたいアプリで必要なクエリに vtgate が対応しているのかは実際に動かしてみるしかありません。</p>
+<p>ところで手元に動かしたいアプリがありません&mldr;</p>
+<p>私の思いつく最近の OSS では PostgreSQL を採用しているものが多く、WordPress を動かしてみることにしました。（コード読むの辛そうだからもっとシンプルなのが良かったけど）</p>
+<p>まずは Sharding なしで動くかどうかを確認。</p>
+<h2 id=minikube-で-kubernetes-環境を用意 class="relative group">minikube で Kubernetes 環境を用意 <span class="absolute top-0 w-6 transition-opacity opacity-0 ltr:-left-6 rtl:-right-6 not-prose group-hover:opacity-100"><a class="group-hover:text-primary-300 dark:group-hover:text-neutral-700" style=text-decoration-line:none!important href=#minikube-%e3%81%a7-kubernetes-%e7%92%b0%e5%a2%83%e3%82%92%e7%94%a8%e6%84%8f aria-label=アンカー>#</a></span></h2>
+<p>ここでのポイントは vitess の helm chart がまだ Kuberntes 1.16 以降に対応していないため 1.15 を指定している点。</p>
+<div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash>$ minikube start <span class=se>\
+</span><span class=se></span>    --kubernetes-version<span class=o>=</span>1.15.7 <span class=se>\
+</span><span class=se></span>    --cpus<span class=o>=</span><span class=m>4</span> <span class=se>\
+</span><span class=se></span>    --memory<span class=o>=</span>6g
+</code></pre></div><p>minikube の version は 1.7.1 でした。</p>
+<div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash>$ minikube version
+minikube version: v1.7.1
+commit: 7de0325eedac0fbe3aabacfcc43a63eb5d029fda
+</code></pre></div><h2 id=helm-の準備 class="relative group">helm の準備 <span class="absolute top-0 w-6 transition-opacity opacity-0 ltr:-left-6 rtl:-right-6 not-prose group-hover:opacity-100"><a class="group-hover:text-primary-300 dark:group-hover:text-neutral-700" style=text-decoration-line:none!important href=#helm-%e3%81%ae%e6%ba%96%e5%82%99 aria-label=アンカー>#</a></span></h2>
+<p>helm 2系です。3 系にはまだ未対応のようです。</p>
+<div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash>$ kubectl -n kube-system create serviceaccount tiller
+$ kubectl create clusterrolebinding tiller <span class=se>\
+</span><span class=se></span>    --clusterrole cluster-admin --serviceaccount<span class=o>=</span>kube-system:tiller
+$ helm init --service-account tiller --wait
+</code></pre></div><p>tiller のセットアップには minikube の addon を使うという手もあります。</p>
+<h2 id=etcd-operator-の-deploy class="relative group">etcd-operator の deploy <span class="absolute top-0 w-6 transition-opacity opacity-0 ltr:-left-6 rtl:-right-6 not-prose group-hover:opacity-100"><a class="group-hover:text-primary-300 dark:group-hover:text-neutral-700" style=text-decoration-line:none!important href=#etcd-operator-%e3%81%ae-deploy aria-label=アンカー>#</a></span></h2>
+<p>ZooKeeper と Consul にも対応しているようですが、今のデフォルトは etcd みたいです。helm もそれ前提です。</p>
+<div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash>$ git clone https://github.com/coreos/etcd-operator.git
+$ <span class=nb>cd</span> etcd-operator
+$ ./example/rbac/create_role.sh
+$ kubectl create -f example/deployment.yaml
+</code></pre></div><h2 id=persistent-volume-の作成 class="relative group">Persistent Volume の作成 <span class="absolute top-0 w-6 transition-opacity opacity-0 ltr:-left-6 rtl:-right-6 not-prose group-hover:opacity-100"><a class="group-hover:text-primary-300 dark:group-hover:text-neutral-700" style=text-decoration-line:none!important href=#persistent-volume-%e3%81%ae%e4%bd%9c%e6%88%90 aria-label=アンカー>#</a></span></h2>
+<p>Vitess の tablet で使われる MySQL がデータを置く場所と WordPress 用が必要です。MySQL 用は今回の記事の範囲では Master, Replica, Backup 用の3つ、WordPress 用に1つ。</p>
+<div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=k>for</span> i in <span class=k>$(</span>seq 4<span class=k>)</span><span class=p>;</span> <span class=k>do</span>
+  <span class=nv>pvname</span><span class=o>=</span><span class=k>$(</span><span class=nb>printf</span> pv%04d <span class=nv>$i</span><span class=k>)</span>
+  <span class=nb>echo</span> -e <span class=s2>&#34;---
+</span><span class=s2>apiVersion: v1
+</span><span class=s2>kind: PersistentVolume
+</span><span class=s2>metadata:
+</span><span class=s2>  name: </span><span class=si>${</span><span class=nv>pvname</span><span class=si>}</span><span class=s2>
+</span><span class=s2>spec:
+</span><span class=s2>  accessModes:
+</span><span class=s2>    - ReadWriteOnce
+</span><span class=s2>  capacity:
+</span><span class=s2>    storage: 10Gi
+</span><span class=s2>  hostPath:
+</span><span class=s2>    path: /data/</span><span class=si>${</span><span class=nv>pvname</span><span class=si>}</span><span class=s2>/
+</span><span class=s2>  storageClassName: standard
+</span><span class=s2>  persistentVolumeReclaimPolicy: Recycle&#34;</span>
+<span class=k>done</span> <span class=p>|</span> kubectl apply -f -
+</code></pre></div><p>これで pv0001 から pv0004 まで作成されます。</p>
+<div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash>$ kubectl get pv
+NAME     CAPACITY   ACCESS MODES   RECLAIM POLICY   STATUS      CLAIM   STORAGECLASS   REASON   AGE
+pv0001   10Gi       RWO            Recycle          Available           standard                7s
+pv0002   10Gi       RWO            Recycle          Available           standard                7s
+pv0003   10Gi       RWO            Recycle          Available           standard                7s
+pv0004   10Gi       RWO            Recycle          Available           standard                7s
+pv0005   10Gi       RWO            Recycle          Available           standard                7s
+</code></pre></div><h2 id=persistent-volume-の-permission-設定 class="relative group">Persistent Volume の Permission 設定 <span class="absolute top-0 w-6 transition-opacity opacity-0 ltr:-left-6 rtl:-right-6 not-prose group-hover:opacity-100"><a class="group-hover:text-primary-300 dark:group-hover:text-neutral-700" style=text-decoration-line:none!important href=#persistent-volume-%e3%81%ae-permission-%e8%a8%ad%e5%ae%9a aria-label=アンカー>#</a></span></h2>
+<p>もっと良い方法が会ったら知りたいのだけれど、tablet の init container が mkdir するところで権限がなくてコケてしまうので、minikube サーバー上の Persistent Volume 用ディレクトリの owner を変更する。</p>
+<p>Persistent Volume Claim を受けて、割り当てる時に owner が root のディレクトリが作成されるのだけれど先に作っておく。MySQL の実行ユーザーの uid が 1000 だったのでディレクトリの owner を 1000 にしておく。</p>
+<div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash>minikube ssh <span class=s1>&#39;for i in $(seq 5); do
+</span><span class=s1>  pvname=$(printf pv%04d $i)
+</span><span class=s1>  sudo install -o 1000 -m 0755 -d /mnt/vda1/data/${pvname}
+</span><span class=s1>done&#39;</span>
+</code></pre></div><p>WordPress の方は 1000 じゃなくても良いのだけれどどれが割り当てられるかわからないし、1000 でも問題なさそうなので全部 1000 にしておく。</p>
+<p>ちなみに minikube じゃなくて EKS とか GKE であればこの作業は不要。</p>
+<h2 id=vtgate-用パスワードのための-secrets-登録 class="relative group">vtgate 用パスワードのための Secrets 登録 <span class="absolute top-0 w-6 transition-opacity opacity-0 ltr:-left-6 rtl:-right-6 not-prose group-hover:opacity-100"><a class="group-hover:text-primary-300 dark:group-hover:text-neutral-700" style=text-decoration-line:none!important href=#vtgate-%e7%94%a8%e3%83%91%e3%82%b9%e3%83%af%e3%83%bc%e3%83%89%e3%81%ae%e3%81%9f%e3%82%81%e3%81%ae-secrets-%e7%99%bb%e9%8c%b2 aria-label=アンカー>#</a></span></h2>
+<p>MySQL クライアントが接続する先は Vitess の vtgate というサーバーで、認証もここで行われます。helm での deploy 時に使われるので Secrets にパスワードを登録する。</p>
+<div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash>$ cat &gt; wordpress-password-secret.yml <span class=s>&lt;&lt; _EOF_
+</span><span class=s>apiVersion: v1
+</span><span class=s>kind: Secret
+</span><span class=s>metadata:
+</span><span class=s>  name: wordpress-password
+</span><span class=s>type: Opaque
+</span><span class=s>data:
+</span><span class=s>  password: aG9nZWhvZ2U=
+</span><span class=s>_EOF_</span>
+$ kubectl apply -f wordpress-password-secret.yml
+</code></pre></div><p><code>aG9nZWhvZ2U=</code> は <code>hogehoge</code> の base64 です。<code>echo -n hogehoge | base64</code></p>
+<h2 id=vitess-の-deploy class="relative group">Vitess の deploy <span class="absolute top-0 w-6 transition-opacity opacity-0 ltr:-left-6 rtl:-right-6 not-prose group-hover:opacity-100"><a class="group-hover:text-primary-300 dark:group-hover:text-neutral-700" style=text-decoration-line:none!important href=#vitess-%e3%81%ae-deploy aria-label=アンカー>#</a></span></h2>
+<p>Vitess の <a href=https://vitess.io/docs/get-started/kubernetes/>tutorial</a> でも使われている <a href=https://github.com/vitessio/vitess/tree/master/helm/vitess>helm chart</a> を使います。</p>
+<p>helm chart は Vitess の <a href=https://github.com/vitessio/vitess>git repository</a> に入っているので　clone します。</p>
+<div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash>$ git clone https://github.com/vitessio/vitess.git
+$ <span class=nb>cd</span> vitess/example/helm
+</code></pre></div><p>この <code>example/helm</code> ディレクトリには tutorial で使う helm の　variables ファイルが置かれています。ここにある <code>101_initial_cluster.yaml</code> をコピーしてちょっといじって使います。<code>vitess-wordpress-init.yaml</code> というファイル名とします。</p>
+<div class=highlight><pre tabindex=0 class=chroma><code class=language-yaml data-lang=yaml><span class=c># vitess-wordpress-init.yaml</span><span class=w>
+</span><span class=w></span><span class=nt>topology</span><span class=p>:</span><span class=w>
+</span><span class=w>  </span><span class=nt>cells</span><span class=p>:</span><span class=w>
+</span><span class=w>    </span>- <span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=s2>&#34;zone1&#34;</span><span class=w>
+</span><span class=w>      </span><span class=nt>etcd</span><span class=p>:</span><span class=w>
+</span><span class=w>        </span><span class=nt>replicas</span><span class=p>:</span><span class=w> </span><span class=m>1</span><span class=w>
+</span><span class=w>      </span><span class=nt>vtctld</span><span class=p>:</span><span class=w>
+</span><span class=w>        </span><span class=nt>replicas</span><span class=p>:</span><span class=w> </span><span class=m>1</span><span class=w>
+</span><span class=w>      </span><span class=nt>vtgate</span><span class=p>:</span><span class=w>
+</span><span class=w>        </span><span class=nt>replicas</span><span class=p>:</span><span class=w> </span><span class=m>1</span><span class=w>
+</span><span class=w>      </span><span class=nt>mysqlProtocol</span><span class=p>:</span><span class=w>
+</span><span class=w>        </span><span class=nt>enabled</span><span class=p>:</span><span class=w> </span><span class=kc>true</span><span class=w>
+</span><span class=w>        </span><span class=nt>authType</span><span class=p>:</span><span class=w> </span><span class=s2>&#34;secret&#34;</span><span class=w>
+</span><span class=w>        </span><span class=nt>username</span><span class=p>:</span><span class=w> </span><span class=l>wpapp</span><span class=w>
+</span><span class=w>        </span><span class=nt>passwordSecret</span><span class=p>:</span><span class=w> </span><span class=l>wordpress-password</span><span class=w>
+</span><span class=w>      </span><span class=nt>keyspaces</span><span class=p>:</span><span class=w>
+</span><span class=w>        </span>- <span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=s2>&#34;wordpress&#34;</span><span class=w>
+</span><span class=w>          </span><span class=nt>shards</span><span class=p>:</span><span class=w>
+</span><span class=w>            </span>- <span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=s2>&#34;0&#34;</span><span class=w>
+</span><span class=w>              </span><span class=nt>tablets</span><span class=p>:</span><span class=w>
+</span><span class=w>                </span>- <span class=nt>type</span><span class=p>:</span><span class=w> </span><span class=s2>&#34;replica&#34;</span><span class=w>
+</span><span class=w>                  </span><span class=nt>vttablet</span><span class=p>:</span><span class=w>
+</span><span class=w>                    </span><span class=nt>replicas</span><span class=p>:</span><span class=w> </span><span class=m>2</span><span class=w>
+</span><span class=w>                </span>- <span class=nt>type</span><span class=p>:</span><span class=w> </span><span class=s2>&#34;rdonly&#34;</span><span class=w>
+</span><span class=w>                  </span><span class=nt>vttablet</span><span class=p>:</span><span class=w>
+</span><span class=w>                    </span><span class=nt>replicas</span><span class=p>:</span><span class=w> </span><span class=m>1</span><span class=w>
+</span><span class=w>
+</span><span class=w></span><span class=nt>etcd</span><span class=p>:</span><span class=w>
+</span><span class=w>  </span><span class=nt>replicas</span><span class=p>:</span><span class=w> </span><span class=m>1</span><span class=w>
+</span><span class=w>  </span><span class=nt>resources</span><span class=p>:</span><span class=w>
+</span><span class=w>
+</span><span class=w></span><span class=nt>vtctld</span><span class=p>:</span><span class=w>
+</span><span class=w>  </span><span class=nt>serviceType</span><span class=p>:</span><span class=w> </span><span class=s2>&#34;NodePort&#34;</span><span class=w>
+</span><span class=w>  </span><span class=nt>resources</span><span class=p>:</span><span class=w>
+</span><span class=w>
+</span><span class=w></span><span class=nt>vtgate</span><span class=p>:</span><span class=w>
+</span><span class=w>  </span><span class=nt>serviceType</span><span class=p>:</span><span class=w> </span><span class=s2>&#34;NodePort&#34;</span><span class=w>
+</span><span class=w>  </span><span class=nt>resources</span><span class=p>:</span><span class=w>
+</span><span class=w>
+</span><span class=w></span><span class=nt>vttablet</span><span class=p>:</span><span class=w>
+</span><span class=w>  </span><span class=nt>mysqlSize</span><span class=p>:</span><span class=w> </span><span class=s2>&#34;prod&#34;</span><span class=w>
+</span><span class=w>  </span><span class=nt>resources</span><span class=p>:</span><span class=w>
+</span><span class=w>  </span><span class=nt>mysqlResources</span><span class=p>:</span><span class=w>
+</span><span class=w>
+</span><span class=w></span><span class=nt>vtworker</span><span class=p>:</span><span class=w>
+</span><span class=w>  </span><span class=nt>resources</span><span class=p>:</span><span class=w>
+</span><span class=w>
+</span><span class=w></span><span class=nt>pmm</span><span class=p>:</span><span class=w>
+</span><span class=w>  </span><span class=nt>enabled</span><span class=p>:</span><span class=w> </span><span class=kc>false</span><span class=w>
+</span><span class=w>
+</span><span class=w></span><span class=nt>orchestrator</span><span class=p>:</span><span class=w>
+</span><span class=w>  </span><span class=nt>enabled</span><span class=p>:</span><span class=w> </span><span class=kc>false</span><span class=w>
+</span></code></pre></div><p>table 作成は WordPress アプリに任せるので keyspaces 内の schema, vschema は削除しました。keyspace (database) 名は commerce から wordpress に変更しました。vtgate の認証を有効にするため mysqlProtocol の authType を &ldquo;secret&rdquo; にし、username, passwordSecret を追加しました。passwordSecret は先に作成した Kubernets の Secrets の名前です。</p>
+<p>helm install コマンドで deploy します。</p>
+<div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash>$ helm install ../../helm/vitess -f vitess-wordpress-init.yaml
+</code></pre></div><p>これで、wordpress という keyspace (database) が作成され、master と semi-synchronous な replica 1つと async な repolica (rdonly) 1つのクラスタが作成されます。</p>
+<p>しばらく、待っていると次のような状態になります。</p>
+<div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash>$ kubectl get pods,jobs
+NAME                                            READY   STATUS    RESTARTS   AGE
+pod/etcd-global-7lhmznmvld                      1/1     Running   <span class=m>0</span>          2m21s
+pod/etcd-operator-866875d5dc-8btrw              1/1     Running   <span class=m>0</span>          18m
+pod/etcd-zone1-vcjkdtkrdv                       1/1     Running   <span class=m>0</span>          2m21s
+pod/vtctld-8547867c9c-jrmw9                     1/1     Running   <span class=m>3</span>          2m21s
+pod/vtgate-zone1-774b6c87d5-96ngl               1/1     Running   <span class=m>3</span>          2m21s
+pod/zone1-wordpress-0-init-shard-master-jl7c5   1/1     Running   <span class=m>0</span>          2m21s
+pod/zone1-wordpress-0-rdonly-0                  4/6     Running   <span class=m>0</span>          2m21s
+pod/zone1-wordpress-0-replica-0                 4/6     Running   <span class=m>0</span>          2m21s
+pod/zone1-wordpress-0-replica-1                 4/6     Running   <span class=m>0</span>          2m21s
+
+NAME                                            COMPLETIONS   DURATION   AGE
+job.batch/zone1-wordpress-0-init-shard-master   0/1           2m21s      2m21ss
+</code></pre></div><p><code>zone1-wordpress-0-replica</code> という statefulset が master と semi-synchronous な replica です。<code>{cell}-{keyspace}-{shard}-replica</code> という命名規則となっています。</p>
+<p>サービスはこうです。WordPress からの接続先は <code>vtgate-zone1:3306</code> です。</p>
+<div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash>$ kubectl get svc
+NAME                 TYPE        CLUSTER-IP      EXTERNAL-IP   PORT<span class=o>(</span>S<span class=o>)</span>                                          AGE
+etcd-global          ClusterIP   None            2379/TCP,2380/TCP                                3m23s
+etcd-global-client   ClusterIP   10.99.214.68    2379/TCP                                         3m23s
+etcd-zone1           ClusterIP   None            2379/TCP,2380/TCP                                3m23s
+etcd-zone1-client    ClusterIP   10.96.178.199   2379/TCP                                         3m23s
+kubernetes           ClusterIP   10.96.0.1       443/TCP                                          21m
+vtctld               NodePort    10.103.67.88    15000:31292/TCP,15999:32327/TCP                  3m23s
+vtgate-zone1         NodePort    10.104.197.56   15001:31352/TCP,15991:32133/TCP,3306:32651/TCP   3m23s
+vttablet             ClusterIP   None            15002/TCP,16002/TCP                              3m23s 
+</code></pre></div><p>minikube の外からアクセスするには nodeport を確認する必要があります。minikube には service list というコマンドがあります。</p>
+<div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash>$ minikube service list
+<span class=p>|</span>-------------<span class=p>|</span>--------------------<span class=p>|</span>--------------------------------<span class=p>|</span>-----<span class=p>|</span>
+<span class=p>|</span>  NAMESPACE  <span class=p>|</span>        NAME        <span class=p>|</span>          TARGET PORT           <span class=p>|</span> URL <span class=p>|</span>
+<span class=p>|</span>-------------<span class=p>|</span>--------------------<span class=p>|</span>--------------------------------<span class=p>|</span>-----<span class=p>|</span>
+<span class=p>|</span> default     <span class=p>|</span> etcd-global        <span class=p>|</span> No node port                   <span class=p>|</span>
+<span class=p>|</span> default     <span class=p>|</span> etcd-global-client <span class=p>|</span> No node port                   <span class=p>|</span>
+<span class=p>|</span> default     <span class=p>|</span> etcd-zone1         <span class=p>|</span> No node port                   <span class=p>|</span>
+<span class=p>|</span> default     <span class=p>|</span> etcd-zone1-client  <span class=p>|</span> No node port                   <span class=p>|</span>
+<span class=p>|</span> default     <span class=p>|</span> kubernetes         <span class=p>|</span> No node port                   <span class=p>|</span>
+<span class=p>|</span> default     <span class=p>|</span> vtctld             <span class=p>|</span> http://192.168.64.11:31292     <span class=p>|</span>
+<span class=p>|</span>             <span class=p>|</span>                    <span class=p>|</span> http://192.168.64.11:32327     <span class=p>|</span>
+<span class=p>|</span> default     <span class=p>|</span> vtgate-zone1       <span class=p>|</span> http://192.168.64.11:31352     <span class=p>|</span>
+<span class=p>|</span>             <span class=p>|</span>                    <span class=p>|</span> http://192.168.64.11:32133     <span class=p>|</span>
+<span class=p>|</span>             <span class=p>|</span>                    <span class=p>|</span> http://192.168.64.11:32651     <span class=p>|</span>
+<span class=p>|</span> default     <span class=p>|</span> vttablet           <span class=p>|</span> No node port                   <span class=p>|</span>
+<span class=p>|</span> kube-system <span class=p>|</span> kube-dns           <span class=p>|</span> No node port                   <span class=p>|</span>
+<span class=p>|</span> kube-system <span class=p>|</span> tiller-deploy      <span class=p>|</span> No node port                   <span class=p>|</span>
+<span class=p>|</span>-------------<span class=p>|</span>--------------------<span class=p>|</span>--------------------------------<span class=p>|</span>-----<span class=p>|</span>
+</code></pre></div><p>が、protocl が不明です。全部 http:// となっていますが、嘘です・・・<br>
+次の様にしてアクセスすることが出来ます。</p>
+<div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=nv>host</span><span class=o>=</span><span class=k>$(</span>minikube ip<span class=k>)</span>
+<span class=nv>port</span><span class=o>=</span><span class=k>$(</span>kubectl describe service vtgate-zone1 <span class=p>|</span> grep NodePort <span class=p>|</span> grep mysql <span class=p>|</span> awk <span class=s1>&#39;{print $3}&#39;</span> <span class=p>|</span> awk -F<span class=s1>&#39;/&#39;</span> <span class=s1>&#39;{print $1}&#39;</span><span class=k>)</span>
+mysql -h <span class=nv>$host</span> -P <span class=nv>$port</span> -u wpapp -phogehoge wordpress
+</code></pre></div><p>ほぼ、普通の MySQL サーバーの様にアクセスできます。</p>
+<pre tabindex=0><code>mysql&gt; select version();
++---------------+
+| version()     |
++---------------+
+| 5.7.26-29-log |
++---------------+
+1 row in set (0.01 sec)
+
+mysql&gt; show databases;
++-----------+
+| Databases |
++-----------+
+| wordpress |
++-----------+
+1 row in set (0.01 sec)
+
+mysql&gt; 
+</code></pre><h2 id=wordpress-を-deploy-する class="relative group">WordPress を deploy する <span class="absolute top-0 w-6 transition-opacity opacity-0 ltr:-left-6 rtl:-right-6 not-prose group-hover:opacity-100"><a class="group-hover:text-primary-300 dark:group-hover:text-neutral-700" style=text-decoration-line:none!important href=#wordpress-%e3%82%92-deploy-%e3%81%99%e3%82%8b aria-label=アンカー>#</a></span></h2>
+<p>DB の準備ができたので次は WordPress を deploy します。Kubernetes のサイトに <a href=https://kubernetes.io/docs/tutorials/stateful-application/mysql-wordpress-persistent-volume/>Example: Deploying WordPress and MySQL with Persistent Volumes</a> という StatefulSet として WordPress を deploy する例があったので、ここの <a href=https://kubernetes.io/examples/application/wordpress/wordpress-deployment.yaml>wordpress-deployment.yaml</a> を参考にします。</p>
+<div class=highlight><pre tabindex=0 class=chroma><code class=language-yaml data-lang=yaml><span class=c># wordpress-deployment.yaml</span><span class=w>
+</span><span class=w></span><span class=nn>---</span><span class=w>
+</span><span class=w></span><span class=nt>apiVersion</span><span class=p>:</span><span class=w> </span><span class=l>v1</span><span class=w>
+</span><span class=w></span><span class=nt>kind</span><span class=p>:</span><span class=w> </span><span class=l>Service</span><span class=w>
+</span><span class=w></span><span class=nt>metadata</span><span class=p>:</span><span class=w>
+</span><span class=w>  </span><span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>wordpress</span><span class=w>
+</span><span class=w>  </span><span class=nt>labels</span><span class=p>:</span><span class=w>
+</span><span class=w>    </span><span class=nt>app</span><span class=p>:</span><span class=w> </span><span class=l>wordpress</span><span class=w>
+</span><span class=w></span><span class=nt>spec</span><span class=p>:</span><span class=w>
+</span><span class=w>  </span><span class=nt>ports</span><span class=p>:</span><span class=w>
+</span><span class=w>    </span>- <span class=nt>port</span><span class=p>:</span><span class=w> </span><span class=m>80</span><span class=w>
+</span><span class=w>  </span><span class=nt>selector</span><span class=p>:</span><span class=w>
+</span><span class=w>    </span><span class=nt>app</span><span class=p>:</span><span class=w> </span><span class=l>wordpress</span><span class=w>
+</span><span class=w>    </span><span class=nt>tier</span><span class=p>:</span><span class=w> </span><span class=l>frontend</span><span class=w>
+</span><span class=w>  </span><span class=nt>type</span><span class=p>:</span><span class=w> </span><span class=l>NodePort</span><span class=w>
+</span><span class=w></span><span class=nn>---</span><span class=w>
+</span><span class=w></span><span class=nt>apiVersion</span><span class=p>:</span><span class=w> </span><span class=l>v1</span><span class=w>
+</span><span class=w></span><span class=nt>kind</span><span class=p>:</span><span class=w> </span><span class=l>PersistentVolumeClaim</span><span class=w>
+</span><span class=w></span><span class=nt>metadata</span><span class=p>:</span><span class=w>
+</span><span class=w>  </span><span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>wp-pv-claim</span><span class=w>
+</span><span class=w>  </span><span class=nt>labels</span><span class=p>:</span><span class=w>
+</span><span class=w>    </span><span class=nt>app</span><span class=p>:</span><span class=w> </span><span class=l>wordpress</span><span class=w>
+</span><span class=w></span><span class=nt>spec</span><span class=p>:</span><span class=w>
+</span><span class=w>  </span><span class=nt>accessModes</span><span class=p>:</span><span class=w>
+</span><span class=w>    </span>- <span class=l>ReadWriteOnce</span><span class=w>
+</span><span class=w>  </span><span class=nt>resources</span><span class=p>:</span><span class=w>
+</span><span class=w>    </span><span class=nt>requests</span><span class=p>:</span><span class=w>
+</span><span class=w>      </span><span class=nt>storage</span><span class=p>:</span><span class=w> </span><span class=l>10Gi</span><span class=w>
+</span><span class=w></span><span class=nn>---</span><span class=w>
+</span><span class=w></span><span class=nt>apiVersion</span><span class=p>:</span><span class=w> </span><span class=l>apps/v1</span><span class=w> </span><span class=c># for versions before 1.9.0 use apps/v1beta2</span><span class=w>
+</span><span class=w></span><span class=nt>kind</span><span class=p>:</span><span class=w> </span><span class=l>Deployment</span><span class=w>
+</span><span class=w></span><span class=nt>metadata</span><span class=p>:</span><span class=w>
+</span><span class=w>  </span><span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>wordpress</span><span class=w>
+</span><span class=w>  </span><span class=nt>labels</span><span class=p>:</span><span class=w>
+</span><span class=w>    </span><span class=nt>app</span><span class=p>:</span><span class=w> </span><span class=l>wordpress</span><span class=w>
+</span><span class=w></span><span class=nt>spec</span><span class=p>:</span><span class=w>
+</span><span class=w>  </span><span class=nt>selector</span><span class=p>:</span><span class=w>
+</span><span class=w>    </span><span class=nt>matchLabels</span><span class=p>:</span><span class=w>
+</span><span class=w>      </span><span class=nt>app</span><span class=p>:</span><span class=w> </span><span class=l>wordpress</span><span class=w>
+</span><span class=w>      </span><span class=nt>tier</span><span class=p>:</span><span class=w> </span><span class=l>frontend</span><span class=w>
+</span><span class=w>  </span><span class=nt>strategy</span><span class=p>:</span><span class=w>
+</span><span class=w>    </span><span class=nt>type</span><span class=p>:</span><span class=w> </span><span class=l>Recreate</span><span class=w>
+</span><span class=w>  </span><span class=nt>template</span><span class=p>:</span><span class=w>
+</span><span class=w>    </span><span class=nt>metadata</span><span class=p>:</span><span class=w>
+</span><span class=w>      </span><span class=nt>labels</span><span class=p>:</span><span class=w>
+</span><span class=w>        </span><span class=nt>app</span><span class=p>:</span><span class=w> </span><span class=l>wordpress</span><span class=w>
+</span><span class=w>        </span><span class=nt>tier</span><span class=p>:</span><span class=w> </span><span class=l>frontend</span><span class=w>
+</span><span class=w>    </span><span class=nt>spec</span><span class=p>:</span><span class=w>
+</span><span class=w>      </span><span class=nt>containers</span><span class=p>:</span><span class=w>
+</span><span class=w>      </span>- <span class=nt>image</span><span class=p>:</span><span class=w> </span><span class=l>wordpress:5.3.2-php7.2-apache</span><span class=w>
+</span><span class=w>        </span><span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>wordpress</span><span class=w>
+</span><span class=w>        </span><span class=nt>env</span><span class=p>:</span><span class=w>
+</span><span class=w>        </span>- <span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>WORDPRESS_DB_HOST</span><span class=w>
+</span><span class=w>          </span><span class=nt>value</span><span class=p>:</span><span class=w> </span><span class=l>vtgate-zone1</span><span class=w>
+</span><span class=w>        </span>- <span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>WORDPRESS_DB_USER</span><span class=w>
+</span><span class=w>          </span><span class=nt>value</span><span class=p>:</span><span class=w> </span><span class=l>wpapp</span><span class=w>
+</span><span class=w>        </span>- <span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>WORDPRESS_DB_PASSWORD</span><span class=w>
+</span><span class=w>          </span><span class=nt>valueFrom</span><span class=p>:</span><span class=w>
+</span><span class=w>            </span><span class=nt>secretKeyRef</span><span class=p>:</span><span class=w>
+</span><span class=w>              </span><span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>wordpress-password</span><span class=w>
+</span><span class=w>              </span><span class=nt>key</span><span class=p>:</span><span class=w> </span><span class=l>password</span><span class=w>
+</span><span class=w>        </span><span class=nt>ports</span><span class=p>:</span><span class=w>
+</span><span class=w>        </span>- <span class=nt>containerPort</span><span class=p>:</span><span class=w> </span><span class=m>80</span><span class=w>
+</span><span class=w>          </span><span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>wordpress</span><span class=w>
+</span><span class=w>        </span><span class=nt>volumeMounts</span><span class=p>:</span><span class=w>
+</span><span class=w>        </span>- <span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>wordpress-persistent-storage</span><span class=w>
+</span><span class=w>          </span><span class=nt>mountPath</span><span class=p>:</span><span class=w> </span><span class=l>/var/www/html</span><span class=w>
+</span><span class=w>      </span><span class=nt>volumes</span><span class=p>:</span><span class=w>
+</span><span class=w>      </span>- <span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>wordpress-persistent-storage</span><span class=w>
+</span><span class=w>        </span><span class=nt>persistentVolumeClaim</span><span class=p>:</span><span class=w>
+</span><span class=w>          </span><span class=nt>claimName</span><span class=p>:</span><span class=w> </span><span class=l>wp-pv-claim</span><span class=w>
+</span></code></pre></div><p>image を <a href="https://hub.docker.com/_/wordpress/?tab=description">Docker Hub</a> の最新のものにしました。環境変数の <code>WORDPRESS_DB_HOST</code>, <code>WORDPRESS_DB_USER</code> を Vitess 側で設定したものにしました。<code>WORDPRESS_DB_PASSWORD</code> は Secrets を参照していますが、これも Vitess 側で使ったものを指定しました。PersistentVolumeClaim はサイズが 20Gi になっていましたが、事前に作成していた PV のサイズを超えているので 10Gi に変更しました。Service の type を LoadBalancer から NodePort に変更しました。</p>
+<p>deploy します。</p>
+<div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash>$ kubectl apply -f wordpress-deployment.yaml
+</code></pre></div><p>これで起動を待って <code>minikube service wordpress</code> とすると NodePort の URL をブラウザで開いてくれます。</p>
+<div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash>$ minikube service wordpress 
+<span class=p>|</span>-----------<span class=p>|</span>-----------<span class=p>|</span>-------------<span class=p>|</span>----------------------------<span class=p>|</span>
+<span class=p>|</span> NAMESPACE <span class=p>|</span>   NAME    <span class=p>|</span> TARGET PORT <span class=p>|</span>            URL             <span class=p>|</span>
+<span class=p>|</span>-----------<span class=p>|</span>-----------<span class=p>|</span>-------------<span class=p>|</span>----------------------------<span class=p>|</span>
+<span class=p>|</span> default   <span class=p>|</span> wordpress <span class=p>|</span>             <span class=p>|</span> http://192.168.64.11:30803 <span class=p>|</span>
+<span class=p>|</span>-----------<span class=p>|</span>-----------<span class=p>|</span>-------------<span class=p>|</span>----------------------------<span class=p>|</span>
+🎉  Opening service default/wordpress in default browser...
+</code></pre></div><p>無事起動しました。</p>
+<p>が、言語選択して、ブログのタイトルやユーザー名、パスワードを入力して先に進むと「成功しました！」という表示と共に見慣れないエラーが&mldr;</p>
+<figure>
+<img class="my-0 rounded-md" srcset="/2020/02/wordpress-with-vitess/wordpress-database-error_hu83d39d51309ef4c0852d909cbde53cd5_153787_330x0_resize_box_3.png 330w,
+/2020/02/wordpress-with-vitess/wordpress-database-error_hu83d39d51309ef4c0852d909cbde53cd5_153787_660x0_resize_box_3.png 660w,
+/2020/02/wordpress-with-vitess/wordpress-database-error_hu83d39d51309ef4c0852d909cbde53cd5_153787_1024x0_resize_box_3.png 1024w,
+/2020/02/wordpress-with-vitess/wordpress-database-error_hu83d39d51309ef4c0852d909cbde53cd5_153787_1320x0_resize_box_3.png 2x" src=/2020/02/wordpress-with-vitess/wordpress-database-error_hu83d39d51309ef4c0852d909cbde53cd5_153787_660x0_resize_box_3.png alt="Database Error Screenshot">
+</figure>
+<p>[vtgate: http://vtgate-zone1-774b6c87d5-96ngl:15001/: target: wordpress.0.master, used tablet: zone1-1372366900 (zone1-wordpress-0-replica-0.vttablet): vttablet: rpc error: code = Unimplemented desc = unsupported: cannot identify primary key of statement (CallerID: wpapp)]</p>
+<pre tabindex=0><code>rpc error:
+code = Unimplemented
+desc = unsupported: cannot identify primary key of statement
+</code></pre><p>Primary key が見つけられないってことか？エラーになったのは次の2つの SQL。見慣れないクエリだ。</p>
+<div class=highlight><pre tabindex=0 class=chroma><code class=language-sql data-lang=sql><span class=k>DELETE</span><span class=w> </span><span class=n>a</span><span class=p>,</span><span class=w> </span><span class=n>b</span><span class=w>
+</span><span class=w>  </span><span class=k>FROM</span><span class=w> </span><span class=n>wp_options</span><span class=w> </span><span class=n>a</span><span class=p>,</span><span class=w> </span><span class=n>wp_options</span><span class=w> </span><span class=n>b</span><span class=w>
+</span><span class=w> </span><span class=k>WHERE</span><span class=w> </span><span class=n>a</span><span class=p>.</span><span class=n>option_name</span><span class=w> </span><span class=k>LIKE</span><span class=w> </span><span class=s1>&#39;\\_transient\\_%&#39;</span><span class=w>
+</span><span class=w>   </span><span class=k>AND</span><span class=w> </span><span class=n>a</span><span class=p>.</span><span class=n>option_name</span><span class=w> </span><span class=k>NOT</span><span class=w> </span><span class=k>LIKE</span><span class=w> </span><span class=s1>&#39;\\_transient\\_timeout\\_%&#39;</span><span class=w>
+</span><span class=w>   </span><span class=k>AND</span><span class=w> </span><span class=n>b</span><span class=p>.</span><span class=n>option_name</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>CONCAT</span><span class=p>(</span><span class=w> </span><span class=s1>&#39;_transient_timeout_&#39;</span><span class=p>,</span><span class=w> </span><span class=k>SUBSTRING</span><span class=p>(</span><span class=w> </span><span class=n>a</span><span class=p>.</span><span class=n>option_name</span><span class=p>,</span><span class=w> </span><span class=mi>12</span><span class=w> </span><span class=p>)</span><span class=w> </span><span class=p>)</span><span class=w>
+</span><span class=w>   </span><span class=k>AND</span><span class=w> </span><span class=n>b</span><span class=p>.</span><span class=n>option_value</span><span class=w> </span><span class=o>&lt;</span><span class=w> </span><span class=mi>1581760340</span><span class=w>
+</span><span class=w>
+</span></code></pre></div><div class=highlight><pre tabindex=0 class=chroma><code class=language-sql data-lang=sql><span class=k>DELETE</span><span class=w> </span><span class=n>a</span><span class=p>,</span><span class=w> </span><span class=n>b</span><span class=w>
+</span><span class=w>  </span><span class=k>FROM</span><span class=w> </span><span class=n>wp_options</span><span class=w> </span><span class=n>a</span><span class=p>,</span><span class=w> </span><span class=n>wp_options</span><span class=w> </span><span class=n>b</span><span class=w>
+</span><span class=w> </span><span class=k>WHERE</span><span class=w> </span><span class=n>a</span><span class=p>.</span><span class=n>option_name</span><span class=w> </span><span class=k>LIKE</span><span class=w> </span><span class=s1>&#39;\\_site\\_transient\\_%&#39;</span><span class=w>
+</span><span class=w>   </span><span class=k>AND</span><span class=w> </span><span class=n>a</span><span class=p>.</span><span class=n>option_name</span><span class=w> </span><span class=k>NOT</span><span class=w> </span><span class=k>LIKE</span><span class=w> </span><span class=s1>&#39;\\_site\\_transient\\_timeout\\_%&#39;</span><span class=w>
+</span><span class=w>   </span><span class=k>AND</span><span class=w> </span><span class=n>b</span><span class=p>.</span><span class=n>option_name</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>CONCAT</span><span class=p>(</span><span class=w> </span><span class=s1>&#39;_site_transient_timeout_&#39;</span><span class=p>,</span><span class=w> </span><span class=k>SUBSTRING</span><span class=p>(</span><span class=w> </span><span class=n>a</span><span class=p>.</span><span class=n>option_name</span><span class=p>,</span><span class=w> </span><span class=mi>17</span><span class=w> </span><span class=p>)</span><span class=w> </span><span class=p>)</span><span class=w>
+</span><span class=w>   </span><span class=k>AND</span><span class=w> </span><span class=n>b</span><span class=p>.</span><span class=n>option_value</span><span class=w> </span><span class=o>&lt;</span><span class=w> </span><span class=mi>1581760340</span><span class=w>
+</span></code></pre></div><p>この SQL を投げているのは <a href=https://developer.wordpress.org/reference/functions/delete_expired_transients/>delete_expired_transients()</a> でしたが、MySQL に直接投げてみてもマッチするレコードは存在しないのでとりあえず無視して先に進みます。</p>
+<p>次は Dashboard の表示です。</p>
+<figure>
+<img class="my-0 rounded-md" srcset="/2020/02/wordpress-with-vitess/wordpress-dashboard_hu27d89487bde23ed8ef415be0eb7b71c9_68606_330x0_resize_box_3.png 330w,
+/2020/02/wordpress-with-vitess/wordpress-dashboard_hu27d89487bde23ed8ef415be0eb7b71c9_68606_660x0_resize_box_3.png 660w,
+/2020/02/wordpress-with-vitess/wordpress-dashboard_hu27d89487bde23ed8ef415be0eb7b71c9_68606_1024x0_resize_box_3.png 1024w,
+/2020/02/wordpress-with-vitess/wordpress-dashboard_hu27d89487bde23ed8ef415be0eb7b71c9_68606_1320x0_resize_box_3.png 2x" src=/2020/02/wordpress-with-vitess/wordpress-dashboard_hu27d89487bde23ed8ef415be0eb7b71c9_68606_660x0_resize_box_3.png alt="Wordpress Dashboard">
+</figure>
+<p>画面上にエラーは表示されませんでしたが、apache の error_log に沢山エラーが出てました。</p>
+<p>1行目の <code>PHP Warning: mysqli_query(): Error reading result set's header in /var/www/html/wp-includes/wp-db.php on line 2030</code> が後続のエラーを引き起こしてるのかな？<a href=https://github.com/WordPress/WordPress/blob/5.3.2/wp-includes/wp-db.php#L2030>wp-includes/wp-db.php の 2030行目</a> という情報からでは追いかけるのが厳しいのでまたの機会に調べてみようかな。</p>
+<h3 id=追記 class="relative group">追記 <span class="absolute top-0 w-6 transition-opacity opacity-0 ltr:-left-6 rtl:-right-6 not-prose group-hover:opacity-100"><a class="group-hover:text-primary-300 dark:group-hover:text-neutral-700" style=text-decoration-line:none!important href=#%e8%bf%bd%e8%a8%98 aria-label=アンカー>#</a></span></h3>
+<p>vttablet のログに次のものがありました。</p>
+<pre tabindex=0><code>tabletserver.go:1643] Incorrect string value: '\xF0\x9F\x99\x82&quot; ...' for column 'option_value' at row 1 (errno 1366) (sqlstate HY000) (CallerID: wpapp): Sql: &quot;insert into wp_options(option_name,...
+</code></pre><p>「Incorrect string value: 🙂" &mldr;」character set が utf8mb4 になってない問題か？でも、この文字自体は MySQL に直接 INSERT することは可能だな。</p>
+<p>余談ですが Apache のエラーログはセキュリティのために printable な ASCII 意外はエスケープして <code>\x</code> と16進のコードで出力されてしまいます。元はなんだったのかな？ってこれを変換するスクリプトでも書こうかと思ったのですが、これ、zsh なら echo に渡すだけで良かったんですね！！ (追記: bash でも <code>echo -e</code> で同じことができました)</p>
+<pre tabindex=0><code>$ echo 'WordPress \xe3\x83\x87\xe3\x83\xbc\xe3\x82\xbf\xe3\x83\x99\xe3\x83\xbc\xe3\x82\xb9\xe3\x82\xa8\xe3\x83\xa9\xe3\x83\xbc'
+WordPress データベースエラー
+</code></pre><p>で、さっきのエラーログも warning と notice だし、致命的ではなかったので先に進んで記事を投稿してみます。</p>
+<figure>
+<img class="my-0 rounded-md" srcset="/2020/02/wordpress-with-vitess/wordpress-post_hu785b7074f9ec3851e78ac6824eccac9e_54629_330x0_resize_box_3.png 330w,
+/2020/02/wordpress-with-vitess/wordpress-post_hu785b7074f9ec3851e78ac6824eccac9e_54629_660x0_resize_box_3.png 660w,
+/2020/02/wordpress-with-vitess/wordpress-post_hu785b7074f9ec3851e78ac6824eccac9e_54629_1024x0_resize_box_3.png 1024w,
+/2020/02/wordpress-with-vitess/wordpress-post_hu785b7074f9ec3851e78ac6824eccac9e_54629_1320x0_resize_box_3.png 2x" src=/2020/02/wordpress-with-vitess/wordpress-post_hu785b7074f9ec3851e78ac6824eccac9e_54629_660x0_resize_box_3.png alt="Wordpress Post">
+</figure>
+<p>無事投稿して表示も確認できました。WordPress を動かすのは難しいかな？なんて思ってたんですが意外にも動きましたね。</p>
+<p>そうそう、管理画面のメディアページでもエラーが出ました。</p>
+<div class=highlight><pre tabindex=0 class=chroma><code class=language-sql data-lang=sql><span class=k>SELECT</span><span class=w> </span><span class=n>SQL_CALC_FOUND_ROWS</span><span class=w>  </span><span class=n>wp_posts</span><span class=p>.</span><span class=n>ID</span><span class=w>
+</span><span class=w>  </span><span class=k>FROM</span><span class=w> </span><span class=n>wp_posts</span><span class=w>
+</span><span class=w> </span><span class=k>WHERE</span><span class=w> </span><span class=mi>1</span><span class=o>=</span><span class=mi>1</span><span class=w>
+</span><span class=w>   </span><span class=k>AND</span><span class=w> </span><span class=n>wp_posts</span><span class=p>.</span><span class=n>post_type</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=s1>&#39;attachment&#39;</span><span class=w>
+</span><span class=w>   </span><span class=k>AND</span><span class=w> </span><span class=p>((</span><span class=n>wp_posts</span><span class=p>.</span><span class=n>post_status</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=s1>&#39;inherit&#39;</span><span class=w> </span><span class=k>OR</span><span class=w> </span><span class=n>wp_posts</span><span class=p>.</span><span class=n>post_status</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=s1>&#39;private&#39;</span><span class=p>))</span><span class=w>
+</span><span class=w> </span><span class=k>ORDER</span><span class=w> </span><span class=k>BY</span><span class=w> </span><span class=n>wp_posts</span><span class=p>.</span><span class=n>post_date</span><span class=w> </span><span class=k>DESC</span><span class=w>
+</span><span class=w> </span><span class=k>LIMIT</span><span class=w> </span><span class=mi>0</span><span class=w>
+</span></code></pre></div><p>という SQL で syntax error となりました。<code>SQL_CALC_FOUND_ROWS</code> に対応していないようです。それはそうと数を数えるだけなのになんで ORDER BY なんかついてるのかな。</p>
+<p>MySQL との互換性の情報は <a href=https://vitess.io/docs/reference/mysql-compatibility/>MySQL Compatibility</a> にありました。</p>
+<h2 id=おまけ class="relative group">おまけ <span class="absolute top-0 w-6 transition-opacity opacity-0 ltr:-left-6 rtl:-right-6 not-prose group-hover:opacity-100"><a class="group-hover:text-primary-300 dark:group-hover:text-neutral-700" style=text-decoration-line:none!important href=#%e3%81%8a%e3%81%be%e3%81%91 aria-label=アンカー>#</a></span></h2>
+<h3 id=mysql-に直接接続する方法 class="relative group">MySQL に直接接続する方法 <span class="absolute top-0 w-6 transition-opacity opacity-0 ltr:-left-6 rtl:-right-6 not-prose group-hover:opacity-100"><a class="group-hover:text-primary-300 dark:group-hover:text-neutral-700" style=text-decoration-line:none!important href=#mysql-%e3%81%ab%e7%9b%b4%e6%8e%a5%e6%8e%a5%e7%b6%9a%e3%81%99%e3%82%8b%e6%96%b9%e6%b3%95 aria-label=アンカー>#</a></span></h3>
+<p>複数コンテナが入っているので -c で mysql コンテナを指定します。</p>
+<pre tabindex=0><code>$ kubectl exec -itc mysql zone1-wordpress-0-replica-0 -- mysql --socket=/vtdataroot/tabletdata/mysql.sock -u root
+</code></pre><h3 id=mysql-側でのクエリ確認 class="relative group">MySQL 側でのクエリ確認 <span class="absolute top-0 w-6 transition-opacity opacity-0 ltr:-left-6 rtl:-right-6 not-prose group-hover:opacity-100"><a class="group-hover:text-primary-300 dark:group-hover:text-neutral-700" style=text-decoration-line:none!important href=#mysql-%e5%81%b4%e3%81%a7%e3%81%ae%e3%82%af%e3%82%a8%e3%83%aa%e7%a2%ba%e8%aa%8d aria-label=アンカー>#</a></span></h3>
+<p>Vitess の helm で deploy される Pod はファイルに出力される error.log, slow-query.log, general.log をそれぞれ <code>tail -F</code> して stdout に流すコンテナがいる（rotation させるのも別途いる）んですが、general.log は MySQL 側で設定されてないため、起動後に MySQL にアクセスして設定してやる必要があります。</p>
+<p>上の方法で MySQL にアクセスしたら次の設定をします。</p>
+<pre tabindex=0><code>set global general_log_file = '/vtdataroot/tabletdata/general.log';
+set global general_log = on;
+</code></pre><h2 id=まとめ class="relative group">まとめ <span class="absolute top-0 w-6 transition-opacity opacity-0 ltr:-left-6 rtl:-right-6 not-prose group-hover:opacity-100"><a class="group-hover:text-primary-300 dark:group-hover:text-neutral-700" style=text-decoration-line:none!important href=#%e3%81%be%e3%81%a8%e3%82%81 aria-label=アンカー>#</a></span></h2>
+<p>Tutorial 試しても楽しくなかったので WordPress を動かしてみました。意外と動きましたね、でもやっぱり vtgate でサポートされてないクエリも使われてますね。ここから Sharding とか Backup や障害復旧などを試していこうかなと。vtctlclient コマンドの使い方とか VReplication とか Topology Service とかまだ全然わからない。</p>
+</div>
+<script>var liked_article=!1,oid,id,viewed,oid_likes,id_likes,liked;typeof auth!='undefined'&&(oid="views_posts/wordpress-with-vitess/index.md",id=oid&&oid.replaceAll("/","-"),viewed=localStorage.getItem(id),viewed||auth.signInAnonymously().then(()=>{var a=db.collection('views').doc(id);localStorage.setItem(id,!0),a.get().then(a=>{a.exists?db.collection('views').doc(id).update({views:firebase.firestore.FieldValue.increment(1)}):db.collection('views').doc(id).set({views:1})}).catch(a=>{console.log("Error getting document:",a)})}).catch(a=>{var b=a.code,c=a.message;console.error(b,c)}),oid_likes="likes_posts/wordpress-with-vitess/index.md",id_likes=oid_likes&&oid_likes.replaceAll("/","-"),liked=localStorage.getItem(id_likes),liked&&(liked_article=!0,document.querySelectorAll("button[id='likes_button']")[0].innerText="Remove Like"));function like_article(a){console.log("add"),liked_article=!0,localStorage.setItem(a,!0),document.querySelectorAll("button[id='likes_button']")[0].innerText="Remove Like",auth.signInAnonymously().then(()=>{var b=db.collection('likes').doc(a);b.get().then(b=>{b.exists?db.collection('likes').doc(a).update({likes:firebase.firestore.FieldValue.increment(1)}):db.collection('likes').doc(a).set({likes:1})}).catch(a=>{console.log("Error getting document:",a)})}).catch(a=>{var b=a.code,c=a.message;console.error(b,c)})}function remove_like_article(a){console.log("remove"),liked_article=!1,localStorage.setItem(a,!1),document.querySelectorAll("button[id='likes_button']")[0].innerText="Like",auth.signInAnonymously().then(()=>{var b=db.collection('likes').doc(a);b.get().then(b=>{b.exists?db.collection('likes').doc(a).update({likes:firebase.firestore.FieldValue.increment(-1)}):db.collection('likes').doc(a).set({likes:0})}).catch(a=>{console.log("Error getting document:",a)})}).catch(a=>{var b=a.code,c=a.message;console.error(b,c)})}function process_article(){var a="likes_posts/wordpress-with-vitess/index.md",b=a&&a.replaceAll("/","-");liked_article?remove_like_article(b):like_article(b)}</script>
+</section>
+<footer class="pt-8 max-w-prose print:hidden">
+<div class=flex>
+<div class=place-self-center>
+<div class="text-[0.6rem] uppercase leading-3 text-neutral-500 dark:text-neutral-400">
+著者
+</div>
+<div class="font-semibold leading-6 text-neutral-800 dark:text-neutral-300">
+Yoshinori Teraoka
+</div>
+<div class="text-2xl sm:text-lg">
+<div class="flex flex-wrap text-neutral-400 dark:text-neutral-500">
+<a class="px-1 hover:text-primary-700 dark:hover:text-primary-400" href=https://twitter.com/yteraoka target=_blank aria-label=Twitter rel="me noopener noreferrer">
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentcolor" d="M459.37 151.716c.325 4.548.325 9.097.325 13.645.0 138.72-105.583 298.558-298.558 298.558-59.452.0-114.68-17.219-161.137-47.106 8.447.974 16.568 1.299 25.34 1.299 49.055.0 94.213-16.568 130.274-44.832-46.132-.975-84.792-31.188-98.112-72.772 6.498.974 12.995 1.624 19.818 1.624 9.421.0 18.843-1.3 27.614-3.573-48.081-9.747-84.143-51.98-84.143-102.985v-1.299c13.969 7.797 30.214 12.67 47.431 13.319-28.264-18.843-46.781-51.005-46.781-87.391.0-19.492 5.197-37.36 14.294-52.954 51.655 63.675 129.3 105.258 216.365 109.807-1.624-7.797-2.599-15.918-2.599-24.04.0-57.828 46.782-104.934 104.934-104.934 30.213.0 57.502 12.67 76.67 33.137 23.715-4.548 46.456-13.32 66.599-25.34-7.798 24.366-24.366 44.833-46.132 57.827 21.117-2.273 41.584-8.122 60.426-16.243-14.292 20.791-32.161 39.308-52.628 54.253z"/></svg>
+</span>
+</a>
+<a class="px-1 hover:text-primary-700 dark:hover:text-primary-400" href=https://github.com/yteraoka target=_blank aria-label=Github rel="me noopener noreferrer">
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><path fill="currentcolor" d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6.0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6.0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3.0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1.0-6.2-.3-40.4-.3-61.4.0.0-70 15-84.7-29.8.0.0-11.4-29.1-27.8-36.6.0.0-22.9-15.7 1.6-15.4.0.0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5.0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9.0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4.0 33.7-.3 75.4-.3 83.6.0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6.0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9.0-6.2-1.4-2.3-4-3.3-5.6-2z"/></svg>
+</span>
+</a>
+<a class="px-1 hover:text-primary-700 dark:hover:text-primary-400" href=https://linkedin.com/in/fa5b66b7-9c77-4e1b-8b97-40ba4a5a2c13/ target=_blank aria-label=Linkedin rel="me noopener noreferrer">
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path fill="currentcolor" d="M416 32H31.9C14.3 32 0 46.5.0 64.3v383.4C0 465.5 14.3 480 31.9 480H416c17.6.0 32-14.5 32-32.3V64.3c0-17.8-14.4-32.3-32-32.3zM135.4 416H69V202.2h66.5V416zm-33.2-243c-21.3.0-38.5-17.3-38.5-38.5S80.9 96 102.2 96c21.2.0 38.5 17.3 38.5 38.5.0 21.3-17.2 38.5-38.5 38.5zm282.1 243h-66.4V312c0-24.8-.5-56.7-34.5-56.7-34.6.0-39.9 27-39.9 54.9V416h-66.4V202.2h63.7v29.2h.9c8.9-16.8 30.6-34.5 62.9-34.5 67.2.0 79.7 44.3 79.7 101.9V416z"/></svg>
+</span>
+</a>
+<a class="px-1 hover:text-primary-700 dark:hover:text-primary-400" href=https://medium.com/@yteraoka target=_blank aria-label=Medium rel="me noopener noreferrer">
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512"><path fill="currentcolor" d="M180.5 74.262C80.813 74.262.0 155.633.0 256S80.819 437.738 180.5 437.738 361 356.373 361 256 280.191 74.262 180.5 74.262zm288.25 10.646c-49.845.0-90.245 76.619-90.245 171.095s40.406 171.1 90.251 171.1 90.251-76.619 90.251-171.1H559C559 161.5 518.6 84.908 468.752 84.908zm139.506 17.821c-17.526.0-31.735 68.628-31.735 153.274s14.2 153.274 31.735 153.274S640 340.631 640 256c0-84.649-14.215-153.271-31.742-153.271z"/></svg>
+</span>
+</a>
+</div>
+</div>
+</div>
+</div>
+<section class="flex flex-row flex-wrap justify-center pt-4 text-xl">
+<a class="m-1 inline-block min-w-[2.4rem] rounded bg-neutral-300 p-1 text-center text-neutral-700 hover:bg-primary-500 hover:text-neutral dark:bg-neutral-700 dark:text-neutral-300 dark:hover:bg-primary-400 dark:hover:text-neutral-800" href="https://www.linkedin.com/shareArticle?mini=true&url=https://preview-blog.1q77.com/2020/02/wordpress-with-vitess/&title=Vitess%20%e3%81%a7%20WordPress%20%e3%82%92%e5%8b%95%e3%81%8b%e3%81%97%e3%81%a6%e3%81%bf%e3%82%8b" title=LinkedInでシェアする aria-label=LinkedInでシェアする>
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path fill="currentcolor" d="M416 32H31.9C14.3 32 0 46.5.0 64.3v383.4C0 465.5 14.3 480 31.9 480H416c17.6.0 32-14.5 32-32.3V64.3c0-17.8-14.4-32.3-32-32.3zM135.4 416H69V202.2h66.5V416zm-33.2-243c-21.3.0-38.5-17.3-38.5-38.5S80.9 96 102.2 96c21.2.0 38.5 17.3 38.5 38.5.0 21.3-17.2 38.5-38.5 38.5zm282.1 243h-66.4V312c0-24.8-.5-56.7-34.5-56.7-34.6.0-39.9 27-39.9 54.9V416h-66.4V202.2h63.7v29.2h.9c8.9-16.8 30.6-34.5 62.9-34.5 67.2.0 79.7 44.3 79.7 101.9V416z"/></svg>
+</span>
+</a>
+<a class="m-1 inline-block min-w-[2.4rem] rounded bg-neutral-300 p-1 text-center text-neutral-700 hover:bg-primary-500 hover:text-neutral dark:bg-neutral-700 dark:text-neutral-300 dark:hover:bg-primary-400 dark:hover:text-neutral-800" href="https://twitter.com/intent/tweet/?url=https://preview-blog.1q77.com/2020/02/wordpress-with-vitess/&text=Vitess%20%e3%81%a7%20WordPress%20%e3%82%92%e5%8b%95%e3%81%8b%e3%81%97%e3%81%a6%e3%81%bf%e3%82%8b" title=Twitterに投稿する aria-label=Twitterに投稿する>
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentcolor" d="M459.37 151.716c.325 4.548.325 9.097.325 13.645.0 138.72-105.583 298.558-298.558 298.558-59.452.0-114.68-17.219-161.137-47.106 8.447.974 16.568 1.299 25.34 1.299 49.055.0 94.213-16.568 130.274-44.832-46.132-.975-84.792-31.188-98.112-72.772 6.498.974 12.995 1.624 19.818 1.624 9.421.0 18.843-1.3 27.614-3.573-48.081-9.747-84.143-51.98-84.143-102.985v-1.299c13.969 7.797 30.214 12.67 47.431 13.319-28.264-18.843-46.781-51.005-46.781-87.391.0-19.492 5.197-37.36 14.294-52.954 51.655 63.675 129.3 105.258 216.365 109.807-1.624-7.797-2.599-15.918-2.599-24.04.0-57.828 46.782-104.934 104.934-104.934 30.213.0 57.502 12.67 76.67 33.137 23.715-4.548 46.456-13.32 66.599-25.34-7.798 24.366-24.366 44.833-46.132 57.827 21.117-2.273 41.584-8.122 60.426-16.243-14.292 20.791-32.161 39.308-52.628 54.253z"/></svg>
+</span>
+</a>
+</section>
+<div class=pt-8>
+<hr class="border-dotted border-neutral-300 dark:border-neutral-600">
+<div class="flex justify-between pt-3">
+<span>
+<a class="flex group" href=/2020/02/testssl/>
+<span class="mr-3 text-neutral-700 group-hover:text-primary-600 ltr:inline rtl:hidden dark:text-neutral dark:group-hover:text-primary-400">&larr;</span>
+<span class="ml-3 text-neutral-700 group-hover:text-primary-600 ltr:hidden rtl:inline dark:text-neutral dark:group-hover:text-primary-400">&rarr;</span>
+<span class="flex flex-col">
+<span class="mt-[0.1rem] leading-6 group-hover:underline group-hover:decoration-primary-500">Qualys の SSL Server Test みたいなコマンドラインツール</span>
+<span class="mt-[0.1rem] text-xs text-neutral-500 dark:text-neutral-400">
+<time datetime="2020-02-11 09:06:40 +0000 UTC">2020年2月11日</time>
+</span>
+</span>
+</a>
+</span>
+<span>
+<a class="flex text-right group" href=/2020/02/send-a-mail-with-mailx/>
+<span class="flex flex-col">
+<span class="mt-[0.1rem] leading-6 group-hover:underline group-hover:decoration-primary-500">mailx コマンドでメール送信テスト</span>
+<span class="mt-[0.1rem] text-xs text-neutral-500 dark:text-neutral-400">
+<time datetime="2020-02-28 14:55:30 +0000 UTC">2020年2月28日</time>
+</span>
+</span>
+<span class="ml-3 text-neutral-700 group-hover:text-primary-600 ltr:inline rtl:hidden dark:text-neutral dark:group-hover:text-primary-400">&rarr;</span>
+<span class="mr-3 text-neutral-700 group-hover:text-primary-600 ltr:hidden rtl:inline dark:text-neutral dark:group-hover:text-primary-400">&larr;</span>
+</a>
+</span>
+</div>
+</div>
+</footer>
+</article>
+<div class="pointer-events-none absolute top-[100vh] bottom-0 w-12 ltr:right-0 rtl:left-0">
+<a href=#the-top class="pointer-events-auto sticky top-[calc(100vh-5.5rem)] flex h-12 w-12 items-center justify-center rounded-full bg-neutral/50 text-xl text-neutral-700 backdrop-blur hover:text-primary-600 dark:bg-neutral-800/50 dark:text-neutral dark:hover:text-primary-400" aria-label=TOPへスクロール title=TOPへスクロール>
+&uarr;
+</a>
+</div>
+</main><footer class="py-10 print:hidden">
+<div class="flex items-center justify-between">
+<p class="text-sm text-neutral-500 dark:text-neutral-400">
+&copy;
+2022
+Yoshinori Teraoka
+</p>
+</div>
+<script>mediumZoom(document.querySelectorAll("img:not(.nozoom)"),{margin:24,background:'rgba(0,0,0,0.5)',scrollOffset:0})</script>
+<script type=text/javascript src=/js/process.min.48d08339b8a087b59c7b8cb42b6717aeeed3e07bfc68b1654cac27f00583284dac59cae47fb686dd7c0e9ff1d2745689dc2071230dff432ca6d7fc24b9f2e036.js integrity="sha512-SNCDObigh7Wce4y0K2cXru7T4Hv8aLFlTKwn8AWDKE2sWcrkf7aG3XwOn/HSdFaJ3CBxIw3/Qyym1/wkufLgNg=="></script>
+</footer><div id=search-wrapper class="invisible fixed inset-0 z-50 flex h-screen w-screen cursor-default flex-col bg-neutral-500/50 p-4 backdrop-blur-sm dark:bg-neutral-900/50 sm:p-6 md:p-[10vh] lg:p-[12vh]" data-url=https://preview-blog.1q77.com/>
+<div id=search-modal class="flex flex-col w-full max-w-3xl min-h-0 mx-auto border rounded-md shadow-lg top-20 border-neutral-200 bg-neutral dark:border-neutral-700 dark:bg-neutral-800">
+<header class="relative z-10 flex items-center justify-between flex-none px-2">
+<form class="flex items-center flex-auto min-w-0">
+<div class="flex items-center justify-center w-8 h-8 text-neutral-400">
+<span class="relative inline-block align-text-bottom icon"><svg aria-hidden="true" focusable="false" data-prefix="fas" data-icon="search" class="svg-inline--fa fa-search fa-w-16" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentcolor" d="M505 442.7 405.3 343c-4.5-4.5-10.6-7-17-7H372c27.6-35.3 44-79.7 44-128C416 93.1 322.9.0 208 0S0 93.1.0 208s93.1 208 208 208c48.3.0 92.7-16.4 128-44v16.3c0 6.4 2.5 12.5 7 17l99.7 99.7c9.4 9.4 24.6 9.4 33.9.0l28.3-28.3c9.4-9.4 9.4-24.6.1-34zM208 336c-70.7.0-128-57.2-128-128 0-70.7 57.2-128 128-128 70.7.0 128 57.2 128 128 0 70.7-57.2 128-128 128z"/></svg>
+</span>
+</div>
+<input type=search id=search-query class="flex flex-auto h-12 mx-1 bg-transparent appearance-none focus:outline-dotted focus:outline-2 focus:outline-transparent" placeholder=Search tabindex=0>
+</form>
+<button id=close-search-button class="flex items-center justify-center w-8 h-8 text-neutral-700 hover:text-primary-600 dark:text-neutral dark:hover:text-primary-400" title="閉じる (Esc)">
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><path fill="currentcolor" d="M310.6 361.4c12.5 12.5 12.5 32.75.0 45.25C304.4 412.9 296.2 416 288 416s-16.38-3.125-22.62-9.375L160 301.3 54.63 406.6C48.38 412.9 40.19 416 32 416S15.63 412.9 9.375 406.6c-12.5-12.5-12.5-32.75.0-45.25l105.4-105.4L9.375 150.6c-12.5-12.5-12.5-32.75.0-45.25s32.75-12.5 45.25.0L160 210.8l105.4-105.4c12.5-12.5 32.75-12.5 45.25.0s12.5 32.75.0 45.25l-105.4 105.4L310.6 361.4z"/></svg>
+</span>
+</button>
+</header>
+<section class="flex-auto px-2 overflow-auto">
+<ul id=search-results>
+</ul>
+</section>
+</div>
+</div>
+</div>
+</body>
+</html>

@@ -1,0 +1,746 @@
+<!doctype html><html lang=ja dir=ltr class=scroll-smooth data-default-appearance=light data-auto-appearance=true><head>
+<meta charset=utf-8>
+<meta http-equiv=content-language content="ja">
+<meta name=viewport content="width=device-width,initial-scale=1">
+<meta http-equiv=x-ua-compatible content="ie=edge">
+<title>Rancher: Migrating from an HA RKE Add-on Install &#183; 1Q77</title>
+<meta name=title content="Rancher: Migrating from an HA RKE Add-on Install &#183; 1Q77">
+<link rel=canonical href=https://preview-blog.1q77.com/2019/03/rancher-migrating-from-an-ha-rke-add-on-install/>
+<link type=text/css rel=stylesheet href=/css/main.bundle.min.a9d40529d239a91ecb75447e67ee6c80c1f1c28593904b4052651b12220121e13ec42904268b0193a6858f039cf8bfdd2b1331529ed341ddc7488cec3bdcbc2e.css integrity="sha512-qdQFKdI5qR7LdUR+Z+5sgMHxwoWTkEtAUmUbEiIBIeE+xCkEJosBk6aFjwOc+L/dKxMxUp7TQd3HSIzsO9y8Lg==">
+<script type=text/javascript src=/js/main.min.cf83e1357eefb8bdf1542850d66d8007d620e4050b5715dc83f4a921d36ce9ce47d0d13c5d85f2b0ff8318d2877eec2f63b931bd47417a81a538327af927da3e.js integrity="sha512-z4PhNX7vuL3xVChQ1m2AB9Yg5AULVxXcg/SpIdNs6c5H0NE8XYXysP+DGNKHfuwvY7kxvUdBeoGlODJ6+SfaPg=="></script>
+<script type=text/javascript src=/js/appearance.min.49025a779c36ad37a5bf9f1cc6bffd35ccb69ce15560ef1b10057ddf31576265b19f8bcc1733207336c9144926f7b18aea2e5895f29e858b24271332a2fa5cd5.js integrity="sha512-SQJad5w2rTelv58cxr/9Ncy2nOFVYO8bEAV93zFXYmWxn4vMFzMgczbJFEkm97GK6i5YlfKehYskJxMyovpc1Q=="></script>
+<script defer type=text/javascript id=script-bundle src=/js/main.bundle.min.34ee8372ff77835535e486c6ed01ff6993374a1cec8108898cad793fc6ae7520778e24db68e085c762d25af6fa7d00b57d7a791438dc68b676581f8c8344f6e0.js integrity="sha512-NO6Dcv93g1U15IbG7QH/aZM3ShzsgQiJjK15P8audSB3jiTbaOCFx2LSWvb6fQC1fXp5FDjcaLZ2WB+Mg0T24A==" data-copy data-copied></script>
+<script src=/js/zoom.min.js></script>
+<link rel=apple-touch-icon sizes=180x180 href=/apple-touch-icon.png>
+<link rel=icon type=image/png sizes=32x32 href=/favicon-32x32.png>
+<link rel=icon type=image/png sizes=16x16 href=/favicon-16x16.png>
+<link rel=manifest href=/site.webmanifest>
+<meta property="og:title" content="Rancher: Migrating from an HA RKE Add-on Install">
+<meta property="og:description" content="RKE Add-on での Rancher セットアップはもう古い # 過去に試していた RKE での Rancher の HA セットアップ (続 Rancher 2.0 の HA 構成を試す) はどうやらもう古いらしい。2.0.8 までし">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://preview-blog.1q77.com/2019/03/rancher-migrating-from-an-ha-rke-add-on-install/"><meta property="article:section" content="posts">
+<meta property="article:published_time" content="2019-03-24T13:56:39+00:00">
+<meta property="article:modified_time" content="2019-03-24T13:56:39+00:00">
+<meta name=twitter:card content="summary">
+<meta name=twitter:title content="Rancher: Migrating from an HA RKE Add-on Install">
+<meta name=twitter:description content="RKE Add-on での Rancher セットアップはもう古い # 過去に試していた RKE での Rancher の HA セットアップ (続 Rancher 2.0 の HA 構成を試す) はどうやらもう古いらしい。2.0.8 までし">
+<script type=application/ld+json>[{"@context":"https://schema.org","@type":"Article","articleSection":"Posts","name":"Rancher: Migrating from an HA RKE Add-on Install","headline":"Rancher: Migrating from an HA RKE Add-on Install","abstract":"RKE Add-on での Rancher セットアップはもう古い # 過去に試していた RKE での Rancher の HA セットアップ (続 Rancher 2.0 の HA 構成を試す) はどうやらもう古いらしい。2.0.8 までし","inLanguage":"ja","url":"https:\/\/preview-blog.1q77.com\/2019\/03\/rancher-migrating-from-an-ha-rke-add-on-install\/","author":{"@type":"Person","name":"Yoshinori Teraoka"},"copyrightYear":"2019","dateCreated":"2019-03-24T13:56:39\u002b00:00","datePublished":"2019-03-24T13:56:39\u002b00:00","dateModified":"2019-03-24T13:56:39\u002b00:00","keywords":["Helm","Kubernetes","Rancher","Rancher"],"mainEntityOfPage":"true","wordCount":"2521"}]</script>
+<meta name=author content="Yoshinori Teraoka">
+<link href=https://twitter.com/yteraoka rel=me>
+<link href=https://github.com/yteraoka rel=me>
+<link href=https://linkedin.com/in/fa5b66b7-9c77-4e1b-8b97-40ba4a5a2c13/ rel=me>
+<link href=https://medium.com/@yteraoka rel=me>
+<link rel=stylesheet href=https://rsms.me/inter/inter.css>
+</head><body class="flex flex-col h-screen px-6 m-auto text-lg leading-7 max-w-7xl bg-neutral text-neutral-900 dark:bg-neutral-800 dark:text-neutral sm:px-14 md:px-24 lg:px-32">
+<div id=the-top class="absolute flex self-center">
+<a class="px-3 py-1 text-sm -translate-y-8 rounded-b-lg bg-primary-200 focus:translate-y-0 dark:bg-neutral-600" href=#main-content><span class="font-bold text-primary-600 ltr:pr-2 rtl:pl-2 dark:text-primary-400">&darr;</span>メインコンテンツへスキップ</a>
+</div>
+<div style=padding-left:0;padding-right:0 class="flex items-center justify-between px-4 py-6 sm:px-6 md:justify-start space-x-3">
+<div class="flex flex-1 items-center justify-between">
+<nav class="flex space-x-3">
+<a href=/ class="text-base font-medium text-gray-500 hover:text-gray-900">1Q77</a>
+</nav>
+<div class="hidden md:flex items-center space-x-5 md:ml-12">
+<a href=/posts/ class="text-base font-medium text-gray-500 hover:text-gray-900" title=Posts>
+Blog
+</a>
+<a href=/tags/ class="text-base font-medium text-gray-500 hover:text-gray-900" title=Tags>
+Tags
+</a>
+<a href=https://github.com/yteraoka class="text-base font-medium text-gray-500 hover:text-gray-900" title>
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><path fill="currentcolor" d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6.0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6.0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3.0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1.0-6.2-.3-40.4-.3-61.4.0.0-70 15-84.7-29.8.0.0-11.4-29.1-27.8-36.6.0.0-22.9-15.7 1.6-15.4.0.0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5.0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9.0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4.0 33.7-.3 75.4-.3 83.6.0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6.0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9.0-6.2-1.4-2.3-4-3.3-5.6-2z"/></svg>
+</span>
+&nbsp;
+GitHub
+</a>
+<a href=https://twitter.com/yteraoka class="text-base font-medium text-gray-500 hover:text-gray-900" title>
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentcolor" d="M459.37 151.716c.325 4.548.325 9.097.325 13.645.0 138.72-105.583 298.558-298.558 298.558-59.452.0-114.68-17.219-161.137-47.106 8.447.974 16.568 1.299 25.34 1.299 49.055.0 94.213-16.568 130.274-44.832-46.132-.975-84.792-31.188-98.112-72.772 6.498.974 12.995 1.624 19.818 1.624 9.421.0 18.843-1.3 27.614-3.573-48.081-9.747-84.143-51.98-84.143-102.985v-1.299c13.969 7.797 30.214 12.67 47.431 13.319-28.264-18.843-46.781-51.005-46.781-87.391.0-19.492 5.197-37.36 14.294-52.954 51.655 63.675 129.3 105.258 216.365 109.807-1.624-7.797-2.599-15.918-2.599-24.04.0-57.828 46.782-104.934 104.934-104.934 30.213.0 57.502 12.67 76.67 33.137 23.715-4.548 46.456-13.32 66.599-25.34-7.798 24.366-24.366 44.833-46.132 57.827 21.117-2.273 41.584-8.122 60.426-16.243-14.292 20.791-32.161 39.308-52.628 54.253z"/></svg>
+</span>
+&nbsp;
+Twitter
+</a>
+<a href=https://qiita.com/yteraoka class="text-base font-medium text-gray-500 hover:text-gray-900" title>
+Qiita
+</a>
+<button id=search-button class="text-base hover:text-primary-600 dark:hover:text-primary-400" title>
+<span class="relative inline-block align-text-bottom icon"><svg aria-hidden="true" focusable="false" data-prefix="fas" data-icon="search" class="svg-inline--fa fa-search fa-w-16" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentcolor" d="M505 442.7 405.3 343c-4.5-4.5-10.6-7-17-7H372c27.6-35.3 44-79.7 44-128C416 93.1 322.9.0 208 0S0 93.1.0 208s93.1 208 208 208c48.3.0 92.7-16.4 128-44v16.3c0 6.4 2.5 12.5 7 17l99.7 99.7c9.4 9.4 24.6 9.4 33.9.0l28.3-28.3c9.4-9.4 9.4-24.6.1-34zM208 336c-70.7.0-128-57.2-128-128 0-70.7 57.2-128 128-128 70.7.0 128 57.2 128 128 0 70.7-57.2 128-128 128z"/></svg>
+</span>
+</button>
+<div class="ltr:mr-14 rtl:ml-14 cursor-pointer text-sm text-neutral-700 hover:text-primary-600 dark:text-neutral dark:hover:text-primary-400">
+<button id=appearance-switcher type=button>
+<div class="flex items-center justify-center h-12 dark:hidden">
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentcolor" d="M32 256C32 132.2 132.3 32 255.8 32c11.36.0 29.7 1.668 40.9 3.746 9.616 1.777 11.75 14.63 3.279 19.44C245 86.5 211.2 144.6 211.2 207.8c0 109.7 99.71 193 208.3 172.3 9.561-1.805 16.28 9.324 10.11 16.95C387.9 448.6 324.8 480 255.8 480 132.1 480 32 379.6 32 256z"/></svg>
+</span>
+</div>
+<div class="items-center justify-center hidden h-12 dark:flex">
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentcolor" d="M256 159.1c-53.02.0-95.1 42.98-95.1 95.1s41.2 96.9 95.1 96.9 95.1-42.98 95.1-95.1S309 159.1 256 159.1zM509.3 347l-63.2-91.9 63.15-91.01c6.332-9.125 1.104-21.74-9.826-23.72l-109-19.7-19.7-109c-1.975-10.93-14.59-16.16-23.72-9.824L256 65.89 164.1 2.736c-9.125-6.332-21.74-1.107-23.72 9.824L121.6 121.6 12.56 141.3C1.633 143.2-3.596 155.9 2.736 164.1L65.89 256 2.74 347.01c-6.332 9.125-1.105 21.74 9.824 23.72l109 19.7 19.7 109c1.975 10.93 14.59 16.16 23.72 9.824L256 446.1l91.01 63.15c9.127 6.334 21.75 1.107 23.72-9.822l19.7-109 109-19.7C510.4 368.8 515.6 356.1 509.3 347zM256 383.1c-70.69.0-127.1-57.31-127.1-127.1.0-70.69 57.31-127.1 127.1-127.1S383.1 186.2 383.1 256c0 70.7-56.4 127.1-127.1 127.1z"/></svg>
+</span>
+</div>
+</button>
+</div>
+</div>
+<div class="flex md:hidden items-center space-x-5 md:ml-12">
+<span></span>
+<button id=search-button-mobile class="text-base hover:text-primary-600 dark:hover:text-primary-400" title>
+<span class="relative inline-block align-text-bottom icon"><svg aria-hidden="true" focusable="false" data-prefix="fas" data-icon="search" class="svg-inline--fa fa-search fa-w-16" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentcolor" d="M505 442.7 405.3 343c-4.5-4.5-10.6-7-17-7H372c27.6-35.3 44-79.7 44-128C416 93.1 322.9.0 208 0S0 93.1.0 208s93.1 208 208 208c48.3.0 92.7-16.4 128-44v16.3c0 6.4 2.5 12.5 7 17l99.7 99.7c9.4 9.4 24.6 9.4 33.9.0l28.3-28.3c9.4-9.4 9.4-24.6.1-34zM208 336c-70.7.0-128-57.2-128-128 0-70.7 57.2-128 128-128 70.7.0 128 57.2 128 128 0 70.7-57.2 128-128 128z"/></svg>
+</span>
+</button>
+<button id=appearance-switcher-mobile type=button style=margin-right:5px>
+<div class="flex items-center justify-center h-12 dark:hidden">
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentcolor" d="M32 256C32 132.2 132.3 32 255.8 32c11.36.0 29.7 1.668 40.9 3.746 9.616 1.777 11.75 14.63 3.279 19.44C245 86.5 211.2 144.6 211.2 207.8c0 109.7 99.71 193 208.3 172.3 9.561-1.805 16.28 9.324 10.11 16.95C387.9 448.6 324.8 480 255.8 480 132.1 480 32 379.6 32 256z"/></svg>
+</span>
+</div>
+<div class="items-center justify-center hidden h-12 dark:flex">
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentcolor" d="M256 159.1c-53.02.0-95.1 42.98-95.1 95.1s41.2 96.9 95.1 96.9 95.1-42.98 95.1-95.1S309 159.1 256 159.1zM509.3 347l-63.2-91.9 63.15-91.01c6.332-9.125 1.104-21.74-9.826-23.72l-109-19.7-19.7-109c-1.975-10.93-14.59-16.16-23.72-9.824L256 65.89 164.1 2.736c-9.125-6.332-21.74-1.107-23.72 9.824L121.6 121.6 12.56 141.3C1.633 143.2-3.596 155.9 2.736 164.1L65.89 256 2.74 347.01c-6.332 9.125-1.105 21.74 9.824 23.72l109 19.7 19.7 109c1.975 10.93 14.59 16.16 23.72 9.824L256 446.1l91.01 63.15c9.127 6.334 21.75 1.107 23.72-9.822l19.7-109 109-19.7C510.4 368.8 515.6 356.1 509.3 347zM256 383.1c-70.69.0-127.1-57.31-127.1-127.1.0-70.69 57.31-127.1 127.1-127.1S383.1 186.2 383.1 256c0 70.7-56.4 127.1-127.1 127.1z"/></svg>
+</span>
+</div>
+</button>
+</div>
+</div>
+<div class="-my-2 -mr-2 md:hidden">
+<label id=menu-button for=menu-controller class=block>
+<input type=checkbox id=menu-controller class=hidden>
+<div class="cursor-pointer hover:text-primary-600 dark:hover:text-primary-400">
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path fill="currentcolor" d="M0 96C0 78.33 14.33 64 32 64H416c17.7.0 32 14.33 32 32 0 17.7-14.3 32-32 32H32C14.33 128 0 113.7.0 96zM0 256c0-17.7 14.33-32 32-32H416c17.7.0 32 14.3 32 32s-14.3 32-32 32H32c-17.67.0-32-14.3-32-32zM416 448H32c-17.67.0-32-14.3-32-32s14.33-32 32-32H416c17.7.0 32 14.3 32 32s-14.3 32-32 32z"/></svg>
+</span>
+</div>
+<div id=menu-wrapper style=padding-top:25px class="fixed inset-0 z-30 invisible w-screen h-screen m-auto overflow-auto transition-opacity opacity-0 cursor-default bg-neutral-100/50 backdrop-blur-sm dark:bg-neutral-900/50">
+<ul class="flex movedown flex-col w-full px-6 py-6 mx-auto overflow-visible list-none ltr:text-right rtl:text-left max-w-7xl sm:px-14 md:px-24 lg:px-32 sm:py-10 sm:pt-10">
+<li class=mb-1>
+<span class="cursor-pointer hover:text-primary-600 dark:hover:text-primary-400">
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><path fill="currentcolor" d="M310.6 361.4c12.5 12.5 12.5 32.75.0 45.25C304.4 412.9 296.2 416 288 416s-16.38-3.125-22.62-9.375L160 301.3 54.63 406.6C48.38 412.9 40.19 416 32 416S15.63 412.9 9.375 406.6c-12.5-12.5-12.5-32.75.0-45.25l105.4-105.4L9.375 150.6c-12.5-12.5-12.5-32.75.0-45.25s32.75-12.5 45.25.0L160 210.8l105.4-105.4c12.5-12.5 32.75-12.5 45.25.0s12.5 32.75.0 45.25l-105.4 105.4L310.6 361.4z"/></svg>
+</span>
+</span>
+</li>
+<li class=mb-1>
+<a class="decoration-primary-500 hover:underline hover:decoration-2 hover:underline-offset-2" href=/posts/ title=Posts>
+Blog
+</a>
+</li>
+<li class=mb-1>
+<a class="decoration-primary-500 hover:underline hover:decoration-2 hover:underline-offset-2" href=/tags/ title=Tags>
+Tags
+</a>
+</li>
+<li class=mb-1>
+<a class="decoration-primary-500 hover:underline hover:decoration-2 hover:underline-offset-2" href=https://github.com/yteraoka title>
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><path fill="currentcolor" d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6.0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6.0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3.0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1.0-6.2-.3-40.4-.3-61.4.0.0-70 15-84.7-29.8.0.0-11.4-29.1-27.8-36.6.0.0-22.9-15.7 1.6-15.4.0.0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5.0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9.0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4.0 33.7-.3 75.4-.3 83.6.0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6.0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9.0-6.2-1.4-2.3-4-3.3-5.6-2z"/></svg>
+</span>
+&nbsp;
+GitHub
+</a>
+</li>
+<li class=mb-1>
+<a class="decoration-primary-500 hover:underline hover:decoration-2 hover:underline-offset-2" href=https://twitter.com/yteraoka title>
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentcolor" d="M459.37 151.716c.325 4.548.325 9.097.325 13.645.0 138.72-105.583 298.558-298.558 298.558-59.452.0-114.68-17.219-161.137-47.106 8.447.974 16.568 1.299 25.34 1.299 49.055.0 94.213-16.568 130.274-44.832-46.132-.975-84.792-31.188-98.112-72.772 6.498.974 12.995 1.624 19.818 1.624 9.421.0 18.843-1.3 27.614-3.573-48.081-9.747-84.143-51.98-84.143-102.985v-1.299c13.969 7.797 30.214 12.67 47.431 13.319-28.264-18.843-46.781-51.005-46.781-87.391.0-19.492 5.197-37.36 14.294-52.954 51.655 63.675 129.3 105.258 216.365 109.807-1.624-7.797-2.599-15.918-2.599-24.04.0-57.828 46.782-104.934 104.934-104.934 30.213.0 57.502 12.67 76.67 33.137 23.715-4.548 46.456-13.32 66.599-25.34-7.798 24.366-24.366 44.833-46.132 57.827 21.117-2.273 41.584-8.122 60.426-16.243-14.292 20.791-32.161 39.308-52.628 54.253z"/></svg>
+</span>
+&nbsp;
+Twitter
+</a>
+</li>
+<li class=mb-1>
+<a class="decoration-primary-500 hover:underline hover:decoration-2 hover:underline-offset-2" href=https://qiita.com/yteraoka title>
+Qiita
+</a>
+</li>
+</ul>
+</div>
+</label>
+</div>
+</div>
+<div id=mobile-menu class="fixed inset-0 z-30 invisible w-screen h-screen m-auto overflow-auto transition-opacity opacity-0 cursor-default bg-neutral-100/50 backdrop-blur-sm dark:bg-neutral-900/50">
+<ul class="flex movedown flex-col w-full px-6 py-6 mx-auto overflow-visible list-none ltr:text-right rtl:text-left max-w-7xl sm:px-14 md:px-24 lg:px-32 sm:py-10 sm:pt-10">
+<li class=mb-1>
+<span class="cursor-pointer hover:text-primary-600 dark:hover:text-primary-400">
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><path fill="currentcolor" d="M310.6 361.4c12.5 12.5 12.5 32.75.0 45.25C304.4 412.9 296.2 416 288 416s-16.38-3.125-22.62-9.375L160 301.3 54.63 406.6C48.38 412.9 40.19 416 32 416S15.63 412.9 9.375 406.6c-12.5-12.5-12.5-32.75.0-45.25l105.4-105.4L9.375 150.6c-12.5-12.5-12.5-32.75.0-45.25s32.75-12.5 45.25.0L160 210.8l105.4-105.4c12.5-12.5 32.75-12.5 45.25.0s12.5 32.75.0 45.25l-105.4 105.4L310.6 361.4z"/></svg>
+</span>
+</span>
+</li>
+<li class=mb-1>
+<a class="decoration-primary-500 hover:underline hover:decoration-2 hover:underline-offset-2" href=/posts/ title=Posts>Blog</a>
+</li>
+<li class=mb-1>
+<a class="decoration-primary-500 hover:underline hover:decoration-2 hover:underline-offset-2" href=/tags/ title=Tags>Tags</a>
+</li>
+<li class=mb-1>
+<a class="decoration-primary-500 hover:underline hover:decoration-2 hover:underline-offset-2" href=https://github.com/yteraoka title>GitHub</a>
+</li>
+<li class=mb-1>
+<a class="decoration-primary-500 hover:underline hover:decoration-2 hover:underline-offset-2" href=https://twitter.com/yteraoka title>Twitter</a>
+</li>
+<li class=mb-1>
+<a class="decoration-primary-500 hover:underline hover:decoration-2 hover:underline-offset-2" href=https://qiita.com/yteraoka title>Qiita</a>
+</li>
+<li>
+<button id=search-button-mobile class="text-base hover:text-primary-600 dark:hover:text-primary-400">
+<span class="relative inline-block align-text-bottom icon"><svg aria-hidden="true" focusable="false" data-prefix="fas" data-icon="search" class="svg-inline--fa fa-search fa-w-16" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentcolor" d="M505 442.7 405.3 343c-4.5-4.5-10.6-7-17-7H372c27.6-35.3 44-79.7 44-128C416 93.1 322.9.0 208 0S0 93.1.0 208s93.1 208 208 208c48.3.0 92.7-16.4 128-44v16.3c0 6.4 2.5 12.5 7 17l99.7 99.7c9.4 9.4 24.6 9.4 33.9.0l28.3-28.3c9.4-9.4 9.4-24.6.1-34zM208 336c-70.7.0-128-57.2-128-128 0-70.7 57.2-128 128-128 70.7.0 128 57.2 128 128 0 70.7-57.2 128-128 128z"/></svg>
+</span>
+</button>
+</li>
+</ul>
+</div>
+<div class="relative flex flex-col grow">
+<main id=main-content class=grow>
+<article>
+<header class=max-w-prose>
+<ol class="text-sm text-neutral-500 dark:text-neutral-400 print:hidden">
+<li class="inline hidden">
+<a class="hover:underline decoration-neutral-300 dark:underline-neutral-600" href=/>1Q77</a><span class="px-1 text-primary-500">/</span>
+</li>
+<li class=inline>
+<a class="hover:underline decoration-neutral-300 dark:underline-neutral-600" href=/posts/>Posts</a><span class="px-1 text-primary-500">/</span>
+</li>
+<li class="inline hidden">
+<a class="hover:underline decoration-neutral-300 dark:underline-neutral-600" href=/2019/03/rancher-migrating-from-an-ha-rke-add-on-install/>Rancher: Migrating from an HA RKE Add-on Install</a><span class="px-1 text-primary-500">/</span>
+</li>
+</ol>
+<h1 class="mt-0 text-4xl font-extrabold text-neutral-900 dark:text-neutral">
+Rancher: Migrating from an HA RKE Add-on Install
+</h1>
+<div class="mt-8 mb-12 text-base text-neutral-500 dark:text-neutral-400 print:hidden">
+<div class="flex flex-row flex-wrap items-center">
+<time datetime="2019-03-24 13:56:39 +0000 UTC">2019年3月24日</time>
+</div>
+<div class="flex flex-row flex-wrap items-center">
+<span style=margin-top:.5rem class=mr-2 onclick='window.open("/tags/helm/")'>
+<span class=flex>
+<span class="rounded-md border border-primary-400 px-1 py-[1px] text-xs font-normal text-primary-700 dark:border-primary-600 dark:text-primary-400">
+Helm
+</span>
+</span>
+</span>
+<span style=margin-top:.5rem class=mr-2 onclick='window.open("/tags/kubernetes/")'>
+<span class=flex>
+<span class="rounded-md border border-primary-400 px-1 py-[1px] text-xs font-normal text-primary-700 dark:border-primary-600 dark:text-primary-400">
+Kubernetes
+</span>
+</span>
+</span>
+<span style=margin-top:.5rem class=mr-2 onclick='window.open("/tags/rancher/")'>
+<span class=flex>
+<span class="rounded-md border border-primary-400 px-1 py-[1px] text-xs font-normal text-primary-700 dark:border-primary-600 dark:text-primary-400">
+Rancher
+</span>
+</span>
+</span>
+</div>
+</div>
+</header>
+<section class="flex flex-col max-w-full mt-0 prose dark:prose-invert lg:flex-row">
+<div class="order-first px-0 lg:order-last lg:max-w-xs ltr:lg:pl-8 rtl:lg:pr-8">
+<div class="toc ltr:pl-5 rtl:pr-5 print:hidden lg:sticky lg:top-10">
+<details open class="mt-0 overflow-hidden rounded-lg ltr:-ml-5 ltr:pl-5 rtl:-mr-5 rtl:pr-5 hidden lg:block">
+<summary class="block py-1 text-lg font-semibold cursor-pointer bg-neutral-100 text-neutral-800 ltr:-ml-5 ltr:pl-5 rtl:-mr-5 rtl:pr-5 dark:bg-neutral-700 dark:text-neutral-100 lg:hidden">
+目次
+</summary>
+<div class="py-2 border-dotted border-neutral-300 ltr:-ml-5 ltr:border-l ltr:pl-5 rtl:-mr-5 rtl:border-r rtl:pr-5 dark:border-neutral-600">
+<nav id=TableOfContents>
+<ul>
+<li><a href=#rke-add-on-での-rancher-セットアップはもう古い>RKE Add-on での Rancher セットアップはもう古い</a></li>
+<li><a href=#helm-を使ったセットアップへの変更>Helm を使ったセットアップへの変更</a>
+<ul>
+<li><a href=#kubectl-を-rancher-cluster-に向ける>kubectl を rancher cluster に向ける</a></li>
+<li><a href=#証明書の保存>証明書の保存</a></li>
+<li><a href=#古い-kubernetes-オブジェクトを削除>古い Kubernetes オブジェクトを削除</a></li>
+<li><a href=#addon-の削除>Addon の削除</a></li>
+</ul>
+</li>
+<li><a href=#helm-の初期化>Helm の初期化</a>
+<ul>
+<li><a href=#helm-の初期化-1>Helm の初期化</a></li>
+<li><a href=#tiller-の確認>Tiller の確認</a></li>
+</ul>
+</li>
+<li><a href=#rancher-のインストール>Rancher のインストール</a>
+<ul>
+<li><a href=#helm-chart-repository-の追加>Helm Chart repository の追加</a></li>
+<li><a href=#ssltls-設定の選択>SSL/TLS 設定の選択</a></li>
+<li><a href=#cert-manager-のインストール-必要な場合のみ>cert-manager のインストール (必要な場合のみ)</a></li>
+<li><a href=#rancher-のデプロイ-rancher-generated-certificates>Rancher のデプロイ (Rancher Generated Certificates)</a></li>
+<li><a href=#rancher-のデプロイ-lets-encrypt>Rancher のデプロイ (Let’s Encrypt)</a></li>
+<li><a href=#rancher-のデプロイ-certificates-from-files>Rancher のデプロイ (Certificates from Files)</a></li>
+</ul>
+</li>
+</ul>
+</nav>
+</div>
+</details>
+<details class="mt-0 overflow-hidden rounded-lg ltr:-ml-5 ltr:pl-5 rtl:-mr-5 rtl:pr-5 lg:hidden">
+<summary class="py-1 text-lg font-semibold cursor-pointer bg-neutral-100 text-neutral-800 ltr:-ml-5 ltr:pl-5 rtl:-mr-5 rtl:pr-5 dark:bg-neutral-700 dark:text-neutral-100 lg:hidden">
+目次
+</summary>
+<div class="py-2 border-dotted border-neutral-300 ltr:-ml-5 ltr:border-l ltr:pl-5 rtl:-mr-5 rtl:border-r rtl:pr-5 dark:border-neutral-600">
+<nav id=TableOfContents>
+<ul>
+<li><a href=#rke-add-on-での-rancher-セットアップはもう古い>RKE Add-on での Rancher セットアップはもう古い</a></li>
+<li><a href=#helm-を使ったセットアップへの変更>Helm を使ったセットアップへの変更</a>
+<ul>
+<li><a href=#kubectl-を-rancher-cluster-に向ける>kubectl を rancher cluster に向ける</a></li>
+<li><a href=#証明書の保存>証明書の保存</a></li>
+<li><a href=#古い-kubernetes-オブジェクトを削除>古い Kubernetes オブジェクトを削除</a></li>
+<li><a href=#addon-の削除>Addon の削除</a></li>
+</ul>
+</li>
+<li><a href=#helm-の初期化>Helm の初期化</a>
+<ul>
+<li><a href=#helm-の初期化-1>Helm の初期化</a></li>
+<li><a href=#tiller-の確認>Tiller の確認</a></li>
+</ul>
+</li>
+<li><a href=#rancher-のインストール>Rancher のインストール</a>
+<ul>
+<li><a href=#helm-chart-repository-の追加>Helm Chart repository の追加</a></li>
+<li><a href=#ssltls-設定の選択>SSL/TLS 設定の選択</a></li>
+<li><a href=#cert-manager-のインストール-必要な場合のみ>cert-manager のインストール (必要な場合のみ)</a></li>
+<li><a href=#rancher-のデプロイ-rancher-generated-certificates>Rancher のデプロイ (Rancher Generated Certificates)</a></li>
+<li><a href=#rancher-のデプロイ-lets-encrypt>Rancher のデプロイ (Let’s Encrypt)</a></li>
+<li><a href=#rancher-のデプロイ-certificates-from-files>Rancher のデプロイ (Certificates from Files)</a></li>
+</ul>
+</li>
+</ul>
+</nav>
+</div>
+</details>
+</div>
+</div>
+<div class="min-w-0 min-h-0 max-w-prose">
+<h2 id=rke-add-on-での-rancher-セットアップはもう古い class="relative group">RKE Add-on での Rancher セットアップはもう古い <span class="absolute top-0 w-6 transition-opacity opacity-0 ltr:-left-6 rtl:-right-6 not-prose group-hover:opacity-100"><a class="group-hover:text-primary-300 dark:group-hover:text-neutral-700" style=text-decoration-line:none!important href=#rke-add-on-%e3%81%a7%e3%81%ae-rancher-%e3%82%bb%e3%83%83%e3%83%88%e3%82%a2%e3%83%83%e3%83%97%e3%81%af%e3%82%82%e3%81%86%e5%8f%a4%e3%81%84 aria-label=アンカー>#</a></span></h2>
+<p>過去に試していた RKE での Rancher の HA セットアップ (<a href=/2018/05/rancher-2-0-ha-install-using-terraform-and-rke/>続 Rancher 2.0 の HA 構成を試す</a>) はどうやらもう古いらしい。2.0.8 までしかサポートしてないよというのには気づいていたのですが、改めてインストールページ(<a href=https://rancher.com/docs/rancher/v2.x/en/installation/ha/rke-add-on/>RKE Add-On Install</a>)を確認するとこの方法はもう過去のものらしい。Helm 使ってねと。</p>
+<blockquote>
+<p><strong>Important: RKE add-on install is only supported up to Rancher v2.0.8</strong></p>
+<p>Please use the Rancher helm chart to install HA Rancher. For details, see the <a href=https://rancher.com/docs/rancher/v2.x/en/installation/ha/#installation-outline>HA Install - Installation Outline</a>.</p>
+<p>If you are currently using the RKE add-on install method, see <a href=https://rancher.com/docs/rancher/v2.x/en/upgrades/upgrades/migrating-from-rke-add-on/>Migrating from an HA RKE Add-on Install</a> for details on how to move to using the helm chart.</p>
+</blockquote>
+<h2 id=helm-を使ったセットアップへの変更 class="relative group">Helm を使ったセットアップへの変更 <span class="absolute top-0 w-6 transition-opacity opacity-0 ltr:-left-6 rtl:-right-6 not-prose group-hover:opacity-100"><a class="group-hover:text-primary-300 dark:group-hover:text-neutral-700" style=text-decoration-line:none!important href=#helm-%e3%82%92%e4%bd%bf%e3%81%a3%e3%81%9f%e3%82%bb%e3%83%83%e3%83%88%e3%82%a2%e3%83%83%e3%83%97%e3%81%b8%e3%81%ae%e5%a4%89%e6%9b%b4 aria-label=アンカー>#</a></span></h2>
+<p>そんなわけで、構築済みの HA Rancher を RKE add-on から変更する手順をなぞってみます。<a href=https://rancher.com/docs/rancher/v2.x/en/upgrades/upgrades/migrating-from-rke-add-on/>Migrating from an HA RKE Add-on Install</a></p>
+<h3 id=kubectl-を-rancher-cluster-に向ける class="relative group">kubectl を rancher cluster に向ける <span class="absolute top-0 w-6 transition-opacity opacity-0 ltr:-left-6 rtl:-right-6 not-prose group-hover:opacity-100"><a class="group-hover:text-primary-300 dark:group-hover:text-neutral-700" style=text-decoration-line:none!important href=#kubectl-%e3%82%92-rancher-cluster-%e3%81%ab%e5%90%91%e3%81%91%e3%82%8b aria-label=アンカー>#</a></span></h3>
+<p>私のセットアップでは RKE に <code>rke.yml</code> というファイルを渡したので <code>kube_config_rke.yml</code> が生成されています。環境変数 <code>KUBECONFIG</code> でこれを指定します。</p>
+<pre tabindex=0><code>export KUBECONFIG=$(pwd)/kube\_config\_rke.yml
+
+</code></pre><p>Kubernetes は 1.11.6 だったので同じバージョンの kubectl コマンドを curl で取得します。とりあえずカレントディレクトリに置いておくので以降 <code>./kubectl</code> として実行します。(後で出てくる <code>helm</code> コマンドも同様)<br>
+<a href=https://kubernetes.io/docs/tasks/tools/install-kubectl/#install-kubectl-binary-using-curl>Install kubectl binary using curl</a></p>
+<p>次のコマンドでここまでの設定が正しく行えているかを確認します。</p>
+<pre tabindex=0><code>./kubectl config view -o=jsonpath='{.clusters\[\*\].cluster.server}'
+
+</code></pre><p>出力が <code>https://NODE:6443</code> の様に1つのノードの 6443 ポートを指していれば正しいです。</p>
+<h3 id=証明書の保存 class="relative group">証明書の保存 <span class="absolute top-0 w-6 transition-opacity opacity-0 ltr:-left-6 rtl:-right-6 not-prose group-hover:opacity-100"><a class="group-hover:text-primary-300 dark:group-hover:text-neutral-700" style=text-decoration-line:none!important href=#%e8%a8%bc%e6%98%8e%e6%9b%b8%e3%81%ae%e4%bf%9d%e5%ad%98 aria-label=アンカー>#</a></span></h3>
+<p>Rancher クラスタの Ingress で TLS Termination を行っている場合は Helm でのインストール時に必要となるため、次のコマンドで取り出します。後で Kubernetes Secrets に登録します。</p>
+<p>証明書</p>
+<pre tabindex=0><code>./kubectl -n cattle-system get secret cattle-keys-ingress \\
+  -o jsonpath --template='{ .data.tls\\.crt }' | base64 -d &gt; tls.crt
+
+</code></pre><p>秘密鍵</p>
+<pre tabindex=0><code>./kubectl -n cattle-system get secret cattle-keys-ingress \\
+  -o jsonpath --template='{ .data.tls\\.key }' | base64 -d &gt; tls.key
+
+</code></pre><p>プライベート CA を使っている場合は次のコマンドで CA の証明書も取得します。</p>
+<pre tabindex=0><code>./kubectl -n cattle-system get secret cattle-keys-server \\
+  -o jsonpath --template='{ .data.cacerts\\.pem }' | base64 -d &gt; cacerts.pem
+
+</code></pre><h3 id=古い-kubernetes-オブジェクトを削除 class="relative group">古い Kubernetes オブジェクトを削除 <span class="absolute top-0 w-6 transition-opacity opacity-0 ltr:-left-6 rtl:-right-6 not-prose group-hover:opacity-100"><a class="group-hover:text-primary-300 dark:group-hover:text-neutral-700" style=text-decoration-line:none!important href=#%e5%8f%a4%e3%81%84-kubernetes-%e3%82%aa%e3%83%96%e3%82%b8%e3%82%a7%e3%82%af%e3%83%88%e3%82%92%e5%89%8a%e9%99%a4 aria-label=アンカー>#</a></span></h3>
+<p>RKE でのインストールで作られた Kubernetes オブジェクトを削除する。</p>
+<pre tabindex=0><code>./kubectl -n cattle-system delete ingress cattle-ingress-http
+./kubectl -n cattle-system delete service cattle-service
+./kubectl -n cattle-system delete deployment cattle
+./kubectl -n cattle-system delete clusterrolebinding cattle-crb
+./kubectl -n cattle-system delete serviceaccount cattle-admin
+
+</code></pre><p>これらのコンポーネントを削除しても Rancher の設定やデータベースに影響はありませんが、何かメンテナンスを行う場合にバックアップを取得しておくのは良いことです。バックアップの取得方法は <a href=https://rancher.com/docs/rancher/v2.x/en/backups/backups/ha-backups/>Creating Backups—High Availability Installs</a> にあります。</p>
+<h3 id=addon-の削除 class="relative group">Addon の削除 <span class="absolute top-0 w-6 transition-opacity opacity-0 ltr:-left-6 rtl:-right-6 not-prose group-hover:opacity-100"><a class="group-hover:text-primary-300 dark:group-hover:text-neutral-700" style=text-decoration-line:none!important href=#addon-%e3%81%ae%e5%89%8a%e9%99%a4 aria-label=アンカー>#</a></span></h3>
+<p>RKE で使う YAML (ここでは <code>rke.yml</code>) には Rancher で必要なリソースが全て入っています。今後の RKE 操作のためにここから <code>addons</code> セクションのまるっと削除しておきます。</p>
+<pre tabindex=0><code>addons: |-
+  ---
+  kind: Namespace
+  apiVersion: v1
+  metadata:
+    name: cattle-system
+  ---
+  kind: ServiceAccount
+  apiVersion: v1
+  metadata:
+    name: cattle-admin
+    namespace: cattle-system
+  ---
+  kind: ClusterRoleBinding
+  apiVersion: rbac.authorization.k8s.io/v1
+  metadata:
+    name: cattle-crb
+    namespace: cattle-system
+  subjects:
+  - kind: ServiceAccount
+    name: cattle-admin
+    namespace: cattle-system
+  roleRef:
+    kind: ClusterRole
+    name: cluster-admin
+    apiGroup: rbac.authorization.k8s.io
+  ---
+  apiVersion: v1
+  kind: Secret
+  metadata:
+    name: cattle-keys-ingress
+    namespace: cattle-system
+  type: Opaque
+  data:
+    tls.crt: &lt;証明書の Base64&gt;
+    tls.key: &lt;秘密鍵の Base64&gt;
+  ---
+  apiVersion: v1
+  kind: Service
+  metadata:
+    namespace: cattle-system
+    name: cattle-service
+    labels:
+      app: cattle
+  spec:
+    ports:
+    - port: 80
+      targetPort: 80
+      protocol: TCP
+      name: http
+    - port: 443
+      targetPort: 443
+      protocol: TCP
+      name: https
+    selector:
+      app: cattle
+  ---
+  apiVersion: extensions/v1beta1
+  kind: Ingress
+  metadata:
+    namespace: cattle-system
+    name: cattle-ingress-http
+    annotations:
+      nginx.ingress.kubernetes.io/proxy-connect-timeout: &quot;30&quot;
+      nginx.ingress.kubernetes.io/proxy-read-timeout: &quot;1800&quot;   # Max time in seconds for ws to remain shell window open
+      nginx.ingress.kubernetes.io/proxy-send-timeout: &quot;1800&quot;   # Max time in seconds for ws to remain shell window open
+  spec:
+    rules:
+    - host: rancher.do.teraoka.me  # FQDN to access cattle server
+      http:
+        paths:
+        - backend:
+            serviceName: cattle-service
+            servicePort: 80
+    tls:
+    - secretName: cattle-keys-ingress
+      hosts:
+      - rancher.do.teraoka.me      # FQDN to access cattle server
+  ---
+  kind: Deployment
+  apiVersion: extensions/v1beta1
+  metadata:
+    namespace: cattle-system
+    name: cattle
+  spec:
+    replicas: 1
+    template:
+      metadata:
+        labels:
+          app: cattle
+      spec:
+        serviceAccountName: cattle-admin
+        containers:
+        # Rancher install via RKE addons is only supported up to v2.0.8
+        - image: rancher/rancher:v2.0.8
+          args:
+          - --no-cacerts
+          imagePullPolicy: Always
+          name: cattle-server
+          livenessProbe:
+            httpGet:
+              path: /ping
+              port: 80
+            initialDelaySeconds: 60
+            periodSeconds: 60
+          readinessProbe:
+            httpGet:
+              path: /ping
+              port: 80
+            initialDelaySeconds: 20
+            periodSeconds: 10
+          ports:
+          - containerPort: 80
+            protocol: TCP
+          - containerPort: 443
+            protocol: TCP
+
+</code></pre><p>削ると残るのはこれだけ</p>
+<pre tabindex=0><code>nodes:
+  - address: 192.168.100.1 # hostname or IP to access nodes
+    user: rancher # root user (usually 'root')
+    role: \[controlplane,etcd,worker\] # K8s roles for node
+    ssh\_key\_path: id\_rsa # path to PEM file
+  - address: 192.168.100.2
+    user: rancher
+    role: \[controlplane,etcd,worker\]
+    ssh\_key\_path: id\_rsa
+  - address: 192.168.100.3
+    user: rancher
+    role: \[controlplane,etcd,worker\]
+    ssh\_key\_path: id\_rsa
+
+services:
+  etcd:
+    snapshot: true
+    creation: 6h
+    retention: 24h
+
+</code></pre><h2 id=helm-の初期化 class="relative group">Helm の初期化 <span class="absolute top-0 w-6 transition-opacity opacity-0 ltr:-left-6 rtl:-right-6 not-prose group-hover:opacity-100"><a class="group-hover:text-primary-300 dark:group-hover:text-neutral-700" style=text-decoration-line:none!important href=#helm-%e3%81%ae%e5%88%9d%e6%9c%9f%e5%8c%96 aria-label=アンカー>#</a></span></h2>
+<p>ここからは Helm を使った通常のインストールする手順 (<a href=https://rancher.com/docs/rancher/v2.x/en/installation/ha/helm-init/>3. Initialize Helm (Install Tiller)</a>) に進みます。Helm を使うためにはサーバーサイドコンポーネントの <a href=https://helm.sh/docs/glossary/#tiller>Tiller</a> をインストールする必要があるようです。</p>
+<p><code>helm</code> コマンドは各種パッケージマネージャからもインストールできると思いますが、ここでは Github の <a href=https://github.com/helm/helm/releases/latest>releases ページ</a>からダウンロードします。cert-manager との組み合わせの問題で v2.12.1 以降が必要です。</p>
+<p>まず、<code>tiller</code> という名前で Tiller 用のサービスアカウントを作成する。</p>
+<pre tabindex=0><code>./kubectl -n kube-system create serviceaccount tiller
+
+</code></pre><p>次に、作成したサービスアカウントに <code>cluster-admin</code> ロールを付与します。</p>
+<pre tabindex=0><code>./kubectl create clusterrolebinding tiller \\
+  --clusterrole=cluster-admin \\
+  --serviceaccount=kube-system:tiller
+
+</code></pre><h3 id=helm-の初期化-1 class="relative group">Helm の初期化 <span class="absolute top-0 w-6 transition-opacity opacity-0 ltr:-left-6 rtl:-right-6 not-prose group-hover:opacity-100"><a class="group-hover:text-primary-300 dark:group-hover:text-neutral-700" style=text-decoration-line:none!important href=#helm-%e3%81%ae%e5%88%9d%e6%9c%9f%e5%8c%96-1 aria-label=アンカー>#</a></span></h3>
+<pre tabindex=0><code>./helm init --service-account tiller
+
+</code></pre><p><code>Tiller (the Helm server-side component) has been installed into your Kubernetes Cluster.</code> と表示されていれば Tiller のインストールが完了しているはず。</p>
+<p>init 時に次のメッセージも出てました。必要であれば <code>--tiller-tls-verify</code> も付けることも検討。</p>
+<blockquote>
+<p>Please note: by default, Tiller is deployed with an insecure &lsquo;allow unauthenticated users&rsquo; policy. To prevent this, run `helm init` with the &ndash;tiller-tls-verify flag. For more information on securing your installation see: <a href=https://docs.helm.sh/using>https://docs.helm.sh/using</a>_helm/#securing-your-helm-installation</p>
+</blockquote>
+<h3 id=tiller-の確認 class="relative group">Tiller の確認 <span class="absolute top-0 w-6 transition-opacity opacity-0 ltr:-left-6 rtl:-right-6 not-prose group-hover:opacity-100"><a class="group-hover:text-primary-300 dark:group-hover:text-neutral-700" style=text-decoration-line:none!important href=#tiller-%e3%81%ae%e7%a2%ba%e8%aa%8d aria-label=アンカー>#</a></span></h3>
+<p>Tiller が正しくインストールされているかどうかを次のコマンドで確かめます。</p>
+<pre tabindex=0><code>./kubectl -n kube-system  rollout status deploy/tiller-deploy
+
+</code></pre><p><code>deployment "tiller-deploy" successfully rolled out</code> と表示されれば OK.</p>
+<p>バージョン確認</p>
+<pre tabindex=0><code>$ ./helm version
+Client: &amp;version.Version{SemVer:&quot;v2.13.1&quot;, GitCommit:&quot;618447cbf203d147601b4b9bd7f8c37a5d39fbb4&quot;, GitTreeState:&quot;clean&quot;}
+Server: &amp;version.Version{SemVer:&quot;v2.13.1&quot;, GitCommit:&quot;618447cbf203d147601b4b9bd7f8c37a5d39fbb4&quot;, GitTreeState:&quot;clean&quot;}
+
+</code></pre><h2 id=rancher-のインストール class="relative group">Rancher のインストール <span class="absolute top-0 w-6 transition-opacity opacity-0 ltr:-left-6 rtl:-right-6 not-prose group-hover:opacity-100"><a class="group-hover:text-primary-300 dark:group-hover:text-neutral-700" style=text-decoration-line:none!important href=#rancher-%e3%81%ae%e3%82%a4%e3%83%b3%e3%82%b9%e3%83%88%e3%83%bc%e3%83%ab aria-label=アンカー>#</a></span></h2>
+<p>次の手順はこちら <a href=https://rancher.com/docs/rancher/v2.x/en/installation/ha/helm-rancher/>4. Install Rancher</a>.</p>
+<h3 id=helm-chart-repository-の追加 class="relative group">Helm Chart repository の追加 <span class="absolute top-0 w-6 transition-opacity opacity-0 ltr:-left-6 rtl:-right-6 not-prose group-hover:opacity-100"><a class="group-hover:text-primary-300 dark:group-hover:text-neutral-700" style=text-decoration-line:none!important href=#helm-chart-repository-%e3%81%ae%e8%bf%bd%e5%8a%a0 aria-label=アンカー>#</a></span></h3>
+<p><code>latest</code>, <code>stable</code>, <code>alpha</code> から選んで追加します。Production 環境であれば <code>stable</code> を選択。(<code>alpha</code> は upgrade がサポートされていません)(<a href=https://rancher.com/docs/rancher/v2.x/en/installation/server-tags/#helm-chart-repositories>Helm Chart Repositories</a>)</p>
+<pre tabindex=0><code>./helm repo add rancher-latest https://releases.rancher.com/server-charts/latest
+
+./helm repo add rancher-stable https://releases.rancher.com/server-charts/stable
+
+./helm repo add rancher-alpha https://releases.rancher.com/server-charts/alpha
+
+</code></pre><h3 id=ssltls-設定の選択 class="relative group">SSL/TLS 設定の選択 <span class="absolute top-0 w-6 transition-opacity opacity-0 ltr:-left-6 rtl:-right-6 not-prose group-hover:opacity-100"><a class="group-hover:text-primary-300 dark:group-hover:text-neutral-700" style=text-decoration-line:none!important href=#ssltls-%e8%a8%ad%e5%ae%9a%e3%81%ae%e9%81%b8%e6%8a%9e aria-label=アンカー>#</a></span></h3>
+<p>証明書には3つの推奨設定があります。上2つには <code>cert-manager</code> が必要。</p>
+<p>Rancher が生成 (default)</p>
+<p>(chart option) <code>ingress.tls.source=rancher</code></p>
+<p>Let&rsquo;s Encrypt</p>
+<p>(chart option) <code>ingress.tls.source=letsEncrypt</code></p>
+<p>ファイルからの読み込み (Kubernetes の Secrets に入れる)</p>
+<p>(chart option) <code>ingress.tls.source=secret</code></p>
+<h3 id=cert-manager-のインストール-必要な場合のみ class="relative group">cert-manager のインストール (必要な場合のみ) <span class="absolute top-0 w-6 transition-opacity opacity-0 ltr:-left-6 rtl:-right-6 not-prose group-hover:opacity-100"><a class="group-hover:text-primary-300 dark:group-hover:text-neutral-700" style=text-decoration-line:none!important href=#cert-manager-%e3%81%ae%e3%82%a4%e3%83%b3%e3%82%b9%e3%83%88%e3%83%bc%e3%83%ab-%e5%bf%85%e8%a6%81%e3%81%aa%e5%a0%b4%e5%90%88%e3%81%ae%e3%81%bf aria-label=アンカー>#</a></span></h3>
+<p>Kubernetes Helm chart repository からインストールする。</p>
+<pre tabindex=0><code>./helm install stable/cert-manager \\
+  --name cert-manager \\
+  --namespace kube-system \\
+  --version v0.5.2
+
+</code></pre><p>インストールが完了するまで待つ。次のコマンドで <code>deployment "cert-manager" successfully rolled out</code> と表示されるようになれば完了。</p>
+<pre tabindex=0><code>./kubectl -n kube-system rollout status deploy/cert-manager
+
+</code></pre><h3 id=rancher-のデプロイ-rancher-generated-certificates class="relative group">Rancher のデプロイ (Rancher Generated Certificates) <span class="absolute top-0 w-6 transition-opacity opacity-0 ltr:-left-6 rtl:-right-6 not-prose group-hover:opacity-100"><a class="group-hover:text-primary-300 dark:group-hover:text-neutral-700" style=text-decoration-line:none!important href=#rancher-%e3%81%ae%e3%83%87%e3%83%97%e3%83%ad%e3%82%a4-rancher-generated-certificates aria-label=アンカー>#</a></span></h3>
+<p>デフォルトが Rancer Generated なので特に証明書に関するオプションは指定されていない。(この例はリポジトリが <code>rancher-latest</code> になっていることに注意)</p>
+<pre tabindex=0><code>./helm install rancher-latest/rancher \\
+  --name rancher \\
+  --namespace cattle-system \\
+  --set hostname=rancher.example.com
+
+</code></pre><p>デプロイの状況を確認する。</p>
+<pre tabindex=0><code>./kubectl -n cattle-system rollout status deploy/rancher
+
+</code></pre><h3 id=rancher-のデプロイ-lets-encrypt class="relative group">Rancher のデプロイ (Let’s Encrypt) <span class="absolute top-0 w-6 transition-opacity opacity-0 ltr:-left-6 rtl:-right-6 not-prose group-hover:opacity-100"><a class="group-hover:text-primary-300 dark:group-hover:text-neutral-700" style=text-decoration-line:none!important href=#rancher-%e3%81%ae%e3%83%87%e3%83%97%e3%83%ad%e3%82%a4-lets-encrypt aria-label=アンカー>#</a></span></h3>
+<p>Let&rsquo;s Encrypt での証明書発行のためにメールアドレスを指定する必要がある。(この例はリポジトリが <code>rancher-latest</code> になっていることに注意)</p>
+<pre tabindex=0><code>./helm install rancher-latest/rancher \\
+  --name rancher \\
+  --namespace cattle-system \\
+  --set hostname=rancher.example.com \\
+  --set ingress.tls.source=letsEncrypt \\
+  --set letsEncrypt.email=me@example.org
+
+</code></pre><p>デプロイの状況を確認する。</p>
+<pre tabindex=0><code>./kubectl -n cattle-system rollout status deploy/rancher
+
+</code></pre><h3 id=rancher-のデプロイ-certificates-from-files class="relative group">Rancher のデプロイ (Certificates from Files) <span class="absolute top-0 w-6 transition-opacity opacity-0 ltr:-left-6 rtl:-right-6 not-prose group-hover:opacity-100"><a class="group-hover:text-primary-300 dark:group-hover:text-neutral-700" style=text-decoration-line:none!important href=#rancher-%e3%81%ae%e3%83%87%e3%83%97%e3%83%ad%e3%82%a4-certificates-from-files aria-label=アンカー>#</a></span></h3>
+<p>今回は RKE でのセットアップ時に使っていたものを取り出したファイルを使うのでこの手順で進めます。(この例はリポジトリが <code>rancher-latest</code> になっていることに注意)</p>
+<pre tabindex=0><code>./helm install rancher-latest/rancher \\
+  --name rancher \\
+  --namespace cattle-system \\
+  --set hostname=rancher.example.com \\
+  --set ingress.tls.source=secret
+
+</code></pre><p>実行すると次のような出力がある。</p>
+<pre tabindex=0><code>NAME:   rancher
+LAST DEPLOYED: Sun Mar 24 22:21:35 2019
+NAMESPACE: cattle-system
+STATUS: DEPLOYED
+
+RESOURCES:
+==&gt; v1/ClusterRoleBinding
+NAME     AGE
+rancher  1s
+
+==&gt; v1/Deployment
+NAME     READY  UP-TO-DATE  AVAILABLE  AGE
+rancher  0/3    3           0          0s
+
+==&gt; v1/Pod(related)
+NAME                     READY  STATUS             RESTARTS  AGE
+rancher-f7467f757-9mpdp  0/1    ContainerCreating  0         0s
+rancher-f7467f757-m5v49  0/1    ContainerCreating  0         0s
+rancher-f7467f757-tq4jg  0/1    ContainerCreating  0         0s
+
+==&gt; v1/Service
+NAME     TYPE       CLUSTER-IP   EXTERNAL-IP  PORT(S)  AGE
+rancher  ClusterIP  10.43.23.29  80/TCP   1s
+
+==&gt; v1/ServiceAccount
+NAME     SECRETS  AGE
+rancher  1        1s
+
+==&gt; v1beta1/Ingress
+NAME     HOSTS                ADDRESS  PORTS  AGE
+rancher  rancher.example.com  80, 443  0s
+
+
+NOTES:
+Rancher Server has been installed.
+
+NOTE: Rancher may take several minutes to fully initialize. Please standby while Certificates are being issued and Ingress comes up.
+
+Check out our docs at https://rancher.com/docs/rancher/v2.x/en/
+
+Browse to https://rancher.example.com
+
+Happy Containering! 
+</code></pre><p>Kubernetes Secrets に証明書を <code>tls</code> という secret タイプで <code>tls-rancher-ingress</code> という名前で登録します。</p>
+<pre tabindex=0><code>./kubectl -n cattle-system create secret tls tls-rancher-ingress \\
+  --cert=tls.crt \\
+  --key=tls.key
+
+</code></pre><p>プライベート CA の場合はそれも登録する。こちらは generic タイプ。</p>
+<pre tabindex=0><code>./kubectl -n cattle-system create secret generic tls-ca \\
+  --from-file=cacerts.pem
+
+</code></pre><p>デプロイの状況を確認する。</p>
+<pre tabindex=0><code>./kubectl -n cattle-system rollout status deploy/rancher
+
+</code></pre><p>Rancher 2.1.7 に更新されました。次は <a href=https://github.com/yteraoka/rancher-ha-tf-do>https://github.com/yteraoka/rancher-ha-tf-do</a> を Helm でのセットアップに変更しようと思います。</p>
+</div>
+<script>var liked_article=!1,oid,id,viewed,oid_likes,id_likes,liked;typeof auth!='undefined'&&(oid="views_posts/rancher-migrating-from-an-ha-rke-add-on-install.md",id=oid&&oid.replaceAll("/","-"),viewed=localStorage.getItem(id),viewed||auth.signInAnonymously().then(()=>{var a=db.collection('views').doc(id);localStorage.setItem(id,!0),a.get().then(a=>{a.exists?db.collection('views').doc(id).update({views:firebase.firestore.FieldValue.increment(1)}):db.collection('views').doc(id).set({views:1})}).catch(a=>{console.log("Error getting document:",a)})}).catch(a=>{var b=a.code,c=a.message;console.error(b,c)}),oid_likes="likes_posts/rancher-migrating-from-an-ha-rke-add-on-install.md",id_likes=oid_likes&&oid_likes.replaceAll("/","-"),liked=localStorage.getItem(id_likes),liked&&(liked_article=!0,document.querySelectorAll("button[id='likes_button']")[0].innerText="Remove Like"));function like_article(a){console.log("add"),liked_article=!0,localStorage.setItem(a,!0),document.querySelectorAll("button[id='likes_button']")[0].innerText="Remove Like",auth.signInAnonymously().then(()=>{var b=db.collection('likes').doc(a);b.get().then(b=>{b.exists?db.collection('likes').doc(a).update({likes:firebase.firestore.FieldValue.increment(1)}):db.collection('likes').doc(a).set({likes:1})}).catch(a=>{console.log("Error getting document:",a)})}).catch(a=>{var b=a.code,c=a.message;console.error(b,c)})}function remove_like_article(a){console.log("remove"),liked_article=!1,localStorage.setItem(a,!1),document.querySelectorAll("button[id='likes_button']")[0].innerText="Like",auth.signInAnonymously().then(()=>{var b=db.collection('likes').doc(a);b.get().then(b=>{b.exists?db.collection('likes').doc(a).update({likes:firebase.firestore.FieldValue.increment(-1)}):db.collection('likes').doc(a).set({likes:0})}).catch(a=>{console.log("Error getting document:",a)})}).catch(a=>{var b=a.code,c=a.message;console.error(b,c)})}function process_article(){var a="likes_posts/rancher-migrating-from-an-ha-rke-add-on-install.md",b=a&&a.replaceAll("/","-");liked_article?remove_like_article(b):like_article(b)}</script>
+</section>
+<footer class="pt-8 max-w-prose print:hidden">
+<div class=flex>
+<div class=place-self-center>
+<div class="text-[0.6rem] uppercase leading-3 text-neutral-500 dark:text-neutral-400">
+著者
+</div>
+<div class="font-semibold leading-6 text-neutral-800 dark:text-neutral-300">
+Yoshinori Teraoka
+</div>
+<div class="text-2xl sm:text-lg">
+<div class="flex flex-wrap text-neutral-400 dark:text-neutral-500">
+<a class="px-1 hover:text-primary-700 dark:hover:text-primary-400" href=https://twitter.com/yteraoka target=_blank aria-label=Twitter rel="me noopener noreferrer">
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentcolor" d="M459.37 151.716c.325 4.548.325 9.097.325 13.645.0 138.72-105.583 298.558-298.558 298.558-59.452.0-114.68-17.219-161.137-47.106 8.447.974 16.568 1.299 25.34 1.299 49.055.0 94.213-16.568 130.274-44.832-46.132-.975-84.792-31.188-98.112-72.772 6.498.974 12.995 1.624 19.818 1.624 9.421.0 18.843-1.3 27.614-3.573-48.081-9.747-84.143-51.98-84.143-102.985v-1.299c13.969 7.797 30.214 12.67 47.431 13.319-28.264-18.843-46.781-51.005-46.781-87.391.0-19.492 5.197-37.36 14.294-52.954 51.655 63.675 129.3 105.258 216.365 109.807-1.624-7.797-2.599-15.918-2.599-24.04.0-57.828 46.782-104.934 104.934-104.934 30.213.0 57.502 12.67 76.67 33.137 23.715-4.548 46.456-13.32 66.599-25.34-7.798 24.366-24.366 44.833-46.132 57.827 21.117-2.273 41.584-8.122 60.426-16.243-14.292 20.791-32.161 39.308-52.628 54.253z"/></svg>
+</span>
+</a>
+<a class="px-1 hover:text-primary-700 dark:hover:text-primary-400" href=https://github.com/yteraoka target=_blank aria-label=Github rel="me noopener noreferrer">
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><path fill="currentcolor" d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6.0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6.0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3.0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1.0-6.2-.3-40.4-.3-61.4.0.0-70 15-84.7-29.8.0.0-11.4-29.1-27.8-36.6.0.0-22.9-15.7 1.6-15.4.0.0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5.0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9.0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4.0 33.7-.3 75.4-.3 83.6.0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6.0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9.0-6.2-1.4-2.3-4-3.3-5.6-2z"/></svg>
+</span>
+</a>
+<a class="px-1 hover:text-primary-700 dark:hover:text-primary-400" href=https://linkedin.com/in/fa5b66b7-9c77-4e1b-8b97-40ba4a5a2c13/ target=_blank aria-label=Linkedin rel="me noopener noreferrer">
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path fill="currentcolor" d="M416 32H31.9C14.3 32 0 46.5.0 64.3v383.4C0 465.5 14.3 480 31.9 480H416c17.6.0 32-14.5 32-32.3V64.3c0-17.8-14.4-32.3-32-32.3zM135.4 416H69V202.2h66.5V416zm-33.2-243c-21.3.0-38.5-17.3-38.5-38.5S80.9 96 102.2 96c21.2.0 38.5 17.3 38.5 38.5.0 21.3-17.2 38.5-38.5 38.5zm282.1 243h-66.4V312c0-24.8-.5-56.7-34.5-56.7-34.6.0-39.9 27-39.9 54.9V416h-66.4V202.2h63.7v29.2h.9c8.9-16.8 30.6-34.5 62.9-34.5 67.2.0 79.7 44.3 79.7 101.9V416z"/></svg>
+</span>
+</a>
+<a class="px-1 hover:text-primary-700 dark:hover:text-primary-400" href=https://medium.com/@yteraoka target=_blank aria-label=Medium rel="me noopener noreferrer">
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512"><path fill="currentcolor" d="M180.5 74.262C80.813 74.262.0 155.633.0 256S80.819 437.738 180.5 437.738 361 356.373 361 256 280.191 74.262 180.5 74.262zm288.25 10.646c-49.845.0-90.245 76.619-90.245 171.095s40.406 171.1 90.251 171.1 90.251-76.619 90.251-171.1H559C559 161.5 518.6 84.908 468.752 84.908zm139.506 17.821c-17.526.0-31.735 68.628-31.735 153.274s14.2 153.274 31.735 153.274S640 340.631 640 256c0-84.649-14.215-153.271-31.742-153.271z"/></svg>
+</span>
+</a>
+</div>
+</div>
+</div>
+</div>
+<section class="flex flex-row flex-wrap justify-center pt-4 text-xl">
+<a class="m-1 inline-block min-w-[2.4rem] rounded bg-neutral-300 p-1 text-center text-neutral-700 hover:bg-primary-500 hover:text-neutral dark:bg-neutral-700 dark:text-neutral-300 dark:hover:bg-primary-400 dark:hover:text-neutral-800" href="https://www.linkedin.com/shareArticle?mini=true&url=https://preview-blog.1q77.com/2019/03/rancher-migrating-from-an-ha-rke-add-on-install/&title=Rancher:%20Migrating%20from%20an%20HA%20RKE%20Add-on%20Install" title=LinkedInでシェアする aria-label=LinkedInでシェアする>
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path fill="currentcolor" d="M416 32H31.9C14.3 32 0 46.5.0 64.3v383.4C0 465.5 14.3 480 31.9 480H416c17.6.0 32-14.5 32-32.3V64.3c0-17.8-14.4-32.3-32-32.3zM135.4 416H69V202.2h66.5V416zm-33.2-243c-21.3.0-38.5-17.3-38.5-38.5S80.9 96 102.2 96c21.2.0 38.5 17.3 38.5 38.5.0 21.3-17.2 38.5-38.5 38.5zm282.1 243h-66.4V312c0-24.8-.5-56.7-34.5-56.7-34.6.0-39.9 27-39.9 54.9V416h-66.4V202.2h63.7v29.2h.9c8.9-16.8 30.6-34.5 62.9-34.5 67.2.0 79.7 44.3 79.7 101.9V416z"/></svg>
+</span>
+</a>
+<a class="m-1 inline-block min-w-[2.4rem] rounded bg-neutral-300 p-1 text-center text-neutral-700 hover:bg-primary-500 hover:text-neutral dark:bg-neutral-700 dark:text-neutral-300 dark:hover:bg-primary-400 dark:hover:text-neutral-800" href="https://twitter.com/intent/tweet/?url=https://preview-blog.1q77.com/2019/03/rancher-migrating-from-an-ha-rke-add-on-install/&text=Rancher:%20Migrating%20from%20an%20HA%20RKE%20Add-on%20Install" title=Twitterに投稿する aria-label=Twitterに投稿する>
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentcolor" d="M459.37 151.716c.325 4.548.325 9.097.325 13.645.0 138.72-105.583 298.558-298.558 298.558-59.452.0-114.68-17.219-161.137-47.106 8.447.974 16.568 1.299 25.34 1.299 49.055.0 94.213-16.568 130.274-44.832-46.132-.975-84.792-31.188-98.112-72.772 6.498.974 12.995 1.624 19.818 1.624 9.421.0 18.843-1.3 27.614-3.573-48.081-9.747-84.143-51.98-84.143-102.985v-1.299c13.969 7.797 30.214 12.67 47.431 13.319-28.264-18.843-46.781-51.005-46.781-87.391.0-19.492 5.197-37.36 14.294-52.954 51.655 63.675 129.3 105.258 216.365 109.807-1.624-7.797-2.599-15.918-2.599-24.04.0-57.828 46.782-104.934 104.934-104.934 30.213.0 57.502 12.67 76.67 33.137 23.715-4.548 46.456-13.32 66.599-25.34-7.798 24.366-24.366 44.833-46.132 57.827 21.117-2.273 41.584-8.122 60.426-16.243-14.292 20.791-32.161 39.308-52.628 54.253z"/></svg>
+</span>
+</a>
+</section>
+<div class=pt-8>
+<hr class="border-dotted border-neutral-300 dark:border-neutral-600">
+<div class="flex justify-between pt-3">
+<span>
+<a class="flex group" href=/2019/03/rancher2-walk-through/>
+<span class="mr-3 text-neutral-700 group-hover:text-primary-600 ltr:inline rtl:hidden dark:text-neutral dark:group-hover:text-primary-400">&larr;</span>
+<span class="ml-3 text-neutral-700 group-hover:text-primary-600 ltr:hidden rtl:inline dark:text-neutral dark:group-hover:text-primary-400">&rarr;</span>
+<span class="flex flex-col">
+<span class="mt-[0.1rem] leading-6 group-hover:underline group-hover:decoration-primary-500">Rancher2 の構築からサービス公開まで</span>
+<span class="mt-[0.1rem] text-xs text-neutral-500 dark:text-neutral-400">
+<time datetime="2019-03-10 12:09:55 +0000 UTC">2019年3月10日</time>
+</span>
+</span>
+</a>
+</span>
+<span>
+<a class="flex text-right group" href=/2019/03/rancher-ha-helm/>
+<span class="flex flex-col">
+<span class="mt-[0.1rem] leading-6 group-hover:underline group-hover:decoration-primary-500">Rancher HA 1コマンドセットアップを Helm 版にした</span>
+<span class="mt-[0.1rem] text-xs text-neutral-500 dark:text-neutral-400">
+<time datetime="2019-03-27 16:49:22 +0000 UTC">2019年3月27日</time>
+</span>
+</span>
+<span class="ml-3 text-neutral-700 group-hover:text-primary-600 ltr:inline rtl:hidden dark:text-neutral dark:group-hover:text-primary-400">&rarr;</span>
+<span class="mr-3 text-neutral-700 group-hover:text-primary-600 ltr:hidden rtl:inline dark:text-neutral dark:group-hover:text-primary-400">&larr;</span>
+</a>
+</span>
+</div>
+</div>
+</footer>
+</article>
+<div class="pointer-events-none absolute top-[100vh] bottom-0 w-12 ltr:right-0 rtl:left-0">
+<a href=#the-top class="pointer-events-auto sticky top-[calc(100vh-5.5rem)] flex h-12 w-12 items-center justify-center rounded-full bg-neutral/50 text-xl text-neutral-700 backdrop-blur hover:text-primary-600 dark:bg-neutral-800/50 dark:text-neutral dark:hover:text-primary-400" aria-label=TOPへスクロール title=TOPへスクロール>
+&uarr;
+</a>
+</div>
+</main><footer class="py-10 print:hidden">
+<div class="flex items-center justify-between">
+<p class="text-sm text-neutral-500 dark:text-neutral-400">
+&copy;
+2022
+Yoshinori Teraoka
+</p>
+</div>
+<script>mediumZoom(document.querySelectorAll("img:not(.nozoom)"),{margin:24,background:'rgba(0,0,0,0.5)',scrollOffset:0})</script>
+<script type=text/javascript src=/js/process.min.48d08339b8a087b59c7b8cb42b6717aeeed3e07bfc68b1654cac27f00583284dac59cae47fb686dd7c0e9ff1d2745689dc2071230dff432ca6d7fc24b9f2e036.js integrity="sha512-SNCDObigh7Wce4y0K2cXru7T4Hv8aLFlTKwn8AWDKE2sWcrkf7aG3XwOn/HSdFaJ3CBxIw3/Qyym1/wkufLgNg=="></script>
+</footer><div id=search-wrapper class="invisible fixed inset-0 z-50 flex h-screen w-screen cursor-default flex-col bg-neutral-500/50 p-4 backdrop-blur-sm dark:bg-neutral-900/50 sm:p-6 md:p-[10vh] lg:p-[12vh]" data-url=https://preview-blog.1q77.com/>
+<div id=search-modal class="flex flex-col w-full max-w-3xl min-h-0 mx-auto border rounded-md shadow-lg top-20 border-neutral-200 bg-neutral dark:border-neutral-700 dark:bg-neutral-800">
+<header class="relative z-10 flex items-center justify-between flex-none px-2">
+<form class="flex items-center flex-auto min-w-0">
+<div class="flex items-center justify-center w-8 h-8 text-neutral-400">
+<span class="relative inline-block align-text-bottom icon"><svg aria-hidden="true" focusable="false" data-prefix="fas" data-icon="search" class="svg-inline--fa fa-search fa-w-16" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentcolor" d="M505 442.7 405.3 343c-4.5-4.5-10.6-7-17-7H372c27.6-35.3 44-79.7 44-128C416 93.1 322.9.0 208 0S0 93.1.0 208s93.1 208 208 208c48.3.0 92.7-16.4 128-44v16.3c0 6.4 2.5 12.5 7 17l99.7 99.7c9.4 9.4 24.6 9.4 33.9.0l28.3-28.3c9.4-9.4 9.4-24.6.1-34zM208 336c-70.7.0-128-57.2-128-128 0-70.7 57.2-128 128-128 70.7.0 128 57.2 128 128 0 70.7-57.2 128-128 128z"/></svg>
+</span>
+</div>
+<input type=search id=search-query class="flex flex-auto h-12 mx-1 bg-transparent appearance-none focus:outline-dotted focus:outline-2 focus:outline-transparent" placeholder=Search tabindex=0>
+</form>
+<button id=close-search-button class="flex items-center justify-center w-8 h-8 text-neutral-700 hover:text-primary-600 dark:text-neutral dark:hover:text-primary-400" title="閉じる (Esc)">
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><path fill="currentcolor" d="M310.6 361.4c12.5 12.5 12.5 32.75.0 45.25C304.4 412.9 296.2 416 288 416s-16.38-3.125-22.62-9.375L160 301.3 54.63 406.6C48.38 412.9 40.19 416 32 416S15.63 412.9 9.375 406.6c-12.5-12.5-12.5-32.75.0-45.25l105.4-105.4L9.375 150.6c-12.5-12.5-12.5-32.75.0-45.25s32.75-12.5 45.25.0L160 210.8l105.4-105.4c12.5-12.5 32.75-12.5 45.25.0s12.5 32.75.0 45.25l-105.4 105.4L310.6 361.4z"/></svg>
+</span>
+</button>
+</header>
+<section class="flex-auto px-2 overflow-auto">
+<ul id=search-results>
+</ul>
+</section>
+</div>
+</div>
+</div>
+</body>
+</html>

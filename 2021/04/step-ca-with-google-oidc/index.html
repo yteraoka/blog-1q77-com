@@ -1,0 +1,788 @@
+<!doctype html><html lang=ja dir=ltr class=scroll-smooth data-default-appearance=light data-auto-appearance=true><head>
+<meta charset=utf-8>
+<meta http-equiv=content-language content="ja">
+<meta name=viewport content="width=device-width,initial-scale=1">
+<meta http-equiv=x-ua-compatible content="ie=edge">
+<title>Google 認証でクライアント証明書発行のセルフサービス化 &#183; 1Q77</title>
+<meta name=title content="Google 認証でクライアント証明書発行のセルフサービス化 &#183; 1Q77">
+<link rel=canonical href=https://preview-blog.1q77.com/2021/04/step-ca-with-google-oidc/>
+<link type=text/css rel=stylesheet href=/css/main.bundle.min.a9d40529d239a91ecb75447e67ee6c80c1f1c28593904b4052651b12220121e13ec42904268b0193a6858f039cf8bfdd2b1331529ed341ddc7488cec3bdcbc2e.css integrity="sha512-qdQFKdI5qR7LdUR+Z+5sgMHxwoWTkEtAUmUbEiIBIeE+xCkEJosBk6aFjwOc+L/dKxMxUp7TQd3HSIzsO9y8Lg==">
+<script type=text/javascript src=/js/main.min.cf83e1357eefb8bdf1542850d66d8007d620e4050b5715dc83f4a921d36ce9ce47d0d13c5d85f2b0ff8318d2877eec2f63b931bd47417a81a538327af927da3e.js integrity="sha512-z4PhNX7vuL3xVChQ1m2AB9Yg5AULVxXcg/SpIdNs6c5H0NE8XYXysP+DGNKHfuwvY7kxvUdBeoGlODJ6+SfaPg=="></script>
+<script type=text/javascript src=/js/appearance.min.49025a779c36ad37a5bf9f1cc6bffd35ccb69ce15560ef1b10057ddf31576265b19f8bcc1733207336c9144926f7b18aea2e5895f29e858b24271332a2fa5cd5.js integrity="sha512-SQJad5w2rTelv58cxr/9Ncy2nOFVYO8bEAV93zFXYmWxn4vMFzMgczbJFEkm97GK6i5YlfKehYskJxMyovpc1Q=="></script>
+<script defer type=text/javascript id=script-bundle src=/js/main.bundle.min.34ee8372ff77835535e486c6ed01ff6993374a1cec8108898cad793fc6ae7520778e24db68e085c762d25af6fa7d00b57d7a791438dc68b676581f8c8344f6e0.js integrity="sha512-NO6Dcv93g1U15IbG7QH/aZM3ShzsgQiJjK15P8audSB3jiTbaOCFx2LSWvb6fQC1fXp5FDjcaLZ2WB+Mg0T24A==" data-copy data-copied></script>
+<script src=/js/zoom.min.js></script>
+<link rel=apple-touch-icon sizes=180x180 href=/apple-touch-icon.png>
+<link rel=icon type=image/png sizes=32x32 href=/favicon-32x32.png>
+<link rel=icon type=image/png sizes=16x16 href=/favicon-16x16.png>
+<link rel=manifest href=/site.webmanifest>
+<meta property="og:title" content="Google 認証でクライアント証明書発行のセルフサービス化">
+<meta property="og:description" content="以前、caddy について調べてて発見した smallstep でクライアント証明書発行を便利にできないかなということで調査です。(Hashicorp Vault でもできる">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://preview-blog.1q77.com/2021/04/step-ca-with-google-oidc/"><meta property="article:section" content="posts">
+<meta property="article:published_time" content="2021-04-10T14:44:13+00:00">
+<meta property="article:modified_time" content="2021-04-10T14:44:13+00:00">
+<meta name=twitter:card content="summary">
+<meta name=twitter:title content="Google 認証でクライアント証明書発行のセルフサービス化">
+<meta name=twitter:description content="以前、caddy について調べてて発見した smallstep でクライアント証明書発行を便利にできないかなということで調査です。(Hashicorp Vault でもできる">
+<script type=application/ld+json>[{"@context":"https://schema.org","@type":"Article","articleSection":"Posts","name":"Google 認証でクライアント証明書発行のセルフサービス化","headline":"Google 認証でクライアント証明書発行のセルフサービス化","abstract":"以前、caddy について調べてて発見した smallstep でクライアント証明書発行を便利にできないかなということで調査です。(Hashicorp Vault でもできる","inLanguage":"ja","url":"https:\/\/preview-blog.1q77.com\/2021\/04\/step-ca-with-google-oidc\/","author":{"@type":"Person","name":"Yoshinori Teraoka"},"copyrightYear":"2021","dateCreated":"2021-04-10T14:44:13\u002b00:00","datePublished":"2021-04-10T14:44:13\u002b00:00","dateModified":"2021-04-10T14:44:13\u002b00:00","keywords":["TLS","TLS","smallstep"],"mainEntityOfPage":"true","wordCount":"4779"}]</script>
+<meta name=author content="Yoshinori Teraoka">
+<link href=https://twitter.com/yteraoka rel=me>
+<link href=https://github.com/yteraoka rel=me>
+<link href=https://linkedin.com/in/fa5b66b7-9c77-4e1b-8b97-40ba4a5a2c13/ rel=me>
+<link href=https://medium.com/@yteraoka rel=me>
+<link rel=stylesheet href=https://rsms.me/inter/inter.css>
+</head><body class="flex flex-col h-screen px-6 m-auto text-lg leading-7 max-w-7xl bg-neutral text-neutral-900 dark:bg-neutral-800 dark:text-neutral sm:px-14 md:px-24 lg:px-32">
+<div id=the-top class="absolute flex self-center">
+<a class="px-3 py-1 text-sm -translate-y-8 rounded-b-lg bg-primary-200 focus:translate-y-0 dark:bg-neutral-600" href=#main-content><span class="font-bold text-primary-600 ltr:pr-2 rtl:pl-2 dark:text-primary-400">&darr;</span>メインコンテンツへスキップ</a>
+</div>
+<div style=padding-left:0;padding-right:0 class="flex items-center justify-between px-4 py-6 sm:px-6 md:justify-start space-x-3">
+<div class="flex flex-1 items-center justify-between">
+<nav class="flex space-x-3">
+<a href=/ class="text-base font-medium text-gray-500 hover:text-gray-900">1Q77</a>
+</nav>
+<div class="hidden md:flex items-center space-x-5 md:ml-12">
+<a href=/posts/ class="text-base font-medium text-gray-500 hover:text-gray-900" title=Posts>
+Blog
+</a>
+<a href=/tags/ class="text-base font-medium text-gray-500 hover:text-gray-900" title=Tags>
+Tags
+</a>
+<a href=https://github.com/yteraoka class="text-base font-medium text-gray-500 hover:text-gray-900" title>
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><path fill="currentcolor" d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6.0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6.0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3.0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1.0-6.2-.3-40.4-.3-61.4.0.0-70 15-84.7-29.8.0.0-11.4-29.1-27.8-36.6.0.0-22.9-15.7 1.6-15.4.0.0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5.0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9.0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4.0 33.7-.3 75.4-.3 83.6.0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6.0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9.0-6.2-1.4-2.3-4-3.3-5.6-2z"/></svg>
+</span>
+&nbsp;
+GitHub
+</a>
+<a href=https://twitter.com/yteraoka class="text-base font-medium text-gray-500 hover:text-gray-900" title>
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentcolor" d="M459.37 151.716c.325 4.548.325 9.097.325 13.645.0 138.72-105.583 298.558-298.558 298.558-59.452.0-114.68-17.219-161.137-47.106 8.447.974 16.568 1.299 25.34 1.299 49.055.0 94.213-16.568 130.274-44.832-46.132-.975-84.792-31.188-98.112-72.772 6.498.974 12.995 1.624 19.818 1.624 9.421.0 18.843-1.3 27.614-3.573-48.081-9.747-84.143-51.98-84.143-102.985v-1.299c13.969 7.797 30.214 12.67 47.431 13.319-28.264-18.843-46.781-51.005-46.781-87.391.0-19.492 5.197-37.36 14.294-52.954 51.655 63.675 129.3 105.258 216.365 109.807-1.624-7.797-2.599-15.918-2.599-24.04.0-57.828 46.782-104.934 104.934-104.934 30.213.0 57.502 12.67 76.67 33.137 23.715-4.548 46.456-13.32 66.599-25.34-7.798 24.366-24.366 44.833-46.132 57.827 21.117-2.273 41.584-8.122 60.426-16.243-14.292 20.791-32.161 39.308-52.628 54.253z"/></svg>
+</span>
+&nbsp;
+Twitter
+</a>
+<a href=https://qiita.com/yteraoka class="text-base font-medium text-gray-500 hover:text-gray-900" title>
+Qiita
+</a>
+<button id=search-button class="text-base hover:text-primary-600 dark:hover:text-primary-400" title>
+<span class="relative inline-block align-text-bottom icon"><svg aria-hidden="true" focusable="false" data-prefix="fas" data-icon="search" class="svg-inline--fa fa-search fa-w-16" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentcolor" d="M505 442.7 405.3 343c-4.5-4.5-10.6-7-17-7H372c27.6-35.3 44-79.7 44-128C416 93.1 322.9.0 208 0S0 93.1.0 208s93.1 208 208 208c48.3.0 92.7-16.4 128-44v16.3c0 6.4 2.5 12.5 7 17l99.7 99.7c9.4 9.4 24.6 9.4 33.9.0l28.3-28.3c9.4-9.4 9.4-24.6.1-34zM208 336c-70.7.0-128-57.2-128-128 0-70.7 57.2-128 128-128 70.7.0 128 57.2 128 128 0 70.7-57.2 128-128 128z"/></svg>
+</span>
+</button>
+<div class="ltr:mr-14 rtl:ml-14 cursor-pointer text-sm text-neutral-700 hover:text-primary-600 dark:text-neutral dark:hover:text-primary-400">
+<button id=appearance-switcher type=button>
+<div class="flex items-center justify-center h-12 dark:hidden">
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentcolor" d="M32 256C32 132.2 132.3 32 255.8 32c11.36.0 29.7 1.668 40.9 3.746 9.616 1.777 11.75 14.63 3.279 19.44C245 86.5 211.2 144.6 211.2 207.8c0 109.7 99.71 193 208.3 172.3 9.561-1.805 16.28 9.324 10.11 16.95C387.9 448.6 324.8 480 255.8 480 132.1 480 32 379.6 32 256z"/></svg>
+</span>
+</div>
+<div class="items-center justify-center hidden h-12 dark:flex">
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentcolor" d="M256 159.1c-53.02.0-95.1 42.98-95.1 95.1s41.2 96.9 95.1 96.9 95.1-42.98 95.1-95.1S309 159.1 256 159.1zM509.3 347l-63.2-91.9 63.15-91.01c6.332-9.125 1.104-21.74-9.826-23.72l-109-19.7-19.7-109c-1.975-10.93-14.59-16.16-23.72-9.824L256 65.89 164.1 2.736c-9.125-6.332-21.74-1.107-23.72 9.824L121.6 121.6 12.56 141.3C1.633 143.2-3.596 155.9 2.736 164.1L65.89 256 2.74 347.01c-6.332 9.125-1.105 21.74 9.824 23.72l109 19.7 19.7 109c1.975 10.93 14.59 16.16 23.72 9.824L256 446.1l91.01 63.15c9.127 6.334 21.75 1.107 23.72-9.822l19.7-109 109-19.7C510.4 368.8 515.6 356.1 509.3 347zM256 383.1c-70.69.0-127.1-57.31-127.1-127.1.0-70.69 57.31-127.1 127.1-127.1S383.1 186.2 383.1 256c0 70.7-56.4 127.1-127.1 127.1z"/></svg>
+</span>
+</div>
+</button>
+</div>
+</div>
+<div class="flex md:hidden items-center space-x-5 md:ml-12">
+<span></span>
+<button id=search-button-mobile class="text-base hover:text-primary-600 dark:hover:text-primary-400" title>
+<span class="relative inline-block align-text-bottom icon"><svg aria-hidden="true" focusable="false" data-prefix="fas" data-icon="search" class="svg-inline--fa fa-search fa-w-16" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentcolor" d="M505 442.7 405.3 343c-4.5-4.5-10.6-7-17-7H372c27.6-35.3 44-79.7 44-128C416 93.1 322.9.0 208 0S0 93.1.0 208s93.1 208 208 208c48.3.0 92.7-16.4 128-44v16.3c0 6.4 2.5 12.5 7 17l99.7 99.7c9.4 9.4 24.6 9.4 33.9.0l28.3-28.3c9.4-9.4 9.4-24.6.1-34zM208 336c-70.7.0-128-57.2-128-128 0-70.7 57.2-128 128-128 70.7.0 128 57.2 128 128 0 70.7-57.2 128-128 128z"/></svg>
+</span>
+</button>
+<button id=appearance-switcher-mobile type=button style=margin-right:5px>
+<div class="flex items-center justify-center h-12 dark:hidden">
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentcolor" d="M32 256C32 132.2 132.3 32 255.8 32c11.36.0 29.7 1.668 40.9 3.746 9.616 1.777 11.75 14.63 3.279 19.44C245 86.5 211.2 144.6 211.2 207.8c0 109.7 99.71 193 208.3 172.3 9.561-1.805 16.28 9.324 10.11 16.95C387.9 448.6 324.8 480 255.8 480 132.1 480 32 379.6 32 256z"/></svg>
+</span>
+</div>
+<div class="items-center justify-center hidden h-12 dark:flex">
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentcolor" d="M256 159.1c-53.02.0-95.1 42.98-95.1 95.1s41.2 96.9 95.1 96.9 95.1-42.98 95.1-95.1S309 159.1 256 159.1zM509.3 347l-63.2-91.9 63.15-91.01c6.332-9.125 1.104-21.74-9.826-23.72l-109-19.7-19.7-109c-1.975-10.93-14.59-16.16-23.72-9.824L256 65.89 164.1 2.736c-9.125-6.332-21.74-1.107-23.72 9.824L121.6 121.6 12.56 141.3C1.633 143.2-3.596 155.9 2.736 164.1L65.89 256 2.74 347.01c-6.332 9.125-1.105 21.74 9.824 23.72l109 19.7 19.7 109c1.975 10.93 14.59 16.16 23.72 9.824L256 446.1l91.01 63.15c9.127 6.334 21.75 1.107 23.72-9.822l19.7-109 109-19.7C510.4 368.8 515.6 356.1 509.3 347zM256 383.1c-70.69.0-127.1-57.31-127.1-127.1.0-70.69 57.31-127.1 127.1-127.1S383.1 186.2 383.1 256c0 70.7-56.4 127.1-127.1 127.1z"/></svg>
+</span>
+</div>
+</button>
+</div>
+</div>
+<div class="-my-2 -mr-2 md:hidden">
+<label id=menu-button for=menu-controller class=block>
+<input type=checkbox id=menu-controller class=hidden>
+<div class="cursor-pointer hover:text-primary-600 dark:hover:text-primary-400">
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path fill="currentcolor" d="M0 96C0 78.33 14.33 64 32 64H416c17.7.0 32 14.33 32 32 0 17.7-14.3 32-32 32H32C14.33 128 0 113.7.0 96zM0 256c0-17.7 14.33-32 32-32H416c17.7.0 32 14.3 32 32s-14.3 32-32 32H32c-17.67.0-32-14.3-32-32zM416 448H32c-17.67.0-32-14.3-32-32s14.33-32 32-32H416c17.7.0 32 14.3 32 32s-14.3 32-32 32z"/></svg>
+</span>
+</div>
+<div id=menu-wrapper style=padding-top:25px class="fixed inset-0 z-30 invisible w-screen h-screen m-auto overflow-auto transition-opacity opacity-0 cursor-default bg-neutral-100/50 backdrop-blur-sm dark:bg-neutral-900/50">
+<ul class="flex movedown flex-col w-full px-6 py-6 mx-auto overflow-visible list-none ltr:text-right rtl:text-left max-w-7xl sm:px-14 md:px-24 lg:px-32 sm:py-10 sm:pt-10">
+<li class=mb-1>
+<span class="cursor-pointer hover:text-primary-600 dark:hover:text-primary-400">
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><path fill="currentcolor" d="M310.6 361.4c12.5 12.5 12.5 32.75.0 45.25C304.4 412.9 296.2 416 288 416s-16.38-3.125-22.62-9.375L160 301.3 54.63 406.6C48.38 412.9 40.19 416 32 416S15.63 412.9 9.375 406.6c-12.5-12.5-12.5-32.75.0-45.25l105.4-105.4L9.375 150.6c-12.5-12.5-12.5-32.75.0-45.25s32.75-12.5 45.25.0L160 210.8l105.4-105.4c12.5-12.5 32.75-12.5 45.25.0s12.5 32.75.0 45.25l-105.4 105.4L310.6 361.4z"/></svg>
+</span>
+</span>
+</li>
+<li class=mb-1>
+<a class="decoration-primary-500 hover:underline hover:decoration-2 hover:underline-offset-2" href=/posts/ title=Posts>
+Blog
+</a>
+</li>
+<li class=mb-1>
+<a class="decoration-primary-500 hover:underline hover:decoration-2 hover:underline-offset-2" href=/tags/ title=Tags>
+Tags
+</a>
+</li>
+<li class=mb-1>
+<a class="decoration-primary-500 hover:underline hover:decoration-2 hover:underline-offset-2" href=https://github.com/yteraoka title>
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><path fill="currentcolor" d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6.0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6.0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3.0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1.0-6.2-.3-40.4-.3-61.4.0.0-70 15-84.7-29.8.0.0-11.4-29.1-27.8-36.6.0.0-22.9-15.7 1.6-15.4.0.0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5.0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9.0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4.0 33.7-.3 75.4-.3 83.6.0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6.0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9.0-6.2-1.4-2.3-4-3.3-5.6-2z"/></svg>
+</span>
+&nbsp;
+GitHub
+</a>
+</li>
+<li class=mb-1>
+<a class="decoration-primary-500 hover:underline hover:decoration-2 hover:underline-offset-2" href=https://twitter.com/yteraoka title>
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentcolor" d="M459.37 151.716c.325 4.548.325 9.097.325 13.645.0 138.72-105.583 298.558-298.558 298.558-59.452.0-114.68-17.219-161.137-47.106 8.447.974 16.568 1.299 25.34 1.299 49.055.0 94.213-16.568 130.274-44.832-46.132-.975-84.792-31.188-98.112-72.772 6.498.974 12.995 1.624 19.818 1.624 9.421.0 18.843-1.3 27.614-3.573-48.081-9.747-84.143-51.98-84.143-102.985v-1.299c13.969 7.797 30.214 12.67 47.431 13.319-28.264-18.843-46.781-51.005-46.781-87.391.0-19.492 5.197-37.36 14.294-52.954 51.655 63.675 129.3 105.258 216.365 109.807-1.624-7.797-2.599-15.918-2.599-24.04.0-57.828 46.782-104.934 104.934-104.934 30.213.0 57.502 12.67 76.67 33.137 23.715-4.548 46.456-13.32 66.599-25.34-7.798 24.366-24.366 44.833-46.132 57.827 21.117-2.273 41.584-8.122 60.426-16.243-14.292 20.791-32.161 39.308-52.628 54.253z"/></svg>
+</span>
+&nbsp;
+Twitter
+</a>
+</li>
+<li class=mb-1>
+<a class="decoration-primary-500 hover:underline hover:decoration-2 hover:underline-offset-2" href=https://qiita.com/yteraoka title>
+Qiita
+</a>
+</li>
+</ul>
+</div>
+</label>
+</div>
+</div>
+<div id=mobile-menu class="fixed inset-0 z-30 invisible w-screen h-screen m-auto overflow-auto transition-opacity opacity-0 cursor-default bg-neutral-100/50 backdrop-blur-sm dark:bg-neutral-900/50">
+<ul class="flex movedown flex-col w-full px-6 py-6 mx-auto overflow-visible list-none ltr:text-right rtl:text-left max-w-7xl sm:px-14 md:px-24 lg:px-32 sm:py-10 sm:pt-10">
+<li class=mb-1>
+<span class="cursor-pointer hover:text-primary-600 dark:hover:text-primary-400">
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><path fill="currentcolor" d="M310.6 361.4c12.5 12.5 12.5 32.75.0 45.25C304.4 412.9 296.2 416 288 416s-16.38-3.125-22.62-9.375L160 301.3 54.63 406.6C48.38 412.9 40.19 416 32 416S15.63 412.9 9.375 406.6c-12.5-12.5-12.5-32.75.0-45.25l105.4-105.4L9.375 150.6c-12.5-12.5-12.5-32.75.0-45.25s32.75-12.5 45.25.0L160 210.8l105.4-105.4c12.5-12.5 32.75-12.5 45.25.0s12.5 32.75.0 45.25l-105.4 105.4L310.6 361.4z"/></svg>
+</span>
+</span>
+</li>
+<li class=mb-1>
+<a class="decoration-primary-500 hover:underline hover:decoration-2 hover:underline-offset-2" href=/posts/ title=Posts>Blog</a>
+</li>
+<li class=mb-1>
+<a class="decoration-primary-500 hover:underline hover:decoration-2 hover:underline-offset-2" href=/tags/ title=Tags>Tags</a>
+</li>
+<li class=mb-1>
+<a class="decoration-primary-500 hover:underline hover:decoration-2 hover:underline-offset-2" href=https://github.com/yteraoka title>GitHub</a>
+</li>
+<li class=mb-1>
+<a class="decoration-primary-500 hover:underline hover:decoration-2 hover:underline-offset-2" href=https://twitter.com/yteraoka title>Twitter</a>
+</li>
+<li class=mb-1>
+<a class="decoration-primary-500 hover:underline hover:decoration-2 hover:underline-offset-2" href=https://qiita.com/yteraoka title>Qiita</a>
+</li>
+<li>
+<button id=search-button-mobile class="text-base hover:text-primary-600 dark:hover:text-primary-400">
+<span class="relative inline-block align-text-bottom icon"><svg aria-hidden="true" focusable="false" data-prefix="fas" data-icon="search" class="svg-inline--fa fa-search fa-w-16" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentcolor" d="M505 442.7 405.3 343c-4.5-4.5-10.6-7-17-7H372c27.6-35.3 44-79.7 44-128C416 93.1 322.9.0 208 0S0 93.1.0 208s93.1 208 208 208c48.3.0 92.7-16.4 128-44v16.3c0 6.4 2.5 12.5 7 17l99.7 99.7c9.4 9.4 24.6 9.4 33.9.0l28.3-28.3c9.4-9.4 9.4-24.6.1-34zM208 336c-70.7.0-128-57.2-128-128 0-70.7 57.2-128 128-128 70.7.0 128 57.2 128 128 0 70.7-57.2 128-128 128z"/></svg>
+</span>
+</button>
+</li>
+</ul>
+</div>
+<div class="relative flex flex-col grow">
+<main id=main-content class=grow>
+<article>
+<header class=max-w-prose>
+<ol class="text-sm text-neutral-500 dark:text-neutral-400 print:hidden">
+<li class="inline hidden">
+<a class="hover:underline decoration-neutral-300 dark:underline-neutral-600" href=/>1Q77</a><span class="px-1 text-primary-500">/</span>
+</li>
+<li class=inline>
+<a class="hover:underline decoration-neutral-300 dark:underline-neutral-600" href=/posts/>Posts</a><span class="px-1 text-primary-500">/</span>
+</li>
+<li class="inline hidden">
+<a class="hover:underline decoration-neutral-300 dark:underline-neutral-600" href=/2021/04/step-ca-with-google-oidc/>Google 認証でクライアント証明書発行のセルフサービス化</a><span class="px-1 text-primary-500">/</span>
+</li>
+</ol>
+<h1 class="mt-0 text-4xl font-extrabold text-neutral-900 dark:text-neutral">
+Google 認証でクライアント証明書発行のセルフサービス化
+</h1>
+<div class="mt-8 mb-12 text-base text-neutral-500 dark:text-neutral-400 print:hidden">
+<div class="flex flex-row flex-wrap items-center">
+<time datetime="2021-04-10 14:44:13 +0000 UTC">2021年4月10日</time>
+</div>
+<div class="flex flex-row flex-wrap items-center">
+<span style=margin-top:.5rem class=mr-2 onclick='window.open("/tags/tls/")'>
+<span class=flex>
+<span class="rounded-md border border-primary-400 px-1 py-[1px] text-xs font-normal text-primary-700 dark:border-primary-600 dark:text-primary-400">
+TLS
+</span>
+</span>
+</span>
+<span style=margin-top:.5rem class=mr-2 onclick='window.open("/tags/smallstep/")'>
+<span class=flex>
+<span class="rounded-md border border-primary-400 px-1 py-[1px] text-xs font-normal text-primary-700 dark:border-primary-600 dark:text-primary-400">
+smallstep
+</span>
+</span>
+</span>
+</div>
+</div>
+</header>
+<section class="flex flex-col max-w-full mt-0 prose dark:prose-invert lg:flex-row">
+<div class="order-first px-0 lg:order-last lg:max-w-xs ltr:lg:pl-8 rtl:lg:pr-8">
+<div class="toc ltr:pl-5 rtl:pr-5 print:hidden lg:sticky lg:top-10">
+<details open class="mt-0 overflow-hidden rounded-lg ltr:-ml-5 ltr:pl-5 rtl:-mr-5 rtl:pr-5 hidden lg:block">
+<summary class="block py-1 text-lg font-semibold cursor-pointer bg-neutral-100 text-neutral-800 ltr:-ml-5 ltr:pl-5 rtl:-mr-5 rtl:pr-5 dark:bg-neutral-700 dark:text-neutral-100 lg:hidden">
+目次
+</summary>
+<div class="py-2 border-dotted border-neutral-300 ltr:-ml-5 ltr:border-l ltr:pl-5 rtl:-mr-5 rtl:border-r rtl:pr-5 dark:border-neutral-600">
+<nav id=TableOfContents>
+<ul>
+<li><a href=#getting-started>Getting Started</a>
+<ul>
+<li><a href=#ca-の初期化>CA の初期化</a></li>
+<li><a href=#certificate-authority-の実行-step-ca-の起動>Certificate Authority の実行 (step-ca の起動)</a></li>
+<li><a href=#試しに-localhost-のサーバ証明書を発行してみる>試しに localhost のサーバ証明書を発行してみる</a></li>
+</ul>
+</li>
+<li><a href=#personal-certificates-via-oauth-openid-connect>Personal certificates via OAuth OpenID Connect</a>
+<ul>
+<li><a href=#oidc-provisioner-の追加>OIDC Provisioner の追加</a></li>
+<li><a href=#証明書の発行>証明書の発行</a></li>
+<li><a href=#証明書の-revoke>証明書の Revoke</a></li>
+</ul>
+</li>
+<li><a href=#リモートサーバー>リモートサーバー</a>
+<ul>
+<li><a href=#nginx-と-lets-encrypt-で-tls-な-reverse-proxy-をセットアップ>nginx と Let&rsquo;s Encrypt で TLS な Reverse Proxy をセットアップ</a></li>
+<li><a href=#step-step-ca-コマンドをインストール>step, step-ca コマンドをインストール</a></li>
+<li><a href=#step-ca-用のユーザーを作成>step-ca 用のユーザーを作成</a></li>
+<li><a href=#step-ca-init>step ca init</a></li>
+<li><a href=#google-oidc-provisioner-の追加>Google OIDC Provisioner の追加</a></li>
+<li><a href=#systemd-で-step-ca-が起動するようにする>systemd で step-ca が起動するようにする</a></li>
+<li><a href=#ネットワーク越しに-step-コマンドでアクセスする>ネットワーク越しに step コマンドでアクセスする</a></li>
+</ul>
+</li>
+<li><a href=#csr-を作って署名する>CSR を作って署名する</a></li>
+</ul>
+</nav>
+</div>
+</details>
+<details class="mt-0 overflow-hidden rounded-lg ltr:-ml-5 ltr:pl-5 rtl:-mr-5 rtl:pr-5 lg:hidden">
+<summary class="py-1 text-lg font-semibold cursor-pointer bg-neutral-100 text-neutral-800 ltr:-ml-5 ltr:pl-5 rtl:-mr-5 rtl:pr-5 dark:bg-neutral-700 dark:text-neutral-100 lg:hidden">
+目次
+</summary>
+<div class="py-2 border-dotted border-neutral-300 ltr:-ml-5 ltr:border-l ltr:pl-5 rtl:-mr-5 rtl:border-r rtl:pr-5 dark:border-neutral-600">
+<nav id=TableOfContents>
+<ul>
+<li><a href=#getting-started>Getting Started</a>
+<ul>
+<li><a href=#ca-の初期化>CA の初期化</a></li>
+<li><a href=#certificate-authority-の実行-step-ca-の起動>Certificate Authority の実行 (step-ca の起動)</a></li>
+<li><a href=#試しに-localhost-のサーバ証明書を発行してみる>試しに localhost のサーバ証明書を発行してみる</a></li>
+</ul>
+</li>
+<li><a href=#personal-certificates-via-oauth-openid-connect>Personal certificates via OAuth OpenID Connect</a>
+<ul>
+<li><a href=#oidc-provisioner-の追加>OIDC Provisioner の追加</a></li>
+<li><a href=#証明書の発行>証明書の発行</a></li>
+<li><a href=#証明書の-revoke>証明書の Revoke</a></li>
+</ul>
+</li>
+<li><a href=#リモートサーバー>リモートサーバー</a>
+<ul>
+<li><a href=#nginx-と-lets-encrypt-で-tls-な-reverse-proxy-をセットアップ>nginx と Let&rsquo;s Encrypt で TLS な Reverse Proxy をセットアップ</a></li>
+<li><a href=#step-step-ca-コマンドをインストール>step, step-ca コマンドをインストール</a></li>
+<li><a href=#step-ca-用のユーザーを作成>step-ca 用のユーザーを作成</a></li>
+<li><a href=#step-ca-init>step ca init</a></li>
+<li><a href=#google-oidc-provisioner-の追加>Google OIDC Provisioner の追加</a></li>
+<li><a href=#systemd-で-step-ca-が起動するようにする>systemd で step-ca が起動するようにする</a></li>
+<li><a href=#ネットワーク越しに-step-コマンドでアクセスする>ネットワーク越しに step コマンドでアクセスする</a></li>
+</ul>
+</li>
+<li><a href=#csr-を作って署名する>CSR を作って署名する</a></li>
+</ul>
+</nav>
+</div>
+</details>
+</div>
+</div>
+<div class="min-w-0 min-h-0 max-w-prose">
+<p>以前、<a href=/2020/08/one-liner-https-reverse-proxy-caddy/>caddy について調べて</a>て発見した <a href=https://smallstep.com/>smallstep</a> でクライアント証明書発行を便利にできないかなということで調査です。(<a href=https://www.vaultproject.io/>Hashicorp Vault</a> でもできるっぽいけど用途的にわざわざクラスタ組むの面倒だなあって)</p>
+<p><a href=https://smallstep.com/docs/tutorials/user-authentication>Connect your identity provider and issue X.509 certificates for user authentication to services</a> というドキュメントを参考に進めます。前提に <a href=https://smallstep.com/docs/step-ca/getting-started>Getting Started</a> でセットアップした step-ca が起動していることとあるので、まずはこちらから。</p>
+<h2 id=getting-started class="relative group">Getting Started <span class="absolute top-0 w-6 transition-opacity opacity-0 ltr:-left-6 rtl:-right-6 not-prose group-hover:opacity-100"><a class="group-hover:text-primary-300 dark:group-hover:text-neutral-700" style=text-decoration-line:none!important href=#getting-started aria-label=アンカー>#</a></span></h2>
+<p>まずは、<a href=https://smallstep.com/docs/step-cli>step</a> と <a href=https://smallstep.com/docs/step-ca>step-ca</a> コマンドをインストール。Homebrew でもインストールできます。</p>
+<h3 id=ca-の初期化 class="relative group">CA の初期化 <span class="absolute top-0 w-6 transition-opacity opacity-0 ltr:-left-6 rtl:-right-6 not-prose group-hover:opacity-100"><a class="group-hover:text-primary-300 dark:group-hover:text-neutral-700" style=text-decoration-line:none!important href=#ca-%e3%81%ae%e5%88%9d%e6%9c%9f%e5%8c%96 aria-label=アンカー>#</a></span></h3>
+<p>ファイルの保存場所をカレントディレクトリ配下にしておきます。デフォルトでは <code>$HOME/.step</code> となっています。</p>
+<pre tabindex=0><code>export STEPPATH=./step
+</code></pre><p><code>step ca init</code> で root と intermediate 証明書を作成します。<code>$STEPPATH/config/defaults.json</code> と <code>$STEPPATH/config/ca.json</code> というファイルも生成されます。<code>defaults.json</code> の方は <code>step</code> コマンド用で、<code>ca.json</code> は CA 用の設定で <code>step-ca</code> が読み込みます。</p>
+<pre tabindex=0><code>$ step ca init
+✔ What would you like to name your new PKI? (e.g. Smallstep): myself
+✔ What DNS names or IP addresses would you like to add to your new CA? (e.g. ca.smallstep.com[,1.1.1.1,etc.]): localhost
+✔ What address will your new CA listen at? (e.g. :443): 127.0.0.1:8443
+✔ What would you like to name the first provisioner for your new CA? (e.g. you@smallstep.com): user@example.com
+✔ What do you want your password to be? [leave empty and we'll generate one]: 
+✔ Password: 00;zj3z3Z/|&quot;8gW_7aaAO,f$n{l90gxD
+
+Generating root certificate... 
+all done!
+
+Generating intermediate certificate... 
+all done!
+
+✔ Root certificate: ./step/certs/root_ca.crt
+✔ Root private key: ./step/secrets/root_ca_key
+✔ Root fingerprint: 9d6e69dbb2915e5bd8f794d6b4d992b4fba5273ffcaa85c0db11514b650db1d7
+✔ Intermediate certificate: ./step/certs/intermediate_ca.crt
+✔ Intermediate private key: ./step/secrets/intermediate_ca_key
+✔ Database folder: step/db
+✔ Default configuration: ./step/config/defaults.json
+✔ Certificate Authority configuration: ./step/config/ca.json
+
+Your PKI is ready to go. To generate certificates for individual services see 'step help ca'.
+
+FEEDBACK 😍 🍻
+      The step utility is not instrumented for usage statistics. It does not
+      phone home. But your feedback is extremely valuable. Any information you
+      can provide regarding how you’re using `step` helps. Please send us a
+      sentence or two, good or bad: feedback@smallstep.com or join
+      https://github.com/smallstep/certificates/discussions.
+</code></pre><p>What DNS names or IP addresses would you like to add to your new CA? (e.g. ca.smallstep.com[,1.1.1.1,etc.]) で <code>localhost</code> と指定している名前は step-ca サーバーのサーバ証明書の <strong>Subject Alternative Name</strong> として使われます。これは <code>step-ca</code> 起動時、リロード時などに都度発行されるようで <code>config/ca.json</code> の <code>dnsNames</code> を後から書き換えても大丈夫。<code>config/defaults.json</code> の <code>ca-url</code> のホスト名がこの <code>dnsName</code> に含まれるようにしておく必要があります。</p>
+<p>What address will your new CA listen at? (e.g. :443) は <code>step-ca</code> が listen するアドレスです。</p>
+<h3 id=certificate-authority-の実行-step-ca-の起動 class="relative group">Certificate Authority の実行 (step-ca の起動) <span class="absolute top-0 w-6 transition-opacity opacity-0 ltr:-left-6 rtl:-right-6 not-prose group-hover:opacity-100"><a class="group-hover:text-primary-300 dark:group-hover:text-neutral-700" style=text-decoration-line:none!important href=#certificate-authority-%e3%81%ae%e5%ae%9f%e8%a1%8c-step-ca-%e3%81%ae%e8%b5%b7%e5%8b%95 aria-label=アンカー>#</a></span></h3>
+<p><code>step ca init</code> 時に指定した、もしくは自動生成された private key のパスワードの入力を求められます。自動起動のためにはパスワードを書いたファイルの path を <code>--password-file</code> で指定します。</p>
+<pre tabindex=0><code>$ step-ca $(step path)/config/ca.json
+badger 2021/04/10 00:03:17 INFO: All 0 tables opened in 0s
+Please enter the password to decrypt ./step/secrets/intermediate_ca_key: 
+2021/04/10 00:03:27 Serving HTTPS on 127.0.0.1:8443 ...
+</code></pre><h3 id=試しに-localhost-のサーバ証明書を発行してみる class="relative group">試しに localhost のサーバ証明書を発行してみる <span class="absolute top-0 w-6 transition-opacity opacity-0 ltr:-left-6 rtl:-right-6 not-prose group-hover:opacity-100"><a class="group-hover:text-primary-300 dark:group-hover:text-neutral-700" style=text-decoration-line:none!important href=#%e8%a9%a6%e3%81%97%e3%81%ab-localhost-%e3%81%ae%e3%82%b5%e3%83%bc%e3%83%90%e8%a8%bc%e6%98%8e%e6%9b%b8%e3%82%92%e7%99%ba%e8%a1%8c%e3%81%97%e3%81%a6%e3%81%bf%e3%82%8b aria-label=アンカー>#</a></span></h3>
+<p><code>step ca certificate</code> コマンドで証明書の発行ができます。<code>--san</code> で任意の数の <strong>Subject Alternative Name</strong> を設定できます(複数回指定可能)。<code>--not-after=1h</code> とすると有効期間を1時間にできます。</p>
+<pre tabindex=0><code>$ step ca certificate localhost srv.crt srv.key
+✔ Provisioner: user@example.com (JWK) [kid: JAffF2XYO3U1qpRkLzSDDqZR8SSZPwGf23i6xO9dyAg]
+✔ Please enter the password to decrypt the provisioner key: (init 時の password を入力) 
+✔ CA: https://localhost:8443
+✔ Certificate: srv.crt
+✔ Private Key: srv.key
+</code></pre><p>パスワード入力をコマンドラインで指定するためには <code>--provisioner</code> と <code>--provisioner-password</code> を指定します。<code>user@example.com</code> というのは <code>step ca init</code> 時に first provisioner として指定した値です。</p>
+<pre tabindex=0><code>step ca certificate example.com example.crt example.key \
+  --provisioner user@example.com --provisioner-password-file password.txt
+</code></pre><p>生成された証明書ファイルです。</p>
+<pre tabindex=0><code>$ cat srv.crt
+-----BEGIN CERTIFICATE-----
+MIICJDCCAcqgAwIBAgIRALOhvX+yzcdRtESGXIt0nSEwCgYIKoZIzj0EAwIwMjEP
+MA0GA1UEChMGbXlzZWxmMR8wHQYDVQQDExZteXNlbGYgSW50ZXJtZWRpYXRlIENB
+MB4XDTIxMDQwOTE1MjA0OFoXDTIxMDQxMDE1MjE0OFowFDESMBAGA1UEAxMJbG9j
+YWxob3N0MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAER5Ss0fIkHglM0Gy7pA8o
+Th/uQbbDIKZ+w8Y6bOhxixe0Wf11ctpz2hNhX2RXMM/Fjtop83MG2tNGPWa9uYMd
+dqOB3jCB2zAOBgNVHQ8BAf8EBAMCB4AwHQYDVR0lBBYwFAYIKwYBBQUHAwEGCCsG
+AQUFBwMCMB0GA1UdDgQWBBQ/Xp+RQ1rNKwymALq/NBNM5LDNHzAfBgNVHSMEGDAW
+gBRkV6X/rjHYGF3SCaj8MdmDlFBw1jAUBgNVHREEDTALgglsb2NhbGhvc3QwVAYM
+KwYBBAGCpGTGKEABBEQwQgIBAQQQdXNlckBleGFtcGxlLmNvbQQrSkFmZkYyWFlP
+M1UxcXBSa0x6U0REcVpSOFNTWlB3R2YyM2k2eE85ZHlBZzAKBggqhkjOPQQDAgNI
+ADBFAiEA5JbgGVX7M9oroBu/DHMxWhpRKy0T8WkeekItnCaJYFQCIBXExx5GaCiQ
+ZS2tubNai9HHyx2OAmkVFj95yP5KoWmt
+-----END CERTIFICATE-----
+-----BEGIN CERTIFICATE-----
+MIIBwTCCAWegAwIBAgIRAMsNU1wV7Pe2Bu8BzBmqjW0wCgYIKoZIzj0EAwIwKjEP
+MA0GA1UEChMGbXlzZWxmMRcwFQYDVQQDEw5teXNlbGYgUm9vdCBDQTAeFw0yMTA0
+MDkxNDU4MjVaFw0zMTA0MDcxNDU4MjVaMDIxDzANBgNVBAoTBm15c2VsZjEfMB0G
+A1UEAxMWbXlzZWxmIEludGVybWVkaWF0ZSBDQTBZMBMGByqGSM49AgEGCCqGSM49
+AwEHA0IABFB9zHmlOnlSffs6FkVmXhP1TTl3WlsLoaoDcXbQqH3OkoB2uNXDljIu
+ufKlTaeMG3pArn13wcvjs5FBAGqlzCWjZjBkMA4GA1UdDwEB/wQEAwIBBjASBgNV
+HRMBAf8ECDAGAQH/AgEAMB0GA1UdDgQWBBRkV6X/rjHYGF3SCaj8MdmDlFBw1jAf
+BgNVHSMEGDAWgBRNrE8AQGvyj8adZxT9j799lSGP2TAKBggqhkjOPQQDAgNIADBF
+AiAYZz8AUdLe6Qa4rpraG048UVkIt8pPtPaB/pzYaaXWIgIhALLAAjOUE8rM7cp2
++o14WqC5T6vcb/V/+Fh1ME85c7GZ
+-----END CERTIFICATE-----
+</code></pre><p>&ldquo;<strong>myself Intermediate CA</strong>&rdquo; によって署名されています。<strong>myself</strong> というのは <code>step ca init</code> 時に What would you like to name your new PKI? (e.g. Smallstep) で指定した値です。</p>
+<p>生成した証明書の中身は次のようになっています。</p>
+<pre tabindex=0><code>Certificate:
+    Data:
+        Version: 3 (0x2)
+        Serial Number:
+            b3:a1:bd:7f:b2💿c7:51:b4:44:86:5c:8b:74:9d:21
+    Signature Algorithm: ecdsa-with-SHA256
+        Issuer: O=myself, CN=myself Intermediate CA
+        Validity
+            Not Before: Apr  9 15:20:48 2021 GMT
+            Not After : Apr 10 15:21:48 2021 GMT
+        Subject: CN=localhost
+        Subject Public Key Info:
+            Public Key Algorithm: id-ecPublicKey
+                Public-Key: (256 bit)
+                pub: 
+                    04:47:94:ac:d1:f2:24:1e:09:4c:d0:6c:bb:a4:0f:
+                    28:4e:1f:ee:41:b6:c3:20:a6:7e:c3:c6:3a:6c:e8:
+                    71:8b:17:b4:59:fd:75:72:da:73:da:13:61:5f:64:
+                    57:30:cf:c5:8e:da:29:f3:73:06:da:d3:46:3d:66:
+                    bd:b9:83:1d:76
+                ASN1 OID: prime256v1
+                NIST CURVE: P-256
+        X509v3 extensions:
+            X509v3 Key Usage: critical
+                Digital Signature
+            X509v3 Extended Key Usage: 
+                TLS Web Server Authentication, TLS Web Client Authentication
+            X509v3 Subject Key Identifier: 
+                3F:5E:9F:91:43:5A:CD:2B:0C:A6:00:BA:BF:34:13:4C:E4:B0:CD:1F
+            X509v3 Authority Key Identifier: 
+                keyid:64:57:A5:FF:AE:31:D8:18:5D:D2:09:A8:FC:31:D9:83:94:50:70:D6
+
+            X509v3 Subject Alternative Name: 
+                DNS:localhost
+            1.3.6.1.4.1.37476.9000.64.1: 
+                0B.....user@example.com.+JAffF2XYO3U1qpRkLzSDDqZR8SSZPwGf23i6xO9dyAg
+    Signature Algorithm: ecdsa-with-SHA256
+         30:45:02:21:00:e4:96:e0:19:55:fb:33:da:2b:a0:1b:bf:0c:
+         73:31:5a:1a:51:2b:2d:13:f1:69:1e:7a:42:2d:9c:26:89:60:
+         54:02:20:15:c4:c7:1e:46:68:28:90:65:2d:ad:b9:b3:5a:8b:
+         d1:c7:cb:1d:8e:02:69:15:16:3f:79:c8:fe:4a:a1:69:ad
+</code></pre><p>この後、テスト用の HTTPS サーバーを書いて実行し、curl でアクセスしてみるという手順になっています。サーバーは Intermediate 証明書も返してくるので root 証明書があれば検証可能です。これは <code>[step ca root](https://smallstep.com/docs/step-cli/reference/ca/root)</code> コマンドで取得可能です。<code>step ca root root.crt</code> などとファイル名も指定すればファイルに書き出されます。</p>
+<pre tabindex=0><code>$ step ca root root.crt
+The root certificate has been saved in root.crt.
+</code></pre><h2 id=personal-certificates-via-oauth-openid-connect class="relative group">Personal certificates via OAuth OpenID Connect <span class="absolute top-0 w-6 transition-opacity opacity-0 ltr:-left-6 rtl:-right-6 not-prose group-hover:opacity-100"><a class="group-hover:text-primary-300 dark:group-hover:text-neutral-700" style=text-decoration-line:none!important href=#personal-certificates-via-oauth-openid-connect aria-label=アンカー>#</a></span></h2>
+<p>それでは元に戻って、OIDC 連携を進めます。</p>
+<h3 id=oidc-provisioner-の追加 class="relative group">OIDC Provisioner の追加 <span class="absolute top-0 w-6 transition-opacity opacity-0 ltr:-left-6 rtl:-right-6 not-prose group-hover:opacity-100"><a class="group-hover:text-primary-300 dark:group-hover:text-neutral-700" style=text-decoration-line:none!important href=#oidc-provisioner-%e3%81%ae%e8%bf%bd%e5%8a%a0 aria-label=アンカー>#</a></span></h3>
+<pre tabindex=0><code>step ca provisioner add Google --type oidc --ca-config $(step path)/config/ca.json \
+    --client-id ${CLIENT_ID} \
+    --client-secret ${CLIENT_SECRET} \
+    --configuration-endpoint https://accounts.google.com/.well-known/openid-configuration \
+    --domain example.com \
+    --listen-address :10000
+</code></pre><p><code>--listen-address</code> はドキュメントの例にありませんでしたが、この provisioner の場合、<code>[step oauth](https://smallstep.com/docs/step-cli/reference/oauth)</code> コマンドが手元で実行されて、それが Google での認証後の redirect を待ち受けます。port 指定がないと毎回違う port で listen するため <a href=https://console.cloud.google.com/apis/credentials>Google 側の OAuth 設定</a>の <strong>Authorized redirect URIs</strong> で指定することができません。</p>
+<p>追加した後は step-ca プロセスに SIGHUP を送って (<code>pkill -HUP -x step-ca</code>) リロードさせる必要があります。step-ca の起動時にパスワードをファイルで渡していない場合、リロードに失敗してしまいます。その場合は再起動させましょう。</p>
+<p>パスワードが指定されていなくてリロードに失敗した場合のログ</p>
+<pre tabindex=0><code>Please enter the password to decrypt /Users/teraoka/work/20210409-smallstep/step/secrets/intermediate_ca_key: 
+2021/04/10 09:43:00 Reload failed because the CA with new configuration could not be initialized.
+2021/04/10 09:43:00 Continuing to run with the original configuration.
+2021/04/10 09:43:00 You can force a restart by sending a SIGTERM signal and then restarting the step-ca.
+2021/04/10 09:43:00 error reloading server: x509: decryption password incorrect
+error decrypting /Users/teraoka/work/20210409-smallstep/step/secrets/intermediate_ca_key
+</code></pre><p>設定は <code>$(step path)/config/ca.json</code> の <code>authority.provisioners</code> に追加されています。設定内容の詳細は &ldquo;<a href=https://smallstep.com/docs/step-ca/configuration#oauthoidc-single-sign-on>OAUTH/OIDC SINGLE SIGN-ON</a>&rdquo; にあります。</p>
+<p>追加した provisioner を削除するには次のようにします。</p>
+<pre tabindex=0><code>step ca provisioner remove Google --type oidc
+</code></pre><h3 id=証明書の発行 class="relative group">証明書の発行 <span class="absolute top-0 w-6 transition-opacity opacity-0 ltr:-left-6 rtl:-right-6 not-prose group-hover:opacity-100"><a class="group-hover:text-primary-300 dark:group-hover:text-neutral-700" style=text-decoration-line:none!important href=#%e8%a8%bc%e6%98%8e%e6%9b%b8%e3%81%ae%e7%99%ba%e8%a1%8c aria-label=アンカー>#</a></span></h3>
+<p>次のコマンドを実行すると provisioner の選択メニューが現れます。</p>
+<pre tabindex=0><code>step ca certificate teraoka@example.com personal.crt personal.key
+</code></pre><p>ここで Google を指定するとブラウザで OAuth の認証・認可に進みます。URL も表示されるため、開かれたブラウザが期待のものでなかった場合はその URL をコピペして開くと良いでしょう。</p>
+<pre tabindex=0><code>$ step ca certificate teraoka@example.com teraoka.crt teraoka.key
+Use the arrow keys to navigate: ↓ ↑ → ← 
+What provisioner key do you want to use?
+  ▸ user@example.com (JWK) [kid: JAffF2XYO3U1qpRkLzSDDqZR8SSZPwGf23i6xO9dyAg]
+    Google (OIDC) [client: 123456789012-aiquu3ehoh6aix7diezoh2Aekeepe4ah.apps.googleusercontent.com]
+</code></pre><p>指定したメールアドレスと Google アカウントのメールアドレスが異なる場合は拒否されます。</p>
+<pre tabindex=0><code>token email 'authenticated@example.com' and argument 'teraoka@example.com' do not match
+</code></pre><p>oidc provisioner には admin メールアドレスを指定する設定があり、admin に指定されたメールアドレスでログインすれば別のメールアドレスでの証明書も発行できます。</p>
+<p>作成された証明書の確認。</p>
+<pre tabindex=0><code>$ openssl x509 -text -noout -in personal.crt
+Certificate:
+    Data:
+        Version: 3 (0x2)
+        Serial Number:
+            74:d9:d9:ec:ed:2a:fb:fd:ce:fb:21:4c:e6:03:33:c4
+    Signature Algorithm: ecdsa-with-SHA256
+        Issuer: O=myself, CN=myself Intermediate CA
+        Validity
+            Not Before: Apr 10 01:37:03 2021 GMT
+            Not After : Apr 11 01:38:03 2021 GMT
+        Subject: CN=XXXXXXXXXXXXXXXXXXXXX
+        Subject Public Key Info:
+            Public Key Algorithm: id-ecPublicKey
+                Public-Key: (256 bit)
+                pub: 
+                    04:32:71:c4:87:a4:51:78:6f:67:fe:3d:8b:61:49:
+                    54:67:43:2c:0d:13:20:95:5c:51:a4:0b:23:40:29:
+                    44:b2:03:3d:a1:90:cf:f2:a9:8a:2b:c4:c9:8f:b1:
+                    11:e6:9b:30:87:23:14:e8:e6:da:8b:65:eb:70:d8:
+                    63:07:56:cf:9b
+                ASN1 OID: prime256v1
+                NIST CURVE: P-256
+        X509v3 extensions:
+            X509v3 Key Usage: critical
+                Digital Signature
+            X509v3 Extended Key Usage: 
+                TLS Web Server Authentication, TLS Web Client Authentication
+            X509v3 Subject Key Identifier: 
+                B0:AC:D7:9A:83:5F:0D:92:EC:B7:80:66:F1:90:F0:7C:0A:ED:37:7F
+            X509v3 Authority Key Identifier: 
+                keyid:64:57:A5:FF:AE:31:D8:18:5D:D2:09:A8:FC:31:D9:83:94:50:70:D6
+
+            X509v3 Subject Alternative Name: 
+                email:teraoka@example.com, URI:https://accounts.google.com#XXXXXXXXXXXXXXXXXXXXX
+            1.3.6.1.4.1.37476.9000.64.1: 
+                0U.....Google.H123456789012-aiquu3ehoh6aix7diezoh2Aekeepe4ah.apps.googleusercontent.com
+    Signature Algorithm: ecdsa-with-SHA256
+         30:45:02:21:00:d5:5d:bd:31:9e:8c:ba:63:76:74:52:1f:5d:
+         47:a1:f3:65:e3:64:f4:d5:74:ba:9a:cb:0a:a0:a8:85:d2:cb:
+         76:02:20:3d:65:d6🇩🇪8f:bf:ce:93:33:c6:49:19:66:6a:4c:
+         80:d9:51:11:43:cb:3f:ff:a4:8a🇩🇪32:d2🇩🇪2a:77:bb
+</code></pre><p>openssl コマンドを使わなくても <code>step certificate inspect personal.crt [--short]</code> で確認できました。</p>
+<h3 id=証明書の-revoke class="relative group">証明書の Revoke <span class="absolute top-0 w-6 transition-opacity opacity-0 ltr:-left-6 rtl:-right-6 not-prose group-hover:opacity-100"><a class="group-hover:text-primary-300 dark:group-hover:text-neutral-700" style=text-decoration-line:none!important href=#%e8%a8%bc%e6%98%8e%e6%9b%b8%e3%81%ae-revoke aria-label=アンカー>#</a></span></h3>
+<p>紛失したり、不要になった証明書は失効させる必要があります。<strong>ただし、現状 smallstep は CRL や OCSP をサポートしておらず、revoke された証明書は更新できなくなるだけです。</strong></p>
+<pre tabindex=0><code>step ca revoke &lt;serial-number&gt;
+step ca revoke --cert certfile --key keyfile
+</code></pre><p>Serial Number は openssl コマンドで取得できる16進のやつではダメなので <code>step certificate inspect</code> で取得します。<code>step certificate inspect personal.crt --format json | jq -r .serial_number</code></p>
+<p>証明書と、秘密鍵のファイルがあるならそれを指定することでも失効可能。</p>
+<p><code>[step ca revoke](https://smallstep.com/docs/step-cli/reference/ca/revoke)</code> コマンド実行時にも provisioner の選択メニューが表示されるのですが、ここでは Google じゃなくて JWK の方を選択して、init 時のパスワードを入力する必要がありました。Google の方を使うと token subject と serial number が一致しないというエラーになって revoke できませんでした。後でわかりましたが、Google provisioner の場合は serial number ではなくて、代わりに CN の値を指定すれば Revoke できました。また、<code>--cert--key</code> を指定した場合は認証が不要でした。鍵で認証できるからでしょうね。</p>
+<pre tabindex=0><code>token subject '101631527727627020288' and serial number '155321595983482556839109003173565772740' do not match
+</code></pre><h2 id=リモートサーバー class="relative group">リモートサーバー <span class="absolute top-0 w-6 transition-opacity opacity-0 ltr:-left-6 rtl:-right-6 not-prose group-hover:opacity-100"><a class="group-hover:text-primary-300 dark:group-hover:text-neutral-700" style=text-decoration-line:none!important href=#%e3%83%aa%e3%83%a2%e3%83%bc%e3%83%88%e3%82%b5%e3%83%bc%e3%83%90%e3%83%bc aria-label=アンカー>#</a></span></h2>
+<p>証明書発行の流れはわかりましたが、複数人で使うためにはサーバーを用意して使うことになります。全部手元にある環境で試していたので分離してより理解を深めてみます。</p>
+<p>GCE の debian 10 で nginx + Let&rsquo;s Encrypt の背後に step-ca を配置する構成にしてみます。</p>
+<pre tabindex=0><code>step (CLI) --(https)--&gt; nginx (Let's Encrypt) --(https)--&gt; step-ca
+</code></pre><h3 id=nginx-と-lets-encrypt-で-tls-な-reverse-proxy-をセットアップ class="relative group">nginx と Let&rsquo;s Encrypt で TLS な Reverse Proxy をセットアップ <span class="absolute top-0 w-6 transition-opacity opacity-0 ltr:-left-6 rtl:-right-6 not-prose group-hover:opacity-100"><a class="group-hover:text-primary-300 dark:group-hover:text-neutral-700" style=text-decoration-line:none!important href=#nginx-%e3%81%a8-lets-encrypt-%e3%81%a7-tls-%e3%81%aa-reverse-proxy-%e3%82%92%e3%82%bb%e3%83%83%e3%83%88%e3%82%a2%e3%83%83%e3%83%97 aria-label=アンカー>#</a></span></h3>
+<pre tabindex=0><code>$ sudo apt-get update &amp;&amp; sudo apt-get install -y python3-certbot-nginx
+</code></pre><pre tabindex=0><code>$ sudo certbot --nginx -d step.teraoka.me --post-hook &quot;/usr/sbin/nginx -s reload&quot; --agree-tos -m メールアドレス
+Saving debug log to /var/log/letsencrypt/letsencrypt.log
+Plugins selected: Authenticator nginx, Installer nginx
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+Would you be willing to share your email address with the Electronic Frontier
+Foundation, a founding partner of the Let's Encrypt project and the non-profit
+organization that develops Certbot? We'd like to send you email about our work
+encrypting the web, EFF news, campaigns, and ways to support digital freedom.
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+(Y)es/(N)o: N
+Obtaining a new certificate
+Performing the following challenges:
+http-01 challenge for step.teraoka.me
+Waiting for verification...
+Cleaning up challenges
+Running post-hook command: /usr/sbin/nginx -s reload
+Deploying Certificate to VirtualHost /etc/nginx/sites-enabled/default
+Please choose whether or not to redirect HTTP traffic to HTTPS, removing HTTP access.
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+1: No redirect - Make no further changes to the webserver configuration.
+2: Redirect - Make all requests redirect to secure HTTPS access. Choose this for
+new sites, or if you're confident your site works on HTTPS. You can undo this
+change by editing your web server's configuration.
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+Select the appropriate number [1-2] then [enter] (press 'c' to cancel): 2
+Redirecting all traffic on port 80 to ssl in /etc/nginx/sites-enabled/default
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+Congratulations! You have successfully enabled https://step.teraoka.me
+You should test your configuration at:
+!https://www.ssllabs.com/ssltest/analyze.html?d=step.teraoka.me
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+IMPORTANT NOTES:
+ - Congratulations! Your certificate and chain have been saved at:
+   /etc/letsencrypt/live/step.teraoka.me/fullchain.pem
+   Your key file has been saved at:
+   /etc/letsencrypt/live/step.teraoka.me/privkey.pem
+   Your cert will expire on 2021-07-09. To obtain a new or tweaked
+   version of this certificate in the future, simply run certbot again
+   with the &quot;certonly&quot; option. To non-interactively renew *all* of
+   your certificates, run &quot;certbot renew&quot;
+ - Your account credentials have been saved in your Certbot
+   configuration directory at /etc/letsencrypt. You should make a
+   secure backup of this folder now. This configuration directory will
+   also contain certificates and private keys obtained by Certbot so
+   making regular backups of this folder is ideal.
+ - If you like Certbot, please consider supporting our work by:
+   Donating to ISRG / Let's Encrypt:   https://letsencrypt.org/donate
+   Donating to EFF:                    https://eff.org/donate-le
+</code></pre><p>これで <code>/etc/nginx/sites-available/default</code> に https 設定が挿入されます。<code>/etc/cron.d/certbot</code> に自動更新のための設定もあります。</p>
+<p>step-ca の default port は 4343 だったので <code>/etc/nginx/sites-available/default</code> をさらに編集して <code>/</code> を 127.0.0.1:4343 に proxy するように設定する。</p>
+<pre tabindex=0><code>location / {
+    proxy_pass https://127.0.0.1:4343;
+}
+</code></pre><p>変更を反映させる。</p>
+<pre tabindex=0><code>sudo nginx -s reload
+</code></pre><h3 id=step-step-ca-コマンドをインストール class="relative group">step, step-ca コマンドをインストール <span class="absolute top-0 w-6 transition-opacity opacity-0 ltr:-left-6 rtl:-right-6 not-prose group-hover:opacity-100"><a class="group-hover:text-primary-300 dark:group-hover:text-neutral-700" style=text-decoration-line:none!important href=#step-step-ca-%e3%82%b3%e3%83%9e%e3%83%b3%e3%83%89%e3%82%92%e3%82%a4%e3%83%b3%e3%82%b9%e3%83%88%e3%83%bc%e3%83%ab aria-label=アンカー>#</a></span></h3>
+<pre tabindex=0><code>curl -LO https://github.com/smallstep/cli/releases/download/v0.15.14/step-cli_0.15.14_amd64.deb
+sudo dpkg -i step-cli_0.15.14_amd64.deb
+</code></pre><pre tabindex=0><code>curl -LO https://github.com/smallstep/certificates/releases/download/v0.15.11/step-ca_0.15.11_amd64.deb
+sudo dpkg -i step-ca_0.15.11_amd64.deb
+</code></pre><h3 id=step-ca-用のユーザーを作成 class="relative group">step-ca 用のユーザーを作成 <span class="absolute top-0 w-6 transition-opacity opacity-0 ltr:-left-6 rtl:-right-6 not-prose group-hover:opacity-100"><a class="group-hover:text-primary-300 dark:group-hover:text-neutral-700" style=text-decoration-line:none!important href=#step-ca-%e7%94%a8%e3%81%ae%e3%83%a6%e3%83%bc%e3%82%b6%e3%83%bc%e3%82%92%e4%bd%9c%e6%88%90 aria-label=アンカー>#</a></span></h3>
+<pre tabindex=0><code>sudo useradd -m -s /bin/bash step
+</code></pre><h3 id=step-ca-init class="relative group">step ca init <span class="absolute top-0 w-6 transition-opacity opacity-0 ltr:-left-6 rtl:-right-6 not-prose group-hover:opacity-100"><a class="group-hover:text-primary-300 dark:group-hover:text-neutral-700" style=text-decoration-line:none!important href=#step-ca-init aria-label=アンカー>#</a></span></h3>
+<pre tabindex=0><code>sudo -iu step
+dd if=/dev/urandom count=1 bs=48 | base64 &gt; password.txt
+step ca init --name smallstep \
+  --address 127.0.0.1:4343 \
+  --dns step.teraoka.me,127.0.0.1 \
+  --provisioner admin \
+  --password-file password.txt
+</code></pre><pre tabindex=0><code>Generating root certificate... 
+all done!
+Generating intermediate certificate... 
+all done!
+✔ Root certificate: /home/step/.step/certs/root_ca.crt
+✔ Root private key: /home/step/.step/secrets/root_ca_key
+✔ Root fingerprint: 926633fc1ef97f58ca359e665ca509093080e4ed1d3a3d289493935eaf528694
+✔ Intermediate certificate: /home/step/.step/certs/intermediate_ca.crt
+✔ Intermediate private key: /home/step/.step/secrets/intermediate_ca_key
+✔ Database folder: /home/step/.step/db
+✔ Default configuration: /home/step/.step/config/defaults.json
+✔ Certificate Authority configuration: /home/step/.step/config/ca.json
+Your PKI is ready to go. To generate certificates for individual services see 'step help ca'.
+FEEDBACK 😍 🍻
+      The step utility is not instrumented for usage statistics. It does not
+      phone home. But your feedback is extremely valuable. Any information you
+      can provide regarding how you’re using `step` helps. Please send us a
+      sentence or two, good or bad: feedback@smallstep.com or join
+      https://github.com/smallstep/certificates/discussions.
+</code></pre><h3 id=google-oidc-provisioner-の追加 class="relative group">Google OIDC Provisioner の追加 <span class="absolute top-0 w-6 transition-opacity opacity-0 ltr:-left-6 rtl:-right-6 not-prose group-hover:opacity-100"><a class="group-hover:text-primary-300 dark:group-hover:text-neutral-700" style=text-decoration-line:none!important href=#google-oidc-provisioner-%e3%81%ae%e8%bf%bd%e5%8a%a0 aria-label=アンカー>#</a></span></h3>
+<pre tabindex=0><code>step ca provisioner add Google --type oidc --ca-config $(step path)/config/ca.json \
+    --client-id ${CLIENT_ID} \
+    --client-secret ${CLIENT_SECRET} \
+    --configuration-endpoint https://accounts.google.com/.well-known/openid-configuration \
+    --domain teraoka.me \
+    --listen-address :10000
+</code></pre><h3 id=systemd-で-step-ca-が起動するようにする class="relative group">systemd で step-ca が起動するようにする <span class="absolute top-0 w-6 transition-opacity opacity-0 ltr:-left-6 rtl:-right-6 not-prose group-hover:opacity-100"><a class="group-hover:text-primary-300 dark:group-hover:text-neutral-700" style=text-decoration-line:none!important href=#systemd-%e3%81%a7-step-ca-%e3%81%8c%e8%b5%b7%e5%8b%95%e3%81%99%e3%82%8b%e3%82%88%e3%81%86%e3%81%ab%e3%81%99%e3%82%8b aria-label=アンカー>#</a></span></h3>
+<pre tabindex=0><code>sudo cat &gt; /etc/systemd/system/step-ca.service &lt;&lt;EOF
+[Unit]
+Description=Smallstep CA Server
+Documentation=https://smallstep.com/docs
+After=network.target
+[Service]
+Type=simple
+Environment=SETPPATH=/home/step/.step
+User=step
+ExecStart=/usr/bin/step-ca /home/step/.step/config/ca.json --password-file /home/step/password.txt
+Restart=always
+[Install]
+WantedBy=multi-user.target
+EOF
+
+sudo systemctl daemon-reload
+sudo systemctl start step-ca
+sudo systemctl status step-ca
+sudo systemctl enable step-ca
+</code></pre><h3 id=ネットワーク越しに-step-コマンドでアクセスする class="relative group">ネットワーク越しに step コマンドでアクセスする <span class="absolute top-0 w-6 transition-opacity opacity-0 ltr:-left-6 rtl:-right-6 not-prose group-hover:opacity-100"><a class="group-hover:text-primary-300 dark:group-hover:text-neutral-700" style=text-decoration-line:none!important href=#%e3%83%8d%e3%83%83%e3%83%88%e3%83%af%e3%83%bc%e3%82%af%e8%b6%8a%e3%81%97%e3%81%ab-step-%e3%82%b3%e3%83%9e%e3%83%b3%e3%83%89%e3%81%a7%e3%82%a2%e3%82%af%e3%82%bb%e3%82%b9%e3%81%99%e3%82%8b aria-label=アンカー>#</a></span></h3>
+<p><code>$(step path)/config/defaults.json</code> の存在しない状態で動作確認します。サーバーの URL を <code>--ca-url</code> で指定します。</p>
+<pre tabindex=0><code>$ step ca health --ca-url https://step.teraoka.me
+'step ca health' requires the '--root' flag
+</code></pre><p><code>--root</code> で CA の証明書ファイル指定する必要があるみたいです。ローカルで試していた時は <code>defaults.json</code> で <code>$(step path)/certs/root_ca.crt</code> が指定してありました。これはサーバー側から持ってくる必要があります。サーバー側で <code>step ca root</code> すれば取得できるのでこれを <code>ca.crt</code> として保存して試します。</p>
+<pre tabindex=0><code>$ step ca health --ca-url https://step.teraoka.me --root ca.crt
+The certificate authority encountered an Internal Server Error. Please see the certificate authority logs for more info.
+Re-run with STEPDEBUG=1 for more info.
+</code></pre><p>Internal Server Error ???<br>
+STEPDEBUG=1 を設定して実行すると次のメッセージが表示されました。証明書が問題のようです。</p>
+<pre tabindex=0><code>Get &quot;https://step.teraoka.me/health&quot;: x509: certificate signed by unknown authority
+client.Health; client GET https://step.teraoka.me/health failed
+(以下省略)
+</code></pre><p>が、curl でアクセスした場合は問題ありません。どうやら step コマンドが証明書の検証に使うのが <code>--root</code> で指定したファイルにある証明書だけのようです。よって Let&rsquo;s Encrypt の DST Root CA X3 の証明書を ca.crt に追加しました。</p>
+<pre tabindex=0><code>$ step ca health --ca-url https://step.teraoka.me --root ca.crt
+ok
+</code></pre><p>成功です。nginx が邪魔だったみたい。</p>
+<p>でもこれでわかりました。step-ca サーバーを別建てにした場合、step コマンドを実行したい端末に root ca の証明書を配る必要がありました。それだけ。Google からの redirect を受ける <code>step oauth</code> コマンドもクライアント側で実行されるため <strong>Authorized redirect URIs</strong> も localhost のままで大丈夫です。</p>
+<p>root ca の証明書は fingerprint が分かれば <code>step ca root</code> コマンドで取得可能っぽい。</p>
+<p>デフォルトの証明書の期限は 24h だったので、必要なら config/ca.json 書き換える必要がある。</p>
+<p>残す謎は oidc provisioner の admin 機能がうまく機能しなかったこと。step コマンドには admin 判定処理はないのに、step コマンド側で email と argument が違うと言って弾いちゃってるんだよなあ。</p>
+<p>まあ、admin 相当の人は <a href=https://smallstep.com/docs/step-ca/configuration#jwk>JWK Provisioner</a> を使えば任意の証明書を発行できるので良いか。担当者の数だけ作れるし。</p>
+<pre tabindex=0><code>step ca provisioner add admin-1@example.com --create --password-file password.txt
+</code></pre><p>この処理は <code>ca.json</code> への追加で、reload も必要なのでリモートからはできない。</p>
+<h2 id=csr-を作って署名する class="relative group">CSR を作って署名する <span class="absolute top-0 w-6 transition-opacity opacity-0 ltr:-left-6 rtl:-right-6 not-prose group-hover:opacity-100"><a class="group-hover:text-primary-300 dark:group-hover:text-neutral-700" style=text-decoration-line:none!important href=#csr-%e3%82%92%e4%bd%9c%e3%81%a3%e3%81%a6%e7%bd%b2%e5%90%8d%e3%81%99%e3%82%8b aria-label=アンカー>#</a></span></h2>
+<p>Google Workspace のアカウントがない人向けの証明書作成においても Private Key のやりとりは避けたいので CSR を送ってもらって署名するという運用にしたいものです。</p>
+<p><code>[step certificate create](https://smallstep.com/docs/step-cli/reference/certificate/create)</code> に <code>--csr</code> をつけると証明書をいきなり作成するのではなく CSR と Private Key が作成されます。<code>--insecure</code> と <code>--no-password</code> の両方を追加すると Private Key へのパスワードが不要になります。(まあ後からでもなんとでもなりますけど)</p>
+<pre tabindex=0><code>step certificate create teraoka@example.com teraoka.csr teraoka.key --csr [--insecure --no-password]
+</code></pre><p><code>step certificate inspect</code> で CSR も確認できます。</p>
+<p>CSR に対して署名するには <code>[step ca sign](https://smallstep.com/docs/step-cli/reference/ca/sign)</code> を使います。</p>
+<pre tabindex=0><code>step ca sign teraoka.csr teraoka.crt
+
+</code></pre>
+</div>
+<script>var liked_article=!1,oid,id,viewed,oid_likes,id_likes,liked;typeof auth!='undefined'&&(oid="views_posts/step-ca-with-google-oidc.md",id=oid&&oid.replaceAll("/","-"),viewed=localStorage.getItem(id),viewed||auth.signInAnonymously().then(()=>{var a=db.collection('views').doc(id);localStorage.setItem(id,!0),a.get().then(a=>{a.exists?db.collection('views').doc(id).update({views:firebase.firestore.FieldValue.increment(1)}):db.collection('views').doc(id).set({views:1})}).catch(a=>{console.log("Error getting document:",a)})}).catch(a=>{var b=a.code,c=a.message;console.error(b,c)}),oid_likes="likes_posts/step-ca-with-google-oidc.md",id_likes=oid_likes&&oid_likes.replaceAll("/","-"),liked=localStorage.getItem(id_likes),liked&&(liked_article=!0,document.querySelectorAll("button[id='likes_button']")[0].innerText="Remove Like"));function like_article(a){console.log("add"),liked_article=!0,localStorage.setItem(a,!0),document.querySelectorAll("button[id='likes_button']")[0].innerText="Remove Like",auth.signInAnonymously().then(()=>{var b=db.collection('likes').doc(a);b.get().then(b=>{b.exists?db.collection('likes').doc(a).update({likes:firebase.firestore.FieldValue.increment(1)}):db.collection('likes').doc(a).set({likes:1})}).catch(a=>{console.log("Error getting document:",a)})}).catch(a=>{var b=a.code,c=a.message;console.error(b,c)})}function remove_like_article(a){console.log("remove"),liked_article=!1,localStorage.setItem(a,!1),document.querySelectorAll("button[id='likes_button']")[0].innerText="Like",auth.signInAnonymously().then(()=>{var b=db.collection('likes').doc(a);b.get().then(b=>{b.exists?db.collection('likes').doc(a).update({likes:firebase.firestore.FieldValue.increment(-1)}):db.collection('likes').doc(a).set({likes:0})}).catch(a=>{console.log("Error getting document:",a)})}).catch(a=>{var b=a.code,c=a.message;console.error(b,c)})}function process_article(){var a="likes_posts/step-ca-with-google-oidc.md",b=a&&a.replaceAll("/","-");liked_article?remove_like_article(b):like_article(b)}</script>
+</section>
+<footer class="pt-8 max-w-prose print:hidden">
+<div class=flex>
+<div class=place-self-center>
+<div class="text-[0.6rem] uppercase leading-3 text-neutral-500 dark:text-neutral-400">
+著者
+</div>
+<div class="font-semibold leading-6 text-neutral-800 dark:text-neutral-300">
+Yoshinori Teraoka
+</div>
+<div class="text-2xl sm:text-lg">
+<div class="flex flex-wrap text-neutral-400 dark:text-neutral-500">
+<a class="px-1 hover:text-primary-700 dark:hover:text-primary-400" href=https://twitter.com/yteraoka target=_blank aria-label=Twitter rel="me noopener noreferrer">
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentcolor" d="M459.37 151.716c.325 4.548.325 9.097.325 13.645.0 138.72-105.583 298.558-298.558 298.558-59.452.0-114.68-17.219-161.137-47.106 8.447.974 16.568 1.299 25.34 1.299 49.055.0 94.213-16.568 130.274-44.832-46.132-.975-84.792-31.188-98.112-72.772 6.498.974 12.995 1.624 19.818 1.624 9.421.0 18.843-1.3 27.614-3.573-48.081-9.747-84.143-51.98-84.143-102.985v-1.299c13.969 7.797 30.214 12.67 47.431 13.319-28.264-18.843-46.781-51.005-46.781-87.391.0-19.492 5.197-37.36 14.294-52.954 51.655 63.675 129.3 105.258 216.365 109.807-1.624-7.797-2.599-15.918-2.599-24.04.0-57.828 46.782-104.934 104.934-104.934 30.213.0 57.502 12.67 76.67 33.137 23.715-4.548 46.456-13.32 66.599-25.34-7.798 24.366-24.366 44.833-46.132 57.827 21.117-2.273 41.584-8.122 60.426-16.243-14.292 20.791-32.161 39.308-52.628 54.253z"/></svg>
+</span>
+</a>
+<a class="px-1 hover:text-primary-700 dark:hover:text-primary-400" href=https://github.com/yteraoka target=_blank aria-label=Github rel="me noopener noreferrer">
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><path fill="currentcolor" d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6.0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6.0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3.0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1.0-6.2-.3-40.4-.3-61.4.0.0-70 15-84.7-29.8.0.0-11.4-29.1-27.8-36.6.0.0-22.9-15.7 1.6-15.4.0.0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5.0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9.0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4.0 33.7-.3 75.4-.3 83.6.0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6.0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9.0-6.2-1.4-2.3-4-3.3-5.6-2z"/></svg>
+</span>
+</a>
+<a class="px-1 hover:text-primary-700 dark:hover:text-primary-400" href=https://linkedin.com/in/fa5b66b7-9c77-4e1b-8b97-40ba4a5a2c13/ target=_blank aria-label=Linkedin rel="me noopener noreferrer">
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path fill="currentcolor" d="M416 32H31.9C14.3 32 0 46.5.0 64.3v383.4C0 465.5 14.3 480 31.9 480H416c17.6.0 32-14.5 32-32.3V64.3c0-17.8-14.4-32.3-32-32.3zM135.4 416H69V202.2h66.5V416zm-33.2-243c-21.3.0-38.5-17.3-38.5-38.5S80.9 96 102.2 96c21.2.0 38.5 17.3 38.5 38.5.0 21.3-17.2 38.5-38.5 38.5zm282.1 243h-66.4V312c0-24.8-.5-56.7-34.5-56.7-34.6.0-39.9 27-39.9 54.9V416h-66.4V202.2h63.7v29.2h.9c8.9-16.8 30.6-34.5 62.9-34.5 67.2.0 79.7 44.3 79.7 101.9V416z"/></svg>
+</span>
+</a>
+<a class="px-1 hover:text-primary-700 dark:hover:text-primary-400" href=https://medium.com/@yteraoka target=_blank aria-label=Medium rel="me noopener noreferrer">
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512"><path fill="currentcolor" d="M180.5 74.262C80.813 74.262.0 155.633.0 256S80.819 437.738 180.5 437.738 361 356.373 361 256 280.191 74.262 180.5 74.262zm288.25 10.646c-49.845.0-90.245 76.619-90.245 171.095s40.406 171.1 90.251 171.1 90.251-76.619 90.251-171.1H559C559 161.5 518.6 84.908 468.752 84.908zm139.506 17.821c-17.526.0-31.735 68.628-31.735 153.274s14.2 153.274 31.735 153.274S640 340.631 640 256c0-84.649-14.215-153.271-31.742-153.271z"/></svg>
+</span>
+</a>
+</div>
+</div>
+</div>
+</div>
+<section class="flex flex-row flex-wrap justify-center pt-4 text-xl">
+<a class="m-1 inline-block min-w-[2.4rem] rounded bg-neutral-300 p-1 text-center text-neutral-700 hover:bg-primary-500 hover:text-neutral dark:bg-neutral-700 dark:text-neutral-300 dark:hover:bg-primary-400 dark:hover:text-neutral-800" href="https://www.linkedin.com/shareArticle?mini=true&url=https://preview-blog.1q77.com/2021/04/step-ca-with-google-oidc/&title=Google%20%e8%aa%8d%e8%a8%bc%e3%81%a7%e3%82%af%e3%83%a9%e3%82%a4%e3%82%a2%e3%83%b3%e3%83%88%e8%a8%bc%e6%98%8e%e6%9b%b8%e7%99%ba%e8%a1%8c%e3%81%ae%e3%82%bb%e3%83%ab%e3%83%95%e3%82%b5%e3%83%bc%e3%83%93%e3%82%b9%e5%8c%96" title=LinkedInでシェアする aria-label=LinkedInでシェアする>
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path fill="currentcolor" d="M416 32H31.9C14.3 32 0 46.5.0 64.3v383.4C0 465.5 14.3 480 31.9 480H416c17.6.0 32-14.5 32-32.3V64.3c0-17.8-14.4-32.3-32-32.3zM135.4 416H69V202.2h66.5V416zm-33.2-243c-21.3.0-38.5-17.3-38.5-38.5S80.9 96 102.2 96c21.2.0 38.5 17.3 38.5 38.5.0 21.3-17.2 38.5-38.5 38.5zm282.1 243h-66.4V312c0-24.8-.5-56.7-34.5-56.7-34.6.0-39.9 27-39.9 54.9V416h-66.4V202.2h63.7v29.2h.9c8.9-16.8 30.6-34.5 62.9-34.5 67.2.0 79.7 44.3 79.7 101.9V416z"/></svg>
+</span>
+</a>
+<a class="m-1 inline-block min-w-[2.4rem] rounded bg-neutral-300 p-1 text-center text-neutral-700 hover:bg-primary-500 hover:text-neutral dark:bg-neutral-700 dark:text-neutral-300 dark:hover:bg-primary-400 dark:hover:text-neutral-800" href="https://twitter.com/intent/tweet/?url=https://preview-blog.1q77.com/2021/04/step-ca-with-google-oidc/&text=Google%20%e8%aa%8d%e8%a8%bc%e3%81%a7%e3%82%af%e3%83%a9%e3%82%a4%e3%82%a2%e3%83%b3%e3%83%88%e8%a8%bc%e6%98%8e%e6%9b%b8%e7%99%ba%e8%a1%8c%e3%81%ae%e3%82%bb%e3%83%ab%e3%83%95%e3%82%b5%e3%83%bc%e3%83%93%e3%82%b9%e5%8c%96" title=Twitterに投稿する aria-label=Twitterに投稿する>
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentcolor" d="M459.37 151.716c.325 4.548.325 9.097.325 13.645.0 138.72-105.583 298.558-298.558 298.558-59.452.0-114.68-17.219-161.137-47.106 8.447.974 16.568 1.299 25.34 1.299 49.055.0 94.213-16.568 130.274-44.832-46.132-.975-84.792-31.188-98.112-72.772 6.498.974 12.995 1.624 19.818 1.624 9.421.0 18.843-1.3 27.614-3.573-48.081-9.747-84.143-51.98-84.143-102.985v-1.299c13.969 7.797 30.214 12.67 47.431 13.319-28.264-18.843-46.781-51.005-46.781-87.391.0-19.492 5.197-37.36 14.294-52.954 51.655 63.675 129.3 105.258 216.365 109.807-1.624-7.797-2.599-15.918-2.599-24.04.0-57.828 46.782-104.934 104.934-104.934 30.213.0 57.502 12.67 76.67 33.137 23.715-4.548 46.456-13.32 66.599-25.34-7.798 24.366-24.366 44.833-46.132 57.827 21.117-2.273 41.584-8.122 60.426-16.243-14.292 20.791-32.161 39.308-52.628 54.253z"/></svg>
+</span>
+</a>
+</section>
+<div class=pt-8>
+<hr class="border-dotted border-neutral-300 dark:border-neutral-600">
+<div class="flex justify-between pt-3">
+<span>
+<a class="flex group" href=/2021/04/terraform-dev_overrides/>
+<span class="mr-3 text-neutral-700 group-hover:text-primary-600 ltr:inline rtl:hidden dark:text-neutral dark:group-hover:text-primary-400">&larr;</span>
+<span class="ml-3 text-neutral-700 group-hover:text-primary-600 ltr:hidden rtl:inline dark:text-neutral dark:group-hover:text-primary-400">&rarr;</span>
+<span class="flex flex-col">
+<span class="mt-[0.1rem] leading-6 group-hover:underline group-hover:decoration-primary-500">Terraform でカスタム provider を使うための dev_overrides 設定</span>
+<span class="mt-[0.1rem] text-xs text-neutral-500 dark:text-neutral-400">
+<time datetime="2021-04-04 04:03:47 +0000 UTC">2021年4月4日</time>
+</span>
+</span>
+</a>
+</span>
+<span>
+<a class="flex text-right group" href=/2021/09/replace-docker-desktop-with-minikube/>
+<span class="flex flex-col">
+<span class="mt-[0.1rem] leading-6 group-hover:underline group-hover:decoration-primary-500">Docker Desktop の代わりに Minikube を使ってみる</span>
+<span class="mt-[0.1rem] text-xs text-neutral-500 dark:text-neutral-400">
+<time datetime="2021-09-18 16:07:27 +0000 UTC">2021年9月18日</time>
+</span>
+</span>
+<span class="ml-3 text-neutral-700 group-hover:text-primary-600 ltr:inline rtl:hidden dark:text-neutral dark:group-hover:text-primary-400">&rarr;</span>
+<span class="mr-3 text-neutral-700 group-hover:text-primary-600 ltr:hidden rtl:inline dark:text-neutral dark:group-hover:text-primary-400">&larr;</span>
+</a>
+</span>
+</div>
+</div>
+</footer>
+</article>
+<div class="pointer-events-none absolute top-[100vh] bottom-0 w-12 ltr:right-0 rtl:left-0">
+<a href=#the-top class="pointer-events-auto sticky top-[calc(100vh-5.5rem)] flex h-12 w-12 items-center justify-center rounded-full bg-neutral/50 text-xl text-neutral-700 backdrop-blur hover:text-primary-600 dark:bg-neutral-800/50 dark:text-neutral dark:hover:text-primary-400" aria-label=TOPへスクロール title=TOPへスクロール>
+&uarr;
+</a>
+</div>
+</main><footer class="py-10 print:hidden">
+<div class="flex items-center justify-between">
+<p class="text-sm text-neutral-500 dark:text-neutral-400">
+&copy;
+2022
+Yoshinori Teraoka
+</p>
+</div>
+<script>mediumZoom(document.querySelectorAll("img:not(.nozoom)"),{margin:24,background:'rgba(0,0,0,0.5)',scrollOffset:0})</script>
+<script type=text/javascript src=/js/process.min.48d08339b8a087b59c7b8cb42b6717aeeed3e07bfc68b1654cac27f00583284dac59cae47fb686dd7c0e9ff1d2745689dc2071230dff432ca6d7fc24b9f2e036.js integrity="sha512-SNCDObigh7Wce4y0K2cXru7T4Hv8aLFlTKwn8AWDKE2sWcrkf7aG3XwOn/HSdFaJ3CBxIw3/Qyym1/wkufLgNg=="></script>
+</footer><div id=search-wrapper class="invisible fixed inset-0 z-50 flex h-screen w-screen cursor-default flex-col bg-neutral-500/50 p-4 backdrop-blur-sm dark:bg-neutral-900/50 sm:p-6 md:p-[10vh] lg:p-[12vh]" data-url=https://preview-blog.1q77.com/>
+<div id=search-modal class="flex flex-col w-full max-w-3xl min-h-0 mx-auto border rounded-md shadow-lg top-20 border-neutral-200 bg-neutral dark:border-neutral-700 dark:bg-neutral-800">
+<header class="relative z-10 flex items-center justify-between flex-none px-2">
+<form class="flex items-center flex-auto min-w-0">
+<div class="flex items-center justify-center w-8 h-8 text-neutral-400">
+<span class="relative inline-block align-text-bottom icon"><svg aria-hidden="true" focusable="false" data-prefix="fas" data-icon="search" class="svg-inline--fa fa-search fa-w-16" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentcolor" d="M505 442.7 405.3 343c-4.5-4.5-10.6-7-17-7H372c27.6-35.3 44-79.7 44-128C416 93.1 322.9.0 208 0S0 93.1.0 208s93.1 208 208 208c48.3.0 92.7-16.4 128-44v16.3c0 6.4 2.5 12.5 7 17l99.7 99.7c9.4 9.4 24.6 9.4 33.9.0l28.3-28.3c9.4-9.4 9.4-24.6.1-34zM208 336c-70.7.0-128-57.2-128-128 0-70.7 57.2-128 128-128 70.7.0 128 57.2 128 128 0 70.7-57.2 128-128 128z"/></svg>
+</span>
+</div>
+<input type=search id=search-query class="flex flex-auto h-12 mx-1 bg-transparent appearance-none focus:outline-dotted focus:outline-2 focus:outline-transparent" placeholder=Search tabindex=0>
+</form>
+<button id=close-search-button class="flex items-center justify-center w-8 h-8 text-neutral-700 hover:text-primary-600 dark:text-neutral dark:hover:text-primary-400" title="閉じる (Esc)">
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><path fill="currentcolor" d="M310.6 361.4c12.5 12.5 12.5 32.75.0 45.25C304.4 412.9 296.2 416 288 416s-16.38-3.125-22.62-9.375L160 301.3 54.63 406.6C48.38 412.9 40.19 416 32 416S15.63 412.9 9.375 406.6c-12.5-12.5-12.5-32.75.0-45.25l105.4-105.4L9.375 150.6c-12.5-12.5-12.5-32.75.0-45.25s32.75-12.5 45.25.0L160 210.8l105.4-105.4c12.5-12.5 32.75-12.5 45.25.0s12.5 32.75.0 45.25l-105.4 105.4L310.6 361.4z"/></svg>
+</span>
+</button>
+</header>
+<section class="flex-auto px-2 overflow-auto">
+<ul id=search-results>
+</ul>
+</section>
+</div>
+</div>
+</div>
+</body>
+</html>

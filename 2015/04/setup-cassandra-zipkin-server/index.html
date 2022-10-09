@@ -1,0 +1,744 @@
+<!doctype html><html lang=ja dir=ltr class=scroll-smooth data-default-appearance=light data-auto-appearance=true><head>
+<meta charset=utf-8>
+<meta http-equiv=content-language content="ja">
+<meta name=viewport content="width=device-width,initial-scale=1">
+<meta http-equiv=x-ua-compatible content="ie=edge">
+<title>Cassandraを使ったZipkinサーバーの構築 &#183; 1Q77</title>
+<meta name=title content="Cassandraを使ったZipkinサーバーの構築 &#183; 1Q77">
+<link rel=canonical href=https://preview-blog.1q77.com/2015/04/setup-cassandra-zipkin-server/>
+<link type=text/css rel=stylesheet href=/css/main.bundle.min.a9d40529d239a91ecb75447e67ee6c80c1f1c28593904b4052651b12220121e13ec42904268b0193a6858f039cf8bfdd2b1331529ed341ddc7488cec3bdcbc2e.css integrity="sha512-qdQFKdI5qR7LdUR+Z+5sgMHxwoWTkEtAUmUbEiIBIeE+xCkEJosBk6aFjwOc+L/dKxMxUp7TQd3HSIzsO9y8Lg==">
+<script type=text/javascript src=/js/main.min.cf83e1357eefb8bdf1542850d66d8007d620e4050b5715dc83f4a921d36ce9ce47d0d13c5d85f2b0ff8318d2877eec2f63b931bd47417a81a538327af927da3e.js integrity="sha512-z4PhNX7vuL3xVChQ1m2AB9Yg5AULVxXcg/SpIdNs6c5H0NE8XYXysP+DGNKHfuwvY7kxvUdBeoGlODJ6+SfaPg=="></script>
+<script type=text/javascript src=/js/appearance.min.49025a779c36ad37a5bf9f1cc6bffd35ccb69ce15560ef1b10057ddf31576265b19f8bcc1733207336c9144926f7b18aea2e5895f29e858b24271332a2fa5cd5.js integrity="sha512-SQJad5w2rTelv58cxr/9Ncy2nOFVYO8bEAV93zFXYmWxn4vMFzMgczbJFEkm97GK6i5YlfKehYskJxMyovpc1Q=="></script>
+<script defer type=text/javascript id=script-bundle src=/js/main.bundle.min.34ee8372ff77835535e486c6ed01ff6993374a1cec8108898cad793fc6ae7520778e24db68e085c762d25af6fa7d00b57d7a791438dc68b676581f8c8344f6e0.js integrity="sha512-NO6Dcv93g1U15IbG7QH/aZM3ShzsgQiJjK15P8audSB3jiTbaOCFx2LSWvb6fQC1fXp5FDjcaLZ2WB+Mg0T24A==" data-copy data-copied></script>
+<script src=/js/zoom.min.js></script>
+<link rel=apple-touch-icon sizes=180x180 href=/apple-touch-icon.png>
+<link rel=icon type=image/png sizes=32x32 href=/favicon-32x32.png>
+<link rel=icon type=image/png sizes=16x16 href=/favicon-16x16.png>
+<link rel=manifest href=/site.webmanifest>
+<meta property="og:title" content="Cassandraを使ったZipkinサーバーの構築">
+<meta property="og:description" content="お手軽だということで Redis をストレージエンジンとした Zipkin サーバーを使っていましたが、Redis ではメモリに収める必要があり、データ容量的に足りなく">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://preview-blog.1q77.com/2015/04/setup-cassandra-zipkin-server/"><meta property="article:section" content="posts">
+<meta property="article:published_time" content="2015-04-04T06:48:29+00:00">
+<meta property="article:modified_time" content="2015-04-04T06:48:29+00:00">
+<meta name=twitter:card content="summary">
+<meta name=twitter:title content="Cassandraを使ったZipkinサーバーの構築">
+<meta name=twitter:description content="お手軽だということで Redis をストレージエンジンとした Zipkin サーバーを使っていましたが、Redis ではメモリに収める必要があり、データ容量的に足りなく">
+<script type=application/ld+json>[{"@context":"https://schema.org","@type":"Article","articleSection":"Posts","name":"Cassandraを使ったZipkinサーバーの構築","headline":"Cassandraを使ったZipkinサーバーの構築","abstract":"お手軽だということで Redis をストレージエンジンとした Zipkin サーバーを使っていましたが、Redis ではメモリに収める必要があり、データ容量的に足りなく","inLanguage":"ja","url":"https:\/\/preview-blog.1q77.com\/2015\/04\/setup-cassandra-zipkin-server\/","author":{"@type":"Person","name":"Yoshinori Teraoka"},"copyrightYear":"2015","dateCreated":"2015-04-04T06:48:29\u002b00:00","datePublished":"2015-04-04T06:48:29\u002b00:00","dateModified":"2015-04-04T06:48:29\u002b00:00","keywords":["Cassandra","Linux","Zipkin"],"mainEntityOfPage":"true","wordCount":"2586"}]</script>
+<meta name=author content="Yoshinori Teraoka">
+<link href=https://twitter.com/yteraoka rel=me>
+<link href=https://github.com/yteraoka rel=me>
+<link href=https://linkedin.com/in/fa5b66b7-9c77-4e1b-8b97-40ba4a5a2c13/ rel=me>
+<link href=https://medium.com/@yteraoka rel=me>
+<link rel=stylesheet href=https://rsms.me/inter/inter.css>
+</head><body class="flex flex-col h-screen px-6 m-auto text-lg leading-7 max-w-7xl bg-neutral text-neutral-900 dark:bg-neutral-800 dark:text-neutral sm:px-14 md:px-24 lg:px-32">
+<div id=the-top class="absolute flex self-center">
+<a class="px-3 py-1 text-sm -translate-y-8 rounded-b-lg bg-primary-200 focus:translate-y-0 dark:bg-neutral-600" href=#main-content><span class="font-bold text-primary-600 ltr:pr-2 rtl:pl-2 dark:text-primary-400">&darr;</span>メインコンテンツへスキップ</a>
+</div>
+<div style=padding-left:0;padding-right:0 class="flex items-center justify-between px-4 py-6 sm:px-6 md:justify-start space-x-3">
+<div class="flex flex-1 items-center justify-between">
+<nav class="flex space-x-3">
+<a href=/ class="text-base font-medium text-gray-500 hover:text-gray-900">1Q77</a>
+</nav>
+<div class="hidden md:flex items-center space-x-5 md:ml-12">
+<a href=/posts/ class="text-base font-medium text-gray-500 hover:text-gray-900" title=Posts>
+Blog
+</a>
+<a href=/tags/ class="text-base font-medium text-gray-500 hover:text-gray-900" title=Tags>
+Tags
+</a>
+<a href=https://github.com/yteraoka class="text-base font-medium text-gray-500 hover:text-gray-900" title>
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><path fill="currentcolor" d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6.0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6.0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3.0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1.0-6.2-.3-40.4-.3-61.4.0.0-70 15-84.7-29.8.0.0-11.4-29.1-27.8-36.6.0.0-22.9-15.7 1.6-15.4.0.0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5.0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9.0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4.0 33.7-.3 75.4-.3 83.6.0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6.0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9.0-6.2-1.4-2.3-4-3.3-5.6-2z"/></svg>
+</span>
+&nbsp;
+GitHub
+</a>
+<a href=https://twitter.com/yteraoka class="text-base font-medium text-gray-500 hover:text-gray-900" title>
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentcolor" d="M459.37 151.716c.325 4.548.325 9.097.325 13.645.0 138.72-105.583 298.558-298.558 298.558-59.452.0-114.68-17.219-161.137-47.106 8.447.974 16.568 1.299 25.34 1.299 49.055.0 94.213-16.568 130.274-44.832-46.132-.975-84.792-31.188-98.112-72.772 6.498.974 12.995 1.624 19.818 1.624 9.421.0 18.843-1.3 27.614-3.573-48.081-9.747-84.143-51.98-84.143-102.985v-1.299c13.969 7.797 30.214 12.67 47.431 13.319-28.264-18.843-46.781-51.005-46.781-87.391.0-19.492 5.197-37.36 14.294-52.954 51.655 63.675 129.3 105.258 216.365 109.807-1.624-7.797-2.599-15.918-2.599-24.04.0-57.828 46.782-104.934 104.934-104.934 30.213.0 57.502 12.67 76.67 33.137 23.715-4.548 46.456-13.32 66.599-25.34-7.798 24.366-24.366 44.833-46.132 57.827 21.117-2.273 41.584-8.122 60.426-16.243-14.292 20.791-32.161 39.308-52.628 54.253z"/></svg>
+</span>
+&nbsp;
+Twitter
+</a>
+<a href=https://qiita.com/yteraoka class="text-base font-medium text-gray-500 hover:text-gray-900" title>
+Qiita
+</a>
+<button id=search-button class="text-base hover:text-primary-600 dark:hover:text-primary-400" title>
+<span class="relative inline-block align-text-bottom icon"><svg aria-hidden="true" focusable="false" data-prefix="fas" data-icon="search" class="svg-inline--fa fa-search fa-w-16" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentcolor" d="M505 442.7 405.3 343c-4.5-4.5-10.6-7-17-7H372c27.6-35.3 44-79.7 44-128C416 93.1 322.9.0 208 0S0 93.1.0 208s93.1 208 208 208c48.3.0 92.7-16.4 128-44v16.3c0 6.4 2.5 12.5 7 17l99.7 99.7c9.4 9.4 24.6 9.4 33.9.0l28.3-28.3c9.4-9.4 9.4-24.6.1-34zM208 336c-70.7.0-128-57.2-128-128 0-70.7 57.2-128 128-128 70.7.0 128 57.2 128 128 0 70.7-57.2 128-128 128z"/></svg>
+</span>
+</button>
+<div class="ltr:mr-14 rtl:ml-14 cursor-pointer text-sm text-neutral-700 hover:text-primary-600 dark:text-neutral dark:hover:text-primary-400">
+<button id=appearance-switcher type=button>
+<div class="flex items-center justify-center h-12 dark:hidden">
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentcolor" d="M32 256C32 132.2 132.3 32 255.8 32c11.36.0 29.7 1.668 40.9 3.746 9.616 1.777 11.75 14.63 3.279 19.44C245 86.5 211.2 144.6 211.2 207.8c0 109.7 99.71 193 208.3 172.3 9.561-1.805 16.28 9.324 10.11 16.95C387.9 448.6 324.8 480 255.8 480 132.1 480 32 379.6 32 256z"/></svg>
+</span>
+</div>
+<div class="items-center justify-center hidden h-12 dark:flex">
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentcolor" d="M256 159.1c-53.02.0-95.1 42.98-95.1 95.1s41.2 96.9 95.1 96.9 95.1-42.98 95.1-95.1S309 159.1 256 159.1zM509.3 347l-63.2-91.9 63.15-91.01c6.332-9.125 1.104-21.74-9.826-23.72l-109-19.7-19.7-109c-1.975-10.93-14.59-16.16-23.72-9.824L256 65.89 164.1 2.736c-9.125-6.332-21.74-1.107-23.72 9.824L121.6 121.6 12.56 141.3C1.633 143.2-3.596 155.9 2.736 164.1L65.89 256 2.74 347.01c-6.332 9.125-1.105 21.74 9.824 23.72l109 19.7 19.7 109c1.975 10.93 14.59 16.16 23.72 9.824L256 446.1l91.01 63.15c9.127 6.334 21.75 1.107 23.72-9.822l19.7-109 109-19.7C510.4 368.8 515.6 356.1 509.3 347zM256 383.1c-70.69.0-127.1-57.31-127.1-127.1.0-70.69 57.31-127.1 127.1-127.1S383.1 186.2 383.1 256c0 70.7-56.4 127.1-127.1 127.1z"/></svg>
+</span>
+</div>
+</button>
+</div>
+</div>
+<div class="flex md:hidden items-center space-x-5 md:ml-12">
+<span></span>
+<button id=search-button-mobile class="text-base hover:text-primary-600 dark:hover:text-primary-400" title>
+<span class="relative inline-block align-text-bottom icon"><svg aria-hidden="true" focusable="false" data-prefix="fas" data-icon="search" class="svg-inline--fa fa-search fa-w-16" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentcolor" d="M505 442.7 405.3 343c-4.5-4.5-10.6-7-17-7H372c27.6-35.3 44-79.7 44-128C416 93.1 322.9.0 208 0S0 93.1.0 208s93.1 208 208 208c48.3.0 92.7-16.4 128-44v16.3c0 6.4 2.5 12.5 7 17l99.7 99.7c9.4 9.4 24.6 9.4 33.9.0l28.3-28.3c9.4-9.4 9.4-24.6.1-34zM208 336c-70.7.0-128-57.2-128-128 0-70.7 57.2-128 128-128 70.7.0 128 57.2 128 128 0 70.7-57.2 128-128 128z"/></svg>
+</span>
+</button>
+<button id=appearance-switcher-mobile type=button style=margin-right:5px>
+<div class="flex items-center justify-center h-12 dark:hidden">
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentcolor" d="M32 256C32 132.2 132.3 32 255.8 32c11.36.0 29.7 1.668 40.9 3.746 9.616 1.777 11.75 14.63 3.279 19.44C245 86.5 211.2 144.6 211.2 207.8c0 109.7 99.71 193 208.3 172.3 9.561-1.805 16.28 9.324 10.11 16.95C387.9 448.6 324.8 480 255.8 480 132.1 480 32 379.6 32 256z"/></svg>
+</span>
+</div>
+<div class="items-center justify-center hidden h-12 dark:flex">
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentcolor" d="M256 159.1c-53.02.0-95.1 42.98-95.1 95.1s41.2 96.9 95.1 96.9 95.1-42.98 95.1-95.1S309 159.1 256 159.1zM509.3 347l-63.2-91.9 63.15-91.01c6.332-9.125 1.104-21.74-9.826-23.72l-109-19.7-19.7-109c-1.975-10.93-14.59-16.16-23.72-9.824L256 65.89 164.1 2.736c-9.125-6.332-21.74-1.107-23.72 9.824L121.6 121.6 12.56 141.3C1.633 143.2-3.596 155.9 2.736 164.1L65.89 256 2.74 347.01c-6.332 9.125-1.105 21.74 9.824 23.72l109 19.7 19.7 109c1.975 10.93 14.59 16.16 23.72 9.824L256 446.1l91.01 63.15c9.127 6.334 21.75 1.107 23.72-9.822l19.7-109 109-19.7C510.4 368.8 515.6 356.1 509.3 347zM256 383.1c-70.69.0-127.1-57.31-127.1-127.1.0-70.69 57.31-127.1 127.1-127.1S383.1 186.2 383.1 256c0 70.7-56.4 127.1-127.1 127.1z"/></svg>
+</span>
+</div>
+</button>
+</div>
+</div>
+<div class="-my-2 -mr-2 md:hidden">
+<label id=menu-button for=menu-controller class=block>
+<input type=checkbox id=menu-controller class=hidden>
+<div class="cursor-pointer hover:text-primary-600 dark:hover:text-primary-400">
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path fill="currentcolor" d="M0 96C0 78.33 14.33 64 32 64H416c17.7.0 32 14.33 32 32 0 17.7-14.3 32-32 32H32C14.33 128 0 113.7.0 96zM0 256c0-17.7 14.33-32 32-32H416c17.7.0 32 14.3 32 32s-14.3 32-32 32H32c-17.67.0-32-14.3-32-32zM416 448H32c-17.67.0-32-14.3-32-32s14.33-32 32-32H416c17.7.0 32 14.3 32 32s-14.3 32-32 32z"/></svg>
+</span>
+</div>
+<div id=menu-wrapper style=padding-top:25px class="fixed inset-0 z-30 invisible w-screen h-screen m-auto overflow-auto transition-opacity opacity-0 cursor-default bg-neutral-100/50 backdrop-blur-sm dark:bg-neutral-900/50">
+<ul class="flex movedown flex-col w-full px-6 py-6 mx-auto overflow-visible list-none ltr:text-right rtl:text-left max-w-7xl sm:px-14 md:px-24 lg:px-32 sm:py-10 sm:pt-10">
+<li class=mb-1>
+<span class="cursor-pointer hover:text-primary-600 dark:hover:text-primary-400">
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><path fill="currentcolor" d="M310.6 361.4c12.5 12.5 12.5 32.75.0 45.25C304.4 412.9 296.2 416 288 416s-16.38-3.125-22.62-9.375L160 301.3 54.63 406.6C48.38 412.9 40.19 416 32 416S15.63 412.9 9.375 406.6c-12.5-12.5-12.5-32.75.0-45.25l105.4-105.4L9.375 150.6c-12.5-12.5-12.5-32.75.0-45.25s32.75-12.5 45.25.0L160 210.8l105.4-105.4c12.5-12.5 32.75-12.5 45.25.0s12.5 32.75.0 45.25l-105.4 105.4L310.6 361.4z"/></svg>
+</span>
+</span>
+</li>
+<li class=mb-1>
+<a class="decoration-primary-500 hover:underline hover:decoration-2 hover:underline-offset-2" href=/posts/ title=Posts>
+Blog
+</a>
+</li>
+<li class=mb-1>
+<a class="decoration-primary-500 hover:underline hover:decoration-2 hover:underline-offset-2" href=/tags/ title=Tags>
+Tags
+</a>
+</li>
+<li class=mb-1>
+<a class="decoration-primary-500 hover:underline hover:decoration-2 hover:underline-offset-2" href=https://github.com/yteraoka title>
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><path fill="currentcolor" d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6.0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6.0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3.0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1.0-6.2-.3-40.4-.3-61.4.0.0-70 15-84.7-29.8.0.0-11.4-29.1-27.8-36.6.0.0-22.9-15.7 1.6-15.4.0.0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5.0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9.0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4.0 33.7-.3 75.4-.3 83.6.0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6.0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9.0-6.2-1.4-2.3-4-3.3-5.6-2z"/></svg>
+</span>
+&nbsp;
+GitHub
+</a>
+</li>
+<li class=mb-1>
+<a class="decoration-primary-500 hover:underline hover:decoration-2 hover:underline-offset-2" href=https://twitter.com/yteraoka title>
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentcolor" d="M459.37 151.716c.325 4.548.325 9.097.325 13.645.0 138.72-105.583 298.558-298.558 298.558-59.452.0-114.68-17.219-161.137-47.106 8.447.974 16.568 1.299 25.34 1.299 49.055.0 94.213-16.568 130.274-44.832-46.132-.975-84.792-31.188-98.112-72.772 6.498.974 12.995 1.624 19.818 1.624 9.421.0 18.843-1.3 27.614-3.573-48.081-9.747-84.143-51.98-84.143-102.985v-1.299c13.969 7.797 30.214 12.67 47.431 13.319-28.264-18.843-46.781-51.005-46.781-87.391.0-19.492 5.197-37.36 14.294-52.954 51.655 63.675 129.3 105.258 216.365 109.807-1.624-7.797-2.599-15.918-2.599-24.04.0-57.828 46.782-104.934 104.934-104.934 30.213.0 57.502 12.67 76.67 33.137 23.715-4.548 46.456-13.32 66.599-25.34-7.798 24.366-24.366 44.833-46.132 57.827 21.117-2.273 41.584-8.122 60.426-16.243-14.292 20.791-32.161 39.308-52.628 54.253z"/></svg>
+</span>
+&nbsp;
+Twitter
+</a>
+</li>
+<li class=mb-1>
+<a class="decoration-primary-500 hover:underline hover:decoration-2 hover:underline-offset-2" href=https://qiita.com/yteraoka title>
+Qiita
+</a>
+</li>
+</ul>
+</div>
+</label>
+</div>
+</div>
+<div id=mobile-menu class="fixed inset-0 z-30 invisible w-screen h-screen m-auto overflow-auto transition-opacity opacity-0 cursor-default bg-neutral-100/50 backdrop-blur-sm dark:bg-neutral-900/50">
+<ul class="flex movedown flex-col w-full px-6 py-6 mx-auto overflow-visible list-none ltr:text-right rtl:text-left max-w-7xl sm:px-14 md:px-24 lg:px-32 sm:py-10 sm:pt-10">
+<li class=mb-1>
+<span class="cursor-pointer hover:text-primary-600 dark:hover:text-primary-400">
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><path fill="currentcolor" d="M310.6 361.4c12.5 12.5 12.5 32.75.0 45.25C304.4 412.9 296.2 416 288 416s-16.38-3.125-22.62-9.375L160 301.3 54.63 406.6C48.38 412.9 40.19 416 32 416S15.63 412.9 9.375 406.6c-12.5-12.5-12.5-32.75.0-45.25l105.4-105.4L9.375 150.6c-12.5-12.5-12.5-32.75.0-45.25s32.75-12.5 45.25.0L160 210.8l105.4-105.4c12.5-12.5 32.75-12.5 45.25.0s12.5 32.75.0 45.25l-105.4 105.4L310.6 361.4z"/></svg>
+</span>
+</span>
+</li>
+<li class=mb-1>
+<a class="decoration-primary-500 hover:underline hover:decoration-2 hover:underline-offset-2" href=/posts/ title=Posts>Blog</a>
+</li>
+<li class=mb-1>
+<a class="decoration-primary-500 hover:underline hover:decoration-2 hover:underline-offset-2" href=/tags/ title=Tags>Tags</a>
+</li>
+<li class=mb-1>
+<a class="decoration-primary-500 hover:underline hover:decoration-2 hover:underline-offset-2" href=https://github.com/yteraoka title>GitHub</a>
+</li>
+<li class=mb-1>
+<a class="decoration-primary-500 hover:underline hover:decoration-2 hover:underline-offset-2" href=https://twitter.com/yteraoka title>Twitter</a>
+</li>
+<li class=mb-1>
+<a class="decoration-primary-500 hover:underline hover:decoration-2 hover:underline-offset-2" href=https://qiita.com/yteraoka title>Qiita</a>
+</li>
+<li>
+<button id=search-button-mobile class="text-base hover:text-primary-600 dark:hover:text-primary-400">
+<span class="relative inline-block align-text-bottom icon"><svg aria-hidden="true" focusable="false" data-prefix="fas" data-icon="search" class="svg-inline--fa fa-search fa-w-16" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentcolor" d="M505 442.7 405.3 343c-4.5-4.5-10.6-7-17-7H372c27.6-35.3 44-79.7 44-128C416 93.1 322.9.0 208 0S0 93.1.0 208s93.1 208 208 208c48.3.0 92.7-16.4 128-44v16.3c0 6.4 2.5 12.5 7 17l99.7 99.7c9.4 9.4 24.6 9.4 33.9.0l28.3-28.3c9.4-9.4 9.4-24.6.1-34zM208 336c-70.7.0-128-57.2-128-128 0-70.7 57.2-128 128-128 70.7.0 128 57.2 128 128 0 70.7-57.2 128-128 128z"/></svg>
+</span>
+</button>
+</li>
+</ul>
+</div>
+<div class="relative flex flex-col grow">
+<main id=main-content class=grow>
+<article>
+<header class=max-w-prose>
+<ol class="text-sm text-neutral-500 dark:text-neutral-400 print:hidden">
+<li class="inline hidden">
+<a class="hover:underline decoration-neutral-300 dark:underline-neutral-600" href=/>1Q77</a><span class="px-1 text-primary-500">/</span>
+</li>
+<li class=inline>
+<a class="hover:underline decoration-neutral-300 dark:underline-neutral-600" href=/posts/>Posts</a><span class="px-1 text-primary-500">/</span>
+</li>
+<li class="inline hidden">
+<a class="hover:underline decoration-neutral-300 dark:underline-neutral-600" href=/2015/04/setup-cassandra-zipkin-server/>Cassandraを使ったZipkinサーバーの構築</a><span class="px-1 text-primary-500">/</span>
+</li>
+</ol>
+<h1 class="mt-0 text-4xl font-extrabold text-neutral-900 dark:text-neutral">
+Cassandraを使ったZipkinサーバーの構築
+</h1>
+<div class="mt-8 mb-12 text-base text-neutral-500 dark:text-neutral-400 print:hidden">
+<div class="flex flex-row flex-wrap items-center">
+<time datetime="2015-04-04 06:48:29 +0000 UTC">2015年4月4日</time>
+</div>
+<div class="flex flex-row flex-wrap items-center">
+<span style=margin-top:.5rem class=mr-2 onclick='window.open("/tags/cassandra/")'>
+<span class=flex>
+<span class="rounded-md border border-primary-400 px-1 py-[1px] text-xs font-normal text-primary-700 dark:border-primary-600 dark:text-primary-400">
+Cassandra
+</span>
+</span>
+</span>
+<span style=margin-top:.5rem class=mr-2 onclick='window.open("/tags/linux/")'>
+<span class=flex>
+<span class="rounded-md border border-primary-400 px-1 py-[1px] text-xs font-normal text-primary-700 dark:border-primary-600 dark:text-primary-400">
+Linux
+</span>
+</span>
+</span>
+<span style=margin-top:.5rem class=mr-2 onclick='window.open("/tags/zipkin/")'>
+<span class=flex>
+<span class="rounded-md border border-primary-400 px-1 py-[1px] text-xs font-normal text-primary-700 dark:border-primary-600 dark:text-primary-400">
+Zipkin
+</span>
+</span>
+</span>
+</div>
+</div>
+</header>
+<section class="flex flex-col max-w-full mt-0 prose dark:prose-invert lg:flex-row">
+<div class="order-first px-0 lg:order-last lg:max-w-xs ltr:lg:pl-8 rtl:lg:pr-8">
+<div class="toc ltr:pl-5 rtl:pr-5 print:hidden lg:sticky lg:top-10">
+<details open class="mt-0 overflow-hidden rounded-lg ltr:-ml-5 ltr:pl-5 rtl:-mr-5 rtl:pr-5 hidden lg:block">
+<summary class="block py-1 text-lg font-semibold cursor-pointer bg-neutral-100 text-neutral-800 ltr:-ml-5 ltr:pl-5 rtl:-mr-5 rtl:pr-5 dark:bg-neutral-700 dark:text-neutral-100 lg:hidden">
+目次
+</summary>
+<div class="py-2 border-dotted border-neutral-300 ltr:-ml-5 ltr:border-l ltr:pl-5 rtl:-mr-5 rtl:border-r rtl:pr-5 dark:border-neutral-600">
+<nav id=TableOfContents>
+<ul>
+<li>
+<ul>
+<li><a href=#cassandra-のセットアップ>Cassandra のセットアップ</a></li>
+<li><a href=#zipkin-用スキーマの作成>Zipkin 用スキーマの作成</a></li>
+<li><a href=#古いデータの掃除>古いデータの掃除</a></li>
+<li><a href=#opscenter>OpsCenter</a></li>
+<li><a href=#zipkin-のセットアップ>Zipkin のセットアップ</a></li>
+<li><a href=#haproxyで負荷分散>HAProxyで負荷分散</a></li>
+<li><a href=#keepalived-で-vip-を持たせる>keepalived で VIP を持たせる</a></li>
+</ul>
+</li>
+</ul>
+</nav>
+</div>
+</details>
+<details class="mt-0 overflow-hidden rounded-lg ltr:-ml-5 ltr:pl-5 rtl:-mr-5 rtl:pr-5 lg:hidden">
+<summary class="py-1 text-lg font-semibold cursor-pointer bg-neutral-100 text-neutral-800 ltr:-ml-5 ltr:pl-5 rtl:-mr-5 rtl:pr-5 dark:bg-neutral-700 dark:text-neutral-100 lg:hidden">
+目次
+</summary>
+<div class="py-2 border-dotted border-neutral-300 ltr:-ml-5 ltr:border-l ltr:pl-5 rtl:-mr-5 rtl:border-r rtl:pr-5 dark:border-neutral-600">
+<nav id=TableOfContents>
+<ul>
+<li>
+<ul>
+<li><a href=#cassandra-のセットアップ>Cassandra のセットアップ</a></li>
+<li><a href=#zipkin-用スキーマの作成>Zipkin 用スキーマの作成</a></li>
+<li><a href=#古いデータの掃除>古いデータの掃除</a></li>
+<li><a href=#opscenter>OpsCenter</a></li>
+<li><a href=#zipkin-のセットアップ>Zipkin のセットアップ</a></li>
+<li><a href=#haproxyで負荷分散>HAProxyで負荷分散</a></li>
+<li><a href=#keepalived-で-vip-を持たせる>keepalived で VIP を持たせる</a></li>
+</ul>
+</li>
+</ul>
+</nav>
+</div>
+</details>
+</div>
+</div>
+<div class="min-w-0 min-h-0 max-w-prose">
+<p>お手軽だということで Redis をストレージエンジンとした Zipkin サーバーを使っていましたが、Redis ではメモリに収める必要があり、データ容量的に足りなくなったため Cassandra を使うことにしました。
+ここでは CentOS 6.6 へ Cassandra と Zipkin サーバーをセットアップする手順を記しておきます。Zipkin をアプリに組み込む方法には触れません。
+<a href=https://github.com/twitter/zipkin>Zipkin</a> とは Twitter が開発している分散トレーシングツールで、今ちょっとバズってるマイクロサービスを進めていくとどのサービスのどこが遅いのかを知る必要がでてきて、リクエスト毎にアプリをまたいだトレースができるツールです。「<a href="http://developers.linecorp.com/blog/ja/?p=3392">LINEのマイクロサービス環境における分散トレーシング « LINE Engineers' Blog</a>」を読むとわかりやすいかもしれません。（お金があって対応言語などがマッチしていれば <a href=http://www.appdynamics.com/>AppDynamics</a> が良いと思いますけどね）</p>
+<p>構成はサーバー4台それぞれに Zipkin と Cassandra をインストール。Zipkin Collector へのアクセスを HAProxy で4台に振り分ける。keepalived でうち1台に VIP をもたせる。(Ansible の Playbook 貼れば終わりなんだけど&mldr;)</p>
+<figure>
+<img class="my-0 rounded-md" srcset="/2015/04/setup-cassandra-zipkin-server/Zipkin-Cassandra_hu9d14ee6193ec32325301391f4c5439bc_49930_330x0_resize_box_3.png 330w,
+/2015/04/setup-cassandra-zipkin-server/Zipkin-Cassandra_hu9d14ee6193ec32325301391f4c5439bc_49930_660x0_resize_box_3.png 660w,
+/2015/04/setup-cassandra-zipkin-server/Zipkin-Cassandra_hu9d14ee6193ec32325301391f4c5439bc_49930_1024x0_resize_box_3.png 1024w,
+/2015/04/setup-cassandra-zipkin-server/Zipkin-Cassandra_hu9d14ee6193ec32325301391f4c5439bc_49930_1320x0_resize_box_3.png 2x" src=/2015/04/setup-cassandra-zipkin-server/Zipkin-Cassandra_hu9d14ee6193ec32325301391f4c5439bc_49930_660x0_resize_box_3.png alt>
+<figcaption>Zipkin+Cassandra</figcaption>
+</figure>
+<p>Redis の時に Zipkin Collector が過負荷でどうしようもなかったので、Zipkin サーバーも複数並べたくて、どうせならということで Cassandra サーバーに相乗りさせてみましたが、Cassandra Cluster とは別にしても問題ありません。特に既に Cassandra Cluster が存在する場合など。また、Zipkin Query や Zipkin Web はブラウザからアクセスするサーバーなので沢山並べる必要もありません。今回はどれが故障しても慌てなくて済むように同じ構成のサーバーを並べています。</p>
+<h3 id=cassandra-のセットアップ class="relative group">Cassandra のセットアップ <span class="absolute top-0 w-6 transition-opacity opacity-0 ltr:-left-6 rtl:-right-6 not-prose group-hover:opacity-100"><a class="group-hover:text-primary-300 dark:group-hover:text-neutral-700" style=text-decoration-line:none!important href=#cassandra-%e3%81%ae%e3%82%bb%e3%83%83%e3%83%88%e3%82%a2%e3%83%83%e3%83%97 aria-label=アンカー>#</a></span></h3>
+<p>Cassandra のインストールは DataStax のパッケージを用います。このパッケージには <code>/etc/security/limits.d/cassandra.conf</code> も含まれていて limit まわりも適切に設定してくれます。こういうの重要です。</p>
+<div class=highlight><pre tabindex=0 class=chroma><code class=language-ini data-lang=ini><span class=na>[datastax] </span>
+<span class=na>name</span> <span class=o>=</span> <span class=s>DataStax Repo for Apache Cassandra</span>
+<span class=na>baseurl</span> <span class=o>=</span> <span class=s>http://rpm.datastax.com/community</span>
+<span class=na>enabled</span> <span class=o>=</span> <span class=s>0</span>
+<span class=na>gpgcheck</span> <span class=o>=</span> <span class=s>0</span>
+</code></pre></div><pre tabindex=0><code>$ sudo yum install --enablelrepo=datastax dsc20 cassandra20
+</code></pre><p>vm.max_map_count を変更した方が良いようです。</p>
+<pre tabindex=0><code>$ echo 'vm.max_map_count = 131072' | sudo tee -a /etc/sysctl.conf
+$ sudo sysctl -p
+</code></pre><p>Java の Heap Size は <code>/etc/cassandra/default.conf/cassandra-env.sh</code> で設定します。
+<code>MAX_HEAP_SIZE</code> と <code>HEAP_NEWSIZE</code> ですが、未設定の場合は搭載メモリから自動で計算されます。
+<code>/etc/cassandra/default.conf/cassandra.yaml</code> で Cluster Name と seed サーバーを設定します。4台のうち2台を seed としています。</p>
+<div class=highlight><pre tabindex=0 class=chroma><code class=language-yaml data-lang=yaml><span class=nt>cluster_name</span><span class=p>:</span><span class=w> </span><span class=s1>&#39;Zipkin Cluster&#39;</span><span class=w>
+</span><span class=w></span><span class=nt>seed_provider</span><span class=p>:</span><span class=w>
+</span><span class=w>  </span>- <span class=nt>class_name</span><span class=p>:</span><span class=w> </span><span class=l>org.apache.cassandra.locator.SimpleSeedProvider</span><span class=w>
+</span><span class=w>    </span><span class=nt>parameters</span><span class=p>:</span><span class=w>
+</span><span class=w>      </span>- <span class=nt>seeds</span><span class=p>:</span><span class=w> </span><span class=s2>&#34;192.168.1.101,192.168.1.103&#34;</span><span class=w>
+</span><span class=w></span><span class=nt>listen_address</span><span class=p>:</span><span class=w> </span><span class=m>192.168.1</span><span class=l>.x</span><span class=w>
+</span><span class=w></span><span class=nt>rpc_address</span><span class=p>:</span><span class=w> </span><span class=m>0.0.0.0</span><span class=w>
+</span></code></pre></div><p>これで4台で <code>sudo service cassandra start</code> すれば cluster が構成されます。</p>
+<h3 id=zipkin-用スキーマの作成 class="relative group">Zipkin 用スキーマの作成 <span class="absolute top-0 w-6 transition-opacity opacity-0 ltr:-left-6 rtl:-right-6 not-prose group-hover:opacity-100"><a class="group-hover:text-primary-300 dark:group-hover:text-neutral-700" style=text-decoration-line:none!important href=#zipkin-%e7%94%a8%e3%82%b9%e3%82%ad%e3%83%bc%e3%83%9e%e3%81%ae%e4%bd%9c%e6%88%90 aria-label=アンカー>#</a></span></h3>
+<p><a href=https://github.com/twitter/zipkin/blob/master/zipkin-cassandra/src/schema/cassandra-schema.txt>https://github.com/twitter/zipkin/blob/master/zipkin-cassandra/src/schema/cassandra-schema.txt</a> にスキーマの定義ファイルがあるのでダウンロードし、</p>
+<pre tabindex=0><code>$ cassandra-cli -h localhost -f cassandra-schema.txt
+</code></pre><p>とすることで作成できます。
+が、<code>cassandra-cli</code> は deprecated とありますので <code>cqlsh</code> で作ったほうが良いのかも。 cqlsh で <code>DESCRIBE KEYSPACE "Zipkin";</code> と打てば定義が確認できます。
+cassandra-schema.txt を流し込んだだけだと Replication Factor が 1 で4サーバーあっても1台停止すると使えなくなってしまうので 2 に変更します。ついでに class も SimpleStrategy にしてしまいます。複数 DC じゃないので <code>SimpleStrategy</code>。</p>
+<pre tabindex=0><code>cqlsh&gt; ALTER KEYSPACE &quot;Zipkin&quot; WITH REPLICATION = { 'class' : 'SimpleStrategy', 'replication_factor' : 2 };
+</code></pre><p><code>ALTER KEYSPACE</code> したら <code>nodetool repair</code> コマンドを実行する必要があります。
+<code>cassandra-cli</code> ではなく <code>cqlsh</code> を使ってスキーマを作成する場合は <code>DESCRIBE KEYSPACE</code> で表示される文を使えばできそうな感じです。</p>
+<pre tabindex=0><code>cqlsh&gt; DESCRIBE KEYSPACE &quot;Zipkin&quot;;
+
+CREATE KEYSPACE &quot;Zipkin&quot; WITH replication = {
+  'class': 'SimpleStrategy',
+  'replication_factor': '2'
+};
+
+USE &quot;Zipkin&quot;;
+
+CREATE TABLE &quot;AnnotationsIndex&quot; (
+  key blob,
+  column1 bigint,
+  value blob,
+  PRIMARY KEY ((key), column1)
+) WITH COMPACT STORAGE AND
+  bloom_filter_fp_chance=0.010000 AND
+  caching='KEYS_ONLY' AND
+  comment='' AND
+  dclocal_read_repair_chance=0.100000 AND
+  gc_grace_seconds=864000 AND
+  index_interval=128 AND
+  read_repair_chance=0.000000 AND
+  replicate_on_write='true' AND
+  populate_io_cache_on_flush='false' AND
+  default_time_to_live=0 AND
+  speculative_retry='NONE' AND
+  memtable_flush_period_in_ms=0 AND
+  compaction={'class': 'SizeTieredCompactionStrategy'} AND
+  compression={'sstable_compression': 'LZ4Compressor'};
+
+CREATE TABLE &quot;Dependencies&quot; (
+  key blob,
+  column1 bigint,
+  value blob,
+  PRIMARY KEY ((key), column1)
+) WITH COMPACT STORAGE AND
+  bloom_filter_fp_chance=0.010000 AND
+  caching='KEYS_ONLY' AND
+  comment='' AND
+  dclocal_read_repair_chance=0.100000 AND
+  gc_grace_seconds=864000 AND
+  index_interval=128 AND
+  read_repair_chance=0.000000 AND
+  replicate_on_write='true' AND
+  populate_io_cache_on_flush='false' AND
+  default_time_to_live=0 AND
+  speculative_retry='NONE' AND
+  memtable_flush_period_in_ms=0 AND
+  compaction={'class': 'SizeTieredCompactionStrategy'} AND
+  compression={'sstable_compression': 'LZ4Compressor'};
+
+CREATE TABLE &quot;DurationIndex&quot; (
+  key blob,
+  column1 bigint,
+  value blob,
+  PRIMARY KEY ((key), column1)
+) WITH COMPACT STORAGE AND
+  bloom_filter_fp_chance=0.010000 AND
+  caching='KEYS_ONLY' AND
+  comment='' AND
+  dclocal_read_repair_chance=0.100000 AND
+  gc_grace_seconds=864000 AND
+  index_interval=128 AND
+  read_repair_chance=0.000000 AND
+  replicate_on_write='true' AND
+  populate_io_cache_on_flush='false' AND
+  default_time_to_live=0 AND
+  speculative_retry='NONE' AND
+  memtable_flush_period_in_ms=0 AND
+  compaction={'class': 'SizeTieredCompactionStrategy'} AND
+  compression={'sstable_compression': 'LZ4Compressor'};
+
+CREATE TABLE &quot;ServiceNameIndex&quot; (
+  key blob,
+  column1 bigint,
+  value blob,
+  PRIMARY KEY ((key), column1)
+) WITH COMPACT STORAGE AND
+  bloom_filter_fp_chance=0.010000 AND
+  caching='KEYS_ONLY' AND
+  comment='' AND
+  dclocal_read_repair_chance=0.100000 AND
+  gc_grace_seconds=864000 AND
+  index_interval=128 AND
+  read_repair_chance=0.000000 AND
+  replicate_on_write='true' AND
+  populate_io_cache_on_flush='false' AND
+  default_time_to_live=0 AND
+  speculative_retry='NONE' AND
+  memtable_flush_period_in_ms=0 AND
+  compaction={'class': 'SizeTieredCompactionStrategy'} AND
+  compression={'sstable_compression': 'LZ4Compressor'};
+
+CREATE TABLE &quot;ServiceNames&quot; (
+  key blob,
+  column1 blob,
+  value blob,
+  PRIMARY KEY ((key), column1)
+) WITH COMPACT STORAGE AND
+  bloom_filter_fp_chance=0.010000 AND
+  caching='KEYS_ONLY' AND
+  comment='' AND
+  dclocal_read_repair_chance=0.100000 AND
+  gc_grace_seconds=864000 AND
+  index_interval=128 AND
+  read_repair_chance=0.000000 AND
+  replicate_on_write='true' AND
+  populate_io_cache_on_flush='false' AND
+  default_time_to_live=0 AND
+  speculative_retry='NONE' AND
+  memtable_flush_period_in_ms=0 AND
+  compaction={'min_sstable_size': '52428800', 'class': 'SizeTieredCompactionStrategy'} AND
+  compression={'chunk_length_kb': '64', 'sstable_compression': 'LZ4Compressor'};
+
+CREATE TABLE &quot;ServiceSpanNameIndex&quot; (
+  key blob,
+  column1 bigint,
+  value blob,
+  PRIMARY KEY ((key), column1)
+) WITH COMPACT STORAGE AND
+  bloom_filter_fp_chance=0.010000 AND
+  caching='NONE' AND
+  comment='' AND
+  dclocal_read_repair_chance=0.100000 AND
+  gc_grace_seconds=864000 AND
+  index_interval=128 AND
+  read_repair_chance=0.000000 AND
+  replicate_on_write='true' AND
+  populate_io_cache_on_flush='false' AND
+  default_time_to_live=0 AND
+  speculative_retry='NONE' AND
+  memtable_flush_period_in_ms=0 AND
+  compaction={'min_sstable_size': '52428800', 'class': 'SizeTieredCompactionStrategy'} AND
+  compression={'chunk_length_kb': '64', 'sstable_compression': 'LZ4Compressor'};
+
+CREATE TABLE &quot;SpanNames&quot; (
+  key blob,
+  column1 blob,
+  value blob,
+  PRIMARY KEY ((key), column1)
+) WITH COMPACT STORAGE AND
+  bloom_filter_fp_chance=0.010000 AND
+  caching='NONE' AND
+  comment='' AND
+  dclocal_read_repair_chance=0.100000 AND
+  gc_grace_seconds=864000 AND
+  index_interval=128 AND
+  read_repair_chance=0.000000 AND
+  replicate_on_write='true' AND
+  populate_io_cache_on_flush='false' AND
+  default_time_to_live=0 AND
+  speculative_retry='NONE' AND
+  memtable_flush_period_in_ms=0 AND
+  compaction={'min_sstable_size': '52428800', 'class': 'SizeTieredCompactionStrategy'} AND
+  compression={'chunk_length_kb': '64', 'sstable_compression': 'LZ4Compressor'};
+
+CREATE TABLE &quot;TopAnnotations&quot; (
+  key blob,
+  column1 bigint,
+  value blob,
+  PRIMARY KEY ((key), column1)
+) WITH COMPACT STORAGE AND
+  bloom_filter_fp_chance=0.010000 AND
+  caching='KEYS_ONLY' AND
+  comment='' AND
+  dclocal_read_repair_chance=0.100000 AND
+  gc_grace_seconds=864000 AND
+  index_interval=128 AND
+  read_repair_chance=0.000000 AND
+  replicate_on_write='true' AND
+  populate_io_cache_on_flush='false' AND
+  default_time_to_live=0 AND
+  speculative_retry='NONE' AND
+  memtable_flush_period_in_ms=0 AND
+  compaction={'class': 'SizeTieredCompactionStrategy'} AND
+  compression={'sstable_compression': 'LZ4Compressor'};
+
+CREATE TABLE &quot;Traces&quot; (
+  key blob,
+  column1 blob,
+  value blob,
+  PRIMARY KEY ((key), column1)
+) WITH COMPACT STORAGE AND
+  bloom_filter_fp_chance=0.010000 AND
+  caching='KEYS_ONLY' AND
+  comment='' AND
+  dclocal_read_repair_chance=0.100000 AND
+  gc_grace_seconds=864000 AND
+  index_interval=128 AND
+  read_repair_chance=0.000000 AND
+  replicate_on_write='true' AND
+  populate_io_cache_on_flush='false' AND
+  default_time_to_live=0 AND
+  speculative_retry='NONE' AND
+  memtable_flush_period_in_ms=0 AND
+  compaction={'class': 'SizeTieredCompactionStrategy'} AND
+  compression={'sstable_compression': 'LZ4Compressor'};
+
+cqlsh&gt; 
+</code></pre><h3 id=古いデータの掃除 class="relative group">古いデータの掃除 <span class="absolute top-0 w-6 transition-opacity opacity-0 ltr:-left-6 rtl:-right-6 not-prose group-hover:opacity-100"><a class="group-hover:text-primary-300 dark:group-hover:text-neutral-700" style=text-decoration-line:none!important href=#%e5%8f%a4%e3%81%84%e3%83%87%e3%83%bc%e3%82%bf%e3%81%ae%e6%8e%83%e9%99%a4 aria-label=アンカー>#</a></span></h3>
+<p>放っておくとデータは溜まりっぱなしですが、Zipkin + Cassandra ではデフォルトで7日で TTL が設定されているので Cassandra の compaction を実行することで TTL を過ぎたデータを削除することができます。
+<code>nodetool compast</code> を定期的に実行しましょう。</p>
+<h3 id=opscenter class="relative group">OpsCenter <span class="absolute top-0 w-6 transition-opacity opacity-0 ltr:-left-6 rtl:-right-6 not-prose group-hover:opacity-100"><a class="group-hover:text-primary-300 dark:group-hover:text-neutral-700" style=text-decoration-line:none!important href=#opscenter aria-label=アンカー>#</a></span></h3>
+<p>OpsCenter (<a href=http://www.datastax.com/what-we-offer/products-services/datastax-opscenter>http://www.datastax.com/what-we-offer/products-services/datastax-opscenter</a>) を使うとかっちょいい画面でクラスターのモニタリングができます。</p>
+<pre tabindex=0><code>$ sudo yum install --enablerepo=datastax opscenter
+</code></pre><p>今回はここのセットアップ方法は省略</p>
+<h3 id=zipkin-のセットアップ class="relative group">Zipkin のセットアップ <span class="absolute top-0 w-6 transition-opacity opacity-0 ltr:-left-6 rtl:-right-6 not-prose group-hover:opacity-100"><a class="group-hover:text-primary-300 dark:group-hover:text-neutral-700" style=text-decoration-line:none!important href=#zipkin-%e3%81%ae%e3%82%bb%e3%83%83%e3%83%88%e3%82%a2%e3%83%83%e3%83%97 aria-label=アンカー>#</a></span></h3>
+<p><code>/opt/zipkin</code> に collector, query, web をインストールします。 collector, query, web をそれぞれダウンロードします。
+<a href=https://github.com/twitter/zipkin/releases/>https://github.com/twitter/zipkin/releases/</a></p>
+<ul>
+<li><a href=https://github.com/twitter/zipkin/archive/1.1.0.zip>https://github.com/twitter/zipkin/archive/1.1.0.zip</a></li>
+<li><a href=https://github.com/twitter/zipkin/releases/download/1.1.0/zipkin-collector-service.zip>https://github.com/twitter/zipkin/releases/download/1.1.0/zipkin-collector-service.zip</a></li>
+<li><a href=https://github.com/twitter/zipkin/releases/download/1.1.0/zipkin-query-service.zip>https://github.com/twitter/zipkin/releases/download/1.1.0/zipkin-query-service.zip</a></li>
+<li><a href=https://github.com/twitter/zipkin/releases/download/1.1.0/zipkin-web.zip>https://github.com/twitter/zipkin/releases/download/1.1.0/zipkin-web.zip</a></li>
+</ul>
+<p>zipkin-collector-seervice.zip, zipkin-query-service.zip, zipkin-web.zip はそのまま /opt/zipkin に展開します。
+<code>/opt/zipkin/zipkin-collector-service-1.1.0 /opt/zipkin/zipkin-query-service-1.1.0 /opt/zipkin/zipkin-web-1.1.0</code> 1.1.0.zip は中の zipkin-web というディレクトリだけを取り出して <code>/opt/zipkin/zipkin-web</code> に置きます。
+Zipkin の各サービスは Supervisord を使って管理します。
+EPEL リポジトリにあります</p>
+<pre tabindex=0><code>$ sudo yum install supervisor --enablerepo=epel
+</code></pre><p>Zipkin 用ユーザーを作成します</p>
+<pre tabindex=0><code>$ sudo groupadd zipkin
+$ sudo useradd -g zipkin zipkin
+</code></pre><p><code>/etc/supervisord.conf</code> を書いて <code>sudo service supervisord start</code> で 8080/tcp で zipkin-web にアクセスできるはずです。 Zipkin へのデータ登録は 9410/tcp です。</p>
+<div class=highlight><pre tabindex=0 class=chroma><code class=language-ini data-lang=ini><span class=k>[program:zipkin-collector]</span>
+<span class=na>command</span> <span class=o>=</span> <span class=s>/usr/bin/java -Xmn1000m -Xms2000m -Xmx2000m -cp /opt/zipkin/zipkin-collector-service-1.1.0/libs -jar /opt/zipkin/zipkin-collector-service-1.1.0/zipkin-collector-service-1.1.0.jar -f /opt/zipkin/zipkin-collector-service-1.1.0/config/collector-cassandra.scala</span>
+<span class=na>user</span> <span class=o>=</span> <span class=s>zipkin</span>
+<span class=na>autostart</span> <span class=o>=</span> <span class=s>true</span>
+<span class=na>stopwaitsecs</span> <span class=o>=</span> <span class=s>10</span>
+<span class=na>log_stdout</span> <span class=o>=</span> <span class=s>true</span>
+<span class=na>log_stderr</span> <span class=o>=</span> <span class=s>true</span>
+<span class=na>logfile</span> <span class=o>=</span> <span class=s>/var/log/supervisor/zipkin-collector.log</span>
+<span class=na>logfile_maxbytes</span> <span class=o>=</span> <span class=s>10MB</span>
+<span class=na>logfile_backups</span> <span class=o>=</span> <span class=s>10</span>
+
+<span class=k>[program:zipkin-query]</span>
+<span class=na>command</span> <span class=o>=</span> <span class=s>/usr/bin/java -cp /opt/zipkin/zipkin-query-service-1.1.0/libs -jar /opt/zipkin/zipkin-query-service-1.1.0/zipkin-query-service-1.1.0.jar -f /opt/zipkin/zipkin-query-service-1.1.0/config/query-cassandra.scala</span>
+<span class=na>user</span> <span class=o>=</span> <span class=s>zipkin</span>
+<span class=na>autostart</span> <span class=o>=</span> <span class=s>true</span>
+<span class=na>stopwaitsecs</span> <span class=o>=</span> <span class=s>10</span>
+<span class=na>log_stdout</span> <span class=o>=</span> <span class=s>true</span>
+<span class=na>log_stderr</span> <span class=o>=</span> <span class=s>true</span>
+<span class=na>logfile</span> <span class=o>=</span> <span class=s>/var/log/supervisor/zipkin-query.log</span>
+<span class=na>logfile_maxbytes</span> <span class=o>=</span> <span class=s>10MB</span>
+<span class=na>logfile_backups</span> <span class=o>=</span> <span class=s>10</span>
+
+<span class=k>[program:zipkin-web]</span>
+<span class=na>command</span> <span class=o>=</span> <span class=s>/usr/bin/java -cp /opt/zipkin/zipkin-web-1.1.0/libs -jar /opt/zipkin/zipkin-web-1.1.0/zipkin-web-1.1.0.jar -f /opt/zipkin/zipkin-web-1.1.0/config/web-dev.scala -D local_docroot=/opt/zipkin/zipkin-web/src/main/resources</span>
+<span class=na>user</span> <span class=o>=</span> <span class=s>zipkin</span>
+<span class=na>autostart</span> <span class=o>=</span> <span class=s>true</span>
+<span class=na>stopwaitsecs</span> <span class=o>=</span> <span class=s>10</span>
+<span class=na>log_stdout</span> <span class=o>=</span> <span class=s>true</span>
+<span class=na>log_stderr</span> <span class=o>=</span> <span class=s>true</span>
+<span class=na>logfile</span> <span class=o>=</span> <span class=s>/var/log/supervisor/zipkin-web.log</span>
+<span class=na>logfile_maxbytes</span> <span class=o>=</span> <span class=s>10MB</span>
+<span class=na>logfile_backups</span> <span class=o>=</span> <span class=s>10</span>
+
+<span class=k>[supervisord]</span>
+<span class=na>http_port</span> <span class=o>=</span> <span class=s>/tmp/supervisor.sock</span>
+<span class=na>pidfile</span> <span class=o>=</span> <span class=s>/var/run/supervisord.pid</span>
+<span class=na>minfds</span> <span class=o>=</span> <span class=s>1024</span>
+<span class=na>minprocs</span> <span class=o>=</span> <span class=s>200</span>
+<span class=na>nodaemon</span> <span class=o>=</span> <span class=s>false</span>
+<span class=na>loglevel</span> <span class=o>=</span> <span class=s>info</span>
+<span class=na>logfile</span> <span class=o>=</span> <span class=s>/var/log/supervisor/supervisord.log</span>
+<span class=na>logfile_maxbytes</span> <span class=o>=</span> <span class=s>10MB</span>
+<span class=na>logfile_backups</span> <span class=o>=</span> <span class=s>10</span>
+
+<span class=k>[supervisorctl]</span>
+<span class=na>serverurl</span> <span class=o>=</span> <span class=s>unix:///tmp/supervisor.sock</span>
+</code></pre></div><p>接続先の Cassandra については <code>/opt/zipkin/zipkin-collector-service-1.1.0/config/collector-cassandra.scala</code>, <code>/opt/zipkin/zipkin-query-service-1.1.0/config/query-cassandra.scala</code> の中で指定します。デフォルトで localhost になっています。
+もしもストレージに Redis を使いたい場合は <code>config</code> ディレクトリにある <code>collector-redis.scala</code>, <code>query-redis.scala</code> を使います。
+HBase 用のファイルもあります。
+Redis ではアクセス（登録）が多いと collector プロセスが全然処理しきれなかったのであまり使われていないのかもしれません。Cassandra に変更したらサクサクになりました。
+これで動作はするのですが、デフォルトのままでは collector が DEBUG ログを出力してログの量が多すぎるので次のように書き換えました。
+私 Scala はまったくわからないので <a href=https://groups.google.com/forum/#!topic/zipkin-user/NwZFPzYeo9I>https://groups.google.com/forum/#!topic/zipkin-user/NwZFPzYeo9I</a> を参考に同僚にやってもらったわけですが。</p>
+<div class=highlight><pre tabindex=0 class=chroma><code class=language-diff data-lang=diff><span class=gd>--- collector-cassandra.scala.orig	2013-08-27 14:55:06.000000000 +0900
+</span><span class=gd></span><span class=gi>+++ collector-cassandra.scala	2015-03-11 09:51:28.629353999 +0900
+</span><span class=gi></span><span class=gu>@@ -13,10 +13,12 @@
+</span><span class=gu></span>  * See the License for the specific language governing permissions and
+  * limitations under the License.
+  */
+<span class=gi>+import com.twitter.zipkin.builder.{ZipkinServerBuilder, Scribe}
+</span><span class=gi></span> import com.twitter.zipkin.builder.Scribe
+ import com.twitter.zipkin.cassandra
+ import com.twitter.zipkin.collector.builder.CollectorServiceBuilder
+ import com.twitter.zipkin.storage.Store
+<span class=gi>+import com.twitter.logging._
+</span><span class=gi></span> 
+ val keyspaceBuilder = cassandra.Keyspace.static(nodes = Set(&#34;localhost&#34;))
+ val cassandraBuilder = Store.Builder(
+<span class=gu>@@ -25,5 +27,13 @@
+</span><span class=gu></span>   cassandra.AggregatesBuilder(keyspaceBuilder)
+ )
+ 
+<span class=gi>+val loggers = List(
+</span><span class=gi>+  LoggerFactory(
+</span><span class=gi>+    level = Some(Level.INFO),
+</span><span class=gi>+    handlers = List(ConsoleHandler())
+</span><span class=gi>+  )
+</span><span class=gi>+)
+</span><span class=gi>+
+</span><span class=gi></span> CollectorServiceBuilder(Scribe.Interface(categories = Set(&#34;zipkin&#34;)))
+   .writeTo(cassandraBuilder)
+<span class=gi>+  .copy(serverBuilder =  ZipkinServerBuilder(9410, 9990).loggers(loggers))
+</span></code></pre></div><h3 id=haproxyで負荷分散 class="relative group">HAProxyで負荷分散 <span class="absolute top-0 w-6 transition-opacity opacity-0 ltr:-left-6 rtl:-right-6 not-prose group-hover:opacity-100"><a class="group-hover:text-primary-300 dark:group-hover:text-neutral-700" style=text-decoration-line:none!important href=#haproxy%e3%81%a7%e8%b2%a0%e8%8d%b7%e5%88%86%e6%95%a3 aria-label=アンカー>#</a></span></h3>
+<p>お好みでどうぞ</p>
+<h3 id=keepalived-で-vip-を持たせる class="relative group">keepalived で VIP を持たせる <span class="absolute top-0 w-6 transition-opacity opacity-0 ltr:-left-6 rtl:-right-6 not-prose group-hover:opacity-100"><a class="group-hover:text-primary-300 dark:group-hover:text-neutral-700" style=text-decoration-line:none!important href=#keepalived-%e3%81%a7-vip-%e3%82%92%e6%8c%81%e3%81%9f%e3%81%9b%e3%82%8b aria-label=アンカー>#</a></span></h3>
+<p>こちらもお好みで</p>
+</div>
+<script>var liked_article=!1,oid,id,viewed,oid_likes,id_likes,liked;typeof auth!='undefined'&&(oid="views_posts/setup-cassandra-zipkin-server/index.md",id=oid&&oid.replaceAll("/","-"),viewed=localStorage.getItem(id),viewed||auth.signInAnonymously().then(()=>{var a=db.collection('views').doc(id);localStorage.setItem(id,!0),a.get().then(a=>{a.exists?db.collection('views').doc(id).update({views:firebase.firestore.FieldValue.increment(1)}):db.collection('views').doc(id).set({views:1})}).catch(a=>{console.log("Error getting document:",a)})}).catch(a=>{var b=a.code,c=a.message;console.error(b,c)}),oid_likes="likes_posts/setup-cassandra-zipkin-server/index.md",id_likes=oid_likes&&oid_likes.replaceAll("/","-"),liked=localStorage.getItem(id_likes),liked&&(liked_article=!0,document.querySelectorAll("button[id='likes_button']")[0].innerText="Remove Like"));function like_article(a){console.log("add"),liked_article=!0,localStorage.setItem(a,!0),document.querySelectorAll("button[id='likes_button']")[0].innerText="Remove Like",auth.signInAnonymously().then(()=>{var b=db.collection('likes').doc(a);b.get().then(b=>{b.exists?db.collection('likes').doc(a).update({likes:firebase.firestore.FieldValue.increment(1)}):db.collection('likes').doc(a).set({likes:1})}).catch(a=>{console.log("Error getting document:",a)})}).catch(a=>{var b=a.code,c=a.message;console.error(b,c)})}function remove_like_article(a){console.log("remove"),liked_article=!1,localStorage.setItem(a,!1),document.querySelectorAll("button[id='likes_button']")[0].innerText="Like",auth.signInAnonymously().then(()=>{var b=db.collection('likes').doc(a);b.get().then(b=>{b.exists?db.collection('likes').doc(a).update({likes:firebase.firestore.FieldValue.increment(-1)}):db.collection('likes').doc(a).set({likes:0})}).catch(a=>{console.log("Error getting document:",a)})}).catch(a=>{var b=a.code,c=a.message;console.error(b,c)})}function process_article(){var a="likes_posts/setup-cassandra-zipkin-server/index.md",b=a&&a.replaceAll("/","-");liked_article?remove_like_article(b):like_article(b)}</script>
+</section>
+<footer class="pt-8 max-w-prose print:hidden">
+<div class=flex>
+<div class=place-self-center>
+<div class="text-[0.6rem] uppercase leading-3 text-neutral-500 dark:text-neutral-400">
+著者
+</div>
+<div class="font-semibold leading-6 text-neutral-800 dark:text-neutral-300">
+Yoshinori Teraoka
+</div>
+<div class="text-2xl sm:text-lg">
+<div class="flex flex-wrap text-neutral-400 dark:text-neutral-500">
+<a class="px-1 hover:text-primary-700 dark:hover:text-primary-400" href=https://twitter.com/yteraoka target=_blank aria-label=Twitter rel="me noopener noreferrer">
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentcolor" d="M459.37 151.716c.325 4.548.325 9.097.325 13.645.0 138.72-105.583 298.558-298.558 298.558-59.452.0-114.68-17.219-161.137-47.106 8.447.974 16.568 1.299 25.34 1.299 49.055.0 94.213-16.568 130.274-44.832-46.132-.975-84.792-31.188-98.112-72.772 6.498.974 12.995 1.624 19.818 1.624 9.421.0 18.843-1.3 27.614-3.573-48.081-9.747-84.143-51.98-84.143-102.985v-1.299c13.969 7.797 30.214 12.67 47.431 13.319-28.264-18.843-46.781-51.005-46.781-87.391.0-19.492 5.197-37.36 14.294-52.954 51.655 63.675 129.3 105.258 216.365 109.807-1.624-7.797-2.599-15.918-2.599-24.04.0-57.828 46.782-104.934 104.934-104.934 30.213.0 57.502 12.67 76.67 33.137 23.715-4.548 46.456-13.32 66.599-25.34-7.798 24.366-24.366 44.833-46.132 57.827 21.117-2.273 41.584-8.122 60.426-16.243-14.292 20.791-32.161 39.308-52.628 54.253z"/></svg>
+</span>
+</a>
+<a class="px-1 hover:text-primary-700 dark:hover:text-primary-400" href=https://github.com/yteraoka target=_blank aria-label=Github rel="me noopener noreferrer">
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><path fill="currentcolor" d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6.0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6.0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3.0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1.0-6.2-.3-40.4-.3-61.4.0.0-70 15-84.7-29.8.0.0-11.4-29.1-27.8-36.6.0.0-22.9-15.7 1.6-15.4.0.0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5.0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9.0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4.0 33.7-.3 75.4-.3 83.6.0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6.0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9.0-6.2-1.4-2.3-4-3.3-5.6-2z"/></svg>
+</span>
+</a>
+<a class="px-1 hover:text-primary-700 dark:hover:text-primary-400" href=https://linkedin.com/in/fa5b66b7-9c77-4e1b-8b97-40ba4a5a2c13/ target=_blank aria-label=Linkedin rel="me noopener noreferrer">
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path fill="currentcolor" d="M416 32H31.9C14.3 32 0 46.5.0 64.3v383.4C0 465.5 14.3 480 31.9 480H416c17.6.0 32-14.5 32-32.3V64.3c0-17.8-14.4-32.3-32-32.3zM135.4 416H69V202.2h66.5V416zm-33.2-243c-21.3.0-38.5-17.3-38.5-38.5S80.9 96 102.2 96c21.2.0 38.5 17.3 38.5 38.5.0 21.3-17.2 38.5-38.5 38.5zm282.1 243h-66.4V312c0-24.8-.5-56.7-34.5-56.7-34.6.0-39.9 27-39.9 54.9V416h-66.4V202.2h63.7v29.2h.9c8.9-16.8 30.6-34.5 62.9-34.5 67.2.0 79.7 44.3 79.7 101.9V416z"/></svg>
+</span>
+</a>
+<a class="px-1 hover:text-primary-700 dark:hover:text-primary-400" href=https://medium.com/@yteraoka target=_blank aria-label=Medium rel="me noopener noreferrer">
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512"><path fill="currentcolor" d="M180.5 74.262C80.813 74.262.0 155.633.0 256S80.819 437.738 180.5 437.738 361 356.373 361 256 280.191 74.262 180.5 74.262zm288.25 10.646c-49.845.0-90.245 76.619-90.245 171.095s40.406 171.1 90.251 171.1 90.251-76.619 90.251-171.1H559C559 161.5 518.6 84.908 468.752 84.908zm139.506 17.821c-17.526.0-31.735 68.628-31.735 153.274s14.2 153.274 31.735 153.274S640 340.631 640 256c0-84.649-14.215-153.271-31.742-153.271z"/></svg>
+</span>
+</a>
+</div>
+</div>
+</div>
+</div>
+<section class="flex flex-row flex-wrap justify-center pt-4 text-xl">
+<a class="m-1 inline-block min-w-[2.4rem] rounded bg-neutral-300 p-1 text-center text-neutral-700 hover:bg-primary-500 hover:text-neutral dark:bg-neutral-700 dark:text-neutral-300 dark:hover:bg-primary-400 dark:hover:text-neutral-800" href="https://www.linkedin.com/shareArticle?mini=true&url=https://preview-blog.1q77.com/2015/04/setup-cassandra-zipkin-server/&title=Cassandra%e3%82%92%e4%bd%bf%e3%81%a3%e3%81%9fZipkin%e3%82%b5%e3%83%bc%e3%83%90%e3%83%bc%e3%81%ae%e6%a7%8b%e7%af%89" title=LinkedInでシェアする aria-label=LinkedInでシェアする>
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path fill="currentcolor" d="M416 32H31.9C14.3 32 0 46.5.0 64.3v383.4C0 465.5 14.3 480 31.9 480H416c17.6.0 32-14.5 32-32.3V64.3c0-17.8-14.4-32.3-32-32.3zM135.4 416H69V202.2h66.5V416zm-33.2-243c-21.3.0-38.5-17.3-38.5-38.5S80.9 96 102.2 96c21.2.0 38.5 17.3 38.5 38.5.0 21.3-17.2 38.5-38.5 38.5zm282.1 243h-66.4V312c0-24.8-.5-56.7-34.5-56.7-34.6.0-39.9 27-39.9 54.9V416h-66.4V202.2h63.7v29.2h.9c8.9-16.8 30.6-34.5 62.9-34.5 67.2.0 79.7 44.3 79.7 101.9V416z"/></svg>
+</span>
+</a>
+<a class="m-1 inline-block min-w-[2.4rem] rounded bg-neutral-300 p-1 text-center text-neutral-700 hover:bg-primary-500 hover:text-neutral dark:bg-neutral-700 dark:text-neutral-300 dark:hover:bg-primary-400 dark:hover:text-neutral-800" href="https://twitter.com/intent/tweet/?url=https://preview-blog.1q77.com/2015/04/setup-cassandra-zipkin-server/&text=Cassandra%e3%82%92%e4%bd%bf%e3%81%a3%e3%81%9fZipkin%e3%82%b5%e3%83%bc%e3%83%90%e3%83%bc%e3%81%ae%e6%a7%8b%e7%af%89" title=Twitterに投稿する aria-label=Twitterに投稿する>
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentcolor" d="M459.37 151.716c.325 4.548.325 9.097.325 13.645.0 138.72-105.583 298.558-298.558 298.558-59.452.0-114.68-17.219-161.137-47.106 8.447.974 16.568 1.299 25.34 1.299 49.055.0 94.213-16.568 130.274-44.832-46.132-.975-84.792-31.188-98.112-72.772 6.498.974 12.995 1.624 19.818 1.624 9.421.0 18.843-1.3 27.614-3.573-48.081-9.747-84.143-51.98-84.143-102.985v-1.299c13.969 7.797 30.214 12.67 47.431 13.319-28.264-18.843-46.781-51.005-46.781-87.391.0-19.492 5.197-37.36 14.294-52.954 51.655 63.675 129.3 105.258 216.365 109.807-1.624-7.797-2.599-15.918-2.599-24.04.0-57.828 46.782-104.934 104.934-104.934 30.213.0 57.502 12.67 76.67 33.137 23.715-4.548 46.456-13.32 66.599-25.34-7.798 24.366-24.366 44.833-46.132 57.827 21.117-2.273 41.584-8.122 60.426-16.243-14.292 20.791-32.161 39.308-52.628 54.253z"/></svg>
+</span>
+</a>
+</section>
+<div class=pt-8>
+<hr class="border-dotted border-neutral-300 dark:border-neutral-600">
+<div class="flex justify-between pt-3">
+<span>
+<a class="flex group" href=/2015/03/rsyslog-insert-unexpected-white-space/>
+<span class="mr-3 text-neutral-700 group-hover:text-primary-600 ltr:inline rtl:hidden dark:text-neutral dark:group-hover:text-primary-400">&larr;</span>
+<span class="ml-3 text-neutral-700 group-hover:text-primary-600 ltr:hidden rtl:inline dark:text-neutral dark:group-hover:text-primary-400">&rarr;</span>
+<span class="flex flex-col">
+<span class="mt-[0.1rem] leading-6 group-hover:underline group-hover:decoration-primary-500">FortiGate さんごめんなさい、悪いのは rsyslog でした</span>
+<span class="mt-[0.1rem] text-xs text-neutral-500 dark:text-neutral-400">
+<time datetime="2015-03-20 15:49:37 +0000 UTC">2015年3月20日</time>
+</span>
+</span>
+</a>
+</span>
+<span>
+<a class="flex text-right group" href=/2015/04/switch-from-lg-g2-mini-to-so-01g/>
+<span class="flex flex-col">
+<span class="mt-[0.1rem] leading-6 group-hover:underline group-hover:decoration-primary-500">LG G2 mini をやめて Xperia Z3 SO-01G にした (MVNO)</span>
+<span class="mt-[0.1rem] text-xs text-neutral-500 dark:text-neutral-400">
+<time datetime="2015-04-30 22:20:55 +0000 UTC">2015年4月30日</time>
+</span>
+</span>
+<span class="ml-3 text-neutral-700 group-hover:text-primary-600 ltr:inline rtl:hidden dark:text-neutral dark:group-hover:text-primary-400">&rarr;</span>
+<span class="mr-3 text-neutral-700 group-hover:text-primary-600 ltr:hidden rtl:inline dark:text-neutral dark:group-hover:text-primary-400">&larr;</span>
+</a>
+</span>
+</div>
+</div>
+</footer>
+</article>
+<div class="pointer-events-none absolute top-[100vh] bottom-0 w-12 ltr:right-0 rtl:left-0">
+<a href=#the-top class="pointer-events-auto sticky top-[calc(100vh-5.5rem)] flex h-12 w-12 items-center justify-center rounded-full bg-neutral/50 text-xl text-neutral-700 backdrop-blur hover:text-primary-600 dark:bg-neutral-800/50 dark:text-neutral dark:hover:text-primary-400" aria-label=TOPへスクロール title=TOPへスクロール>
+&uarr;
+</a>
+</div>
+</main><footer class="py-10 print:hidden">
+<div class="flex items-center justify-between">
+<p class="text-sm text-neutral-500 dark:text-neutral-400">
+&copy;
+2022
+Yoshinori Teraoka
+</p>
+</div>
+<script>mediumZoom(document.querySelectorAll("img:not(.nozoom)"),{margin:24,background:'rgba(0,0,0,0.5)',scrollOffset:0})</script>
+<script type=text/javascript src=/js/process.min.48d08339b8a087b59c7b8cb42b6717aeeed3e07bfc68b1654cac27f00583284dac59cae47fb686dd7c0e9ff1d2745689dc2071230dff432ca6d7fc24b9f2e036.js integrity="sha512-SNCDObigh7Wce4y0K2cXru7T4Hv8aLFlTKwn8AWDKE2sWcrkf7aG3XwOn/HSdFaJ3CBxIw3/Qyym1/wkufLgNg=="></script>
+</footer><div id=search-wrapper class="invisible fixed inset-0 z-50 flex h-screen w-screen cursor-default flex-col bg-neutral-500/50 p-4 backdrop-blur-sm dark:bg-neutral-900/50 sm:p-6 md:p-[10vh] lg:p-[12vh]" data-url=https://preview-blog.1q77.com/>
+<div id=search-modal class="flex flex-col w-full max-w-3xl min-h-0 mx-auto border rounded-md shadow-lg top-20 border-neutral-200 bg-neutral dark:border-neutral-700 dark:bg-neutral-800">
+<header class="relative z-10 flex items-center justify-between flex-none px-2">
+<form class="flex items-center flex-auto min-w-0">
+<div class="flex items-center justify-center w-8 h-8 text-neutral-400">
+<span class="relative inline-block align-text-bottom icon"><svg aria-hidden="true" focusable="false" data-prefix="fas" data-icon="search" class="svg-inline--fa fa-search fa-w-16" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentcolor" d="M505 442.7 405.3 343c-4.5-4.5-10.6-7-17-7H372c27.6-35.3 44-79.7 44-128C416 93.1 322.9.0 208 0S0 93.1.0 208s93.1 208 208 208c48.3.0 92.7-16.4 128-44v16.3c0 6.4 2.5 12.5 7 17l99.7 99.7c9.4 9.4 24.6 9.4 33.9.0l28.3-28.3c9.4-9.4 9.4-24.6.1-34zM208 336c-70.7.0-128-57.2-128-128 0-70.7 57.2-128 128-128 70.7.0 128 57.2 128 128 0 70.7-57.2 128-128 128z"/></svg>
+</span>
+</div>
+<input type=search id=search-query class="flex flex-auto h-12 mx-1 bg-transparent appearance-none focus:outline-dotted focus:outline-2 focus:outline-transparent" placeholder=Search tabindex=0>
+</form>
+<button id=close-search-button class="flex items-center justify-center w-8 h-8 text-neutral-700 hover:text-primary-600 dark:text-neutral dark:hover:text-primary-400" title="閉じる (Esc)">
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><path fill="currentcolor" d="M310.6 361.4c12.5 12.5 12.5 32.75.0 45.25C304.4 412.9 296.2 416 288 416s-16.38-3.125-22.62-9.375L160 301.3 54.63 406.6C48.38 412.9 40.19 416 32 416S15.63 412.9 9.375 406.6c-12.5-12.5-12.5-32.75.0-45.25l105.4-105.4L9.375 150.6c-12.5-12.5-12.5-32.75.0-45.25s32.75-12.5 45.25.0L160 210.8l105.4-105.4c12.5-12.5 32.75-12.5 45.25.0s12.5 32.75.0 45.25l-105.4 105.4L310.6 361.4z"/></svg>
+</span>
+</button>
+</header>
+<section class="flex-auto px-2 overflow-auto">
+<ul id=search-results>
+</ul>
+</section>
+</div>
+</div>
+</div>
+</body>
+</html>

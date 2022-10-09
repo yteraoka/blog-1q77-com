@@ -1,0 +1,1132 @@
+<!doctype html><html lang=ja dir=ltr class=scroll-smooth data-default-appearance=light data-auto-appearance=true><head>
+<meta charset=utf-8>
+<meta http-equiv=content-language content="ja">
+<meta name=viewport content="width=device-width,initial-scale=1">
+<meta http-equiv=x-ua-compatible content="ie=edge">
+<title>Istio 導入への道 – sidecar の調整編 &#183; 1Q77</title>
+<meta name=title content="Istio 導入への道 – sidecar の調整編 &#183; 1Q77">
+<link rel=canonical href=https://preview-blog.1q77.com/2020/03/istio-part12/>
+<link type=text/css rel=stylesheet href=/css/main.bundle.min.a9d40529d239a91ecb75447e67ee6c80c1f1c28593904b4052651b12220121e13ec42904268b0193a6858f039cf8bfdd2b1331529ed341ddc7488cec3bdcbc2e.css integrity="sha512-qdQFKdI5qR7LdUR+Z+5sgMHxwoWTkEtAUmUbEiIBIeE+xCkEJosBk6aFjwOc+L/dKxMxUp7TQd3HSIzsO9y8Lg==">
+<script type=text/javascript src=/js/main.min.cf83e1357eefb8bdf1542850d66d8007d620e4050b5715dc83f4a921d36ce9ce47d0d13c5d85f2b0ff8318d2877eec2f63b931bd47417a81a538327af927da3e.js integrity="sha512-z4PhNX7vuL3xVChQ1m2AB9Yg5AULVxXcg/SpIdNs6c5H0NE8XYXysP+DGNKHfuwvY7kxvUdBeoGlODJ6+SfaPg=="></script>
+<script type=text/javascript src=/js/appearance.min.49025a779c36ad37a5bf9f1cc6bffd35ccb69ce15560ef1b10057ddf31576265b19f8bcc1733207336c9144926f7b18aea2e5895f29e858b24271332a2fa5cd5.js integrity="sha512-SQJad5w2rTelv58cxr/9Ncy2nOFVYO8bEAV93zFXYmWxn4vMFzMgczbJFEkm97GK6i5YlfKehYskJxMyovpc1Q=="></script>
+<script defer type=text/javascript id=script-bundle src=/js/main.bundle.min.34ee8372ff77835535e486c6ed01ff6993374a1cec8108898cad793fc6ae7520778e24db68e085c762d25af6fa7d00b57d7a791438dc68b676581f8c8344f6e0.js integrity="sha512-NO6Dcv93g1U15IbG7QH/aZM3ShzsgQiJjK15P8audSB3jiTbaOCFx2LSWvb6fQC1fXp5FDjcaLZ2WB+Mg0T24A==" data-copy data-copied></script>
+<script src=/js/zoom.min.js></script>
+<link rel=apple-touch-icon sizes=180x180 href=/apple-touch-icon.png>
+<link rel=icon type=image/png sizes=32x32 href=/favicon-32x32.png>
+<link rel=icon type=image/png sizes=16x16 href=/favicon-16x16.png>
+<link rel=manifest href=/site.webmanifest>
+<meta property="og:title" content="Istio 導入への道 – sidecar の調整編">
+<meta property="og:description" content="Istio シリーズ 第12回です。 Istio は各 Pod に sidecar として Envoy コンテナを差し込み、通信の受信も送信も Envoy を経由します。アプリの更新時などに旧バージョンの Pod の停止">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://preview-blog.1q77.com/2020/03/istio-part12/"><meta property="article:section" content="posts">
+<meta property="article:published_time" content="2020-03-29T17:01:29+00:00">
+<meta property="article:modified_time" content="2020-03-29T17:01:29+00:00">
+<meta name=twitter:card content="summary">
+<meta name=twitter:title content="Istio 導入への道 – sidecar の調整編">
+<meta name=twitter:description content="Istio シリーズ 第12回です。 Istio は各 Pod に sidecar として Envoy コンテナを差し込み、通信の受信も送信も Envoy を経由します。アプリの更新時などに旧バージョンの Pod の停止">
+<script type=application/ld+json>[{"@context":"https://schema.org","@type":"Article","articleSection":"Posts","name":"Istio 導入への道 – sidecar の調整編","headline":"Istio 導入への道 – sidecar の調整編","abstract":"Istio シリーズ 第12回です。 Istio は各 Pod に sidecar として Envoy コンテナを差し込み、通信の受信も送信も Envoy を経由します。アプリの更新時などに旧バージョンの Pod の停止","inLanguage":"ja","url":"https:\/\/preview-blog.1q77.com\/2020\/03\/istio-part12\/","author":{"@type":"Person","name":"Yoshinori Teraoka"},"copyrightYear":"2020","dateCreated":"2020-03-29T17:01:29\u002b00:00","datePublished":"2020-03-29T17:01:29\u002b00:00","dateModified":"2020-03-29T17:01:29\u002b00:00","keywords":["Istio","Kubernetes"],"mainEntityOfPage":"true","wordCount":"3343"}]</script>
+<meta name=author content="Yoshinori Teraoka">
+<link href=https://twitter.com/yteraoka rel=me>
+<link href=https://github.com/yteraoka rel=me>
+<link href=https://linkedin.com/in/fa5b66b7-9c77-4e1b-8b97-40ba4a5a2c13/ rel=me>
+<link href=https://medium.com/@yteraoka rel=me>
+<link rel=stylesheet href=https://rsms.me/inter/inter.css>
+</head><body class="flex flex-col h-screen px-6 m-auto text-lg leading-7 max-w-7xl bg-neutral text-neutral-900 dark:bg-neutral-800 dark:text-neutral sm:px-14 md:px-24 lg:px-32">
+<div id=the-top class="absolute flex self-center">
+<a class="px-3 py-1 text-sm -translate-y-8 rounded-b-lg bg-primary-200 focus:translate-y-0 dark:bg-neutral-600" href=#main-content><span class="font-bold text-primary-600 ltr:pr-2 rtl:pl-2 dark:text-primary-400">&darr;</span>メインコンテンツへスキップ</a>
+</div>
+<div style=padding-left:0;padding-right:0 class="flex items-center justify-between px-4 py-6 sm:px-6 md:justify-start space-x-3">
+<div class="flex flex-1 items-center justify-between">
+<nav class="flex space-x-3">
+<a href=/ class="text-base font-medium text-gray-500 hover:text-gray-900">1Q77</a>
+</nav>
+<div class="hidden md:flex items-center space-x-5 md:ml-12">
+<a href=/posts/ class="text-base font-medium text-gray-500 hover:text-gray-900" title=Posts>
+Blog
+</a>
+<a href=/tags/ class="text-base font-medium text-gray-500 hover:text-gray-900" title=Tags>
+Tags
+</a>
+<a href=https://github.com/yteraoka class="text-base font-medium text-gray-500 hover:text-gray-900" title>
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><path fill="currentcolor" d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6.0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6.0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3.0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1.0-6.2-.3-40.4-.3-61.4.0.0-70 15-84.7-29.8.0.0-11.4-29.1-27.8-36.6.0.0-22.9-15.7 1.6-15.4.0.0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5.0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9.0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4.0 33.7-.3 75.4-.3 83.6.0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6.0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9.0-6.2-1.4-2.3-4-3.3-5.6-2z"/></svg>
+</span>
+&nbsp;
+GitHub
+</a>
+<a href=https://twitter.com/yteraoka class="text-base font-medium text-gray-500 hover:text-gray-900" title>
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentcolor" d="M459.37 151.716c.325 4.548.325 9.097.325 13.645.0 138.72-105.583 298.558-298.558 298.558-59.452.0-114.68-17.219-161.137-47.106 8.447.974 16.568 1.299 25.34 1.299 49.055.0 94.213-16.568 130.274-44.832-46.132-.975-84.792-31.188-98.112-72.772 6.498.974 12.995 1.624 19.818 1.624 9.421.0 18.843-1.3 27.614-3.573-48.081-9.747-84.143-51.98-84.143-102.985v-1.299c13.969 7.797 30.214 12.67 47.431 13.319-28.264-18.843-46.781-51.005-46.781-87.391.0-19.492 5.197-37.36 14.294-52.954 51.655 63.675 129.3 105.258 216.365 109.807-1.624-7.797-2.599-15.918-2.599-24.04.0-57.828 46.782-104.934 104.934-104.934 30.213.0 57.502 12.67 76.67 33.137 23.715-4.548 46.456-13.32 66.599-25.34-7.798 24.366-24.366 44.833-46.132 57.827 21.117-2.273 41.584-8.122 60.426-16.243-14.292 20.791-32.161 39.308-52.628 54.253z"/></svg>
+</span>
+&nbsp;
+Twitter
+</a>
+<a href=https://qiita.com/yteraoka class="text-base font-medium text-gray-500 hover:text-gray-900" title>
+Qiita
+</a>
+<button id=search-button class="text-base hover:text-primary-600 dark:hover:text-primary-400" title>
+<span class="relative inline-block align-text-bottom icon"><svg aria-hidden="true" focusable="false" data-prefix="fas" data-icon="search" class="svg-inline--fa fa-search fa-w-16" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentcolor" d="M505 442.7 405.3 343c-4.5-4.5-10.6-7-17-7H372c27.6-35.3 44-79.7 44-128C416 93.1 322.9.0 208 0S0 93.1.0 208s93.1 208 208 208c48.3.0 92.7-16.4 128-44v16.3c0 6.4 2.5 12.5 7 17l99.7 99.7c9.4 9.4 24.6 9.4 33.9.0l28.3-28.3c9.4-9.4 9.4-24.6.1-34zM208 336c-70.7.0-128-57.2-128-128 0-70.7 57.2-128 128-128 70.7.0 128 57.2 128 128 0 70.7-57.2 128-128 128z"/></svg>
+</span>
+</button>
+<div class="ltr:mr-14 rtl:ml-14 cursor-pointer text-sm text-neutral-700 hover:text-primary-600 dark:text-neutral dark:hover:text-primary-400">
+<button id=appearance-switcher type=button>
+<div class="flex items-center justify-center h-12 dark:hidden">
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentcolor" d="M32 256C32 132.2 132.3 32 255.8 32c11.36.0 29.7 1.668 40.9 3.746 9.616 1.777 11.75 14.63 3.279 19.44C245 86.5 211.2 144.6 211.2 207.8c0 109.7 99.71 193 208.3 172.3 9.561-1.805 16.28 9.324 10.11 16.95C387.9 448.6 324.8 480 255.8 480 132.1 480 32 379.6 32 256z"/></svg>
+</span>
+</div>
+<div class="items-center justify-center hidden h-12 dark:flex">
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentcolor" d="M256 159.1c-53.02.0-95.1 42.98-95.1 95.1s41.2 96.9 95.1 96.9 95.1-42.98 95.1-95.1S309 159.1 256 159.1zM509.3 347l-63.2-91.9 63.15-91.01c6.332-9.125 1.104-21.74-9.826-23.72l-109-19.7-19.7-109c-1.975-10.93-14.59-16.16-23.72-9.824L256 65.89 164.1 2.736c-9.125-6.332-21.74-1.107-23.72 9.824L121.6 121.6 12.56 141.3C1.633 143.2-3.596 155.9 2.736 164.1L65.89 256 2.74 347.01c-6.332 9.125-1.105 21.74 9.824 23.72l109 19.7 19.7 109c1.975 10.93 14.59 16.16 23.72 9.824L256 446.1l91.01 63.15c9.127 6.334 21.75 1.107 23.72-9.822l19.7-109 109-19.7C510.4 368.8 515.6 356.1 509.3 347zM256 383.1c-70.69.0-127.1-57.31-127.1-127.1.0-70.69 57.31-127.1 127.1-127.1S383.1 186.2 383.1 256c0 70.7-56.4 127.1-127.1 127.1z"/></svg>
+</span>
+</div>
+</button>
+</div>
+</div>
+<div class="flex md:hidden items-center space-x-5 md:ml-12">
+<span></span>
+<button id=search-button-mobile class="text-base hover:text-primary-600 dark:hover:text-primary-400" title>
+<span class="relative inline-block align-text-bottom icon"><svg aria-hidden="true" focusable="false" data-prefix="fas" data-icon="search" class="svg-inline--fa fa-search fa-w-16" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentcolor" d="M505 442.7 405.3 343c-4.5-4.5-10.6-7-17-7H372c27.6-35.3 44-79.7 44-128C416 93.1 322.9.0 208 0S0 93.1.0 208s93.1 208 208 208c48.3.0 92.7-16.4 128-44v16.3c0 6.4 2.5 12.5 7 17l99.7 99.7c9.4 9.4 24.6 9.4 33.9.0l28.3-28.3c9.4-9.4 9.4-24.6.1-34zM208 336c-70.7.0-128-57.2-128-128 0-70.7 57.2-128 128-128 70.7.0 128 57.2 128 128 0 70.7-57.2 128-128 128z"/></svg>
+</span>
+</button>
+<button id=appearance-switcher-mobile type=button style=margin-right:5px>
+<div class="flex items-center justify-center h-12 dark:hidden">
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentcolor" d="M32 256C32 132.2 132.3 32 255.8 32c11.36.0 29.7 1.668 40.9 3.746 9.616 1.777 11.75 14.63 3.279 19.44C245 86.5 211.2 144.6 211.2 207.8c0 109.7 99.71 193 208.3 172.3 9.561-1.805 16.28 9.324 10.11 16.95C387.9 448.6 324.8 480 255.8 480 132.1 480 32 379.6 32 256z"/></svg>
+</span>
+</div>
+<div class="items-center justify-center hidden h-12 dark:flex">
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentcolor" d="M256 159.1c-53.02.0-95.1 42.98-95.1 95.1s41.2 96.9 95.1 96.9 95.1-42.98 95.1-95.1S309 159.1 256 159.1zM509.3 347l-63.2-91.9 63.15-91.01c6.332-9.125 1.104-21.74-9.826-23.72l-109-19.7-19.7-109c-1.975-10.93-14.59-16.16-23.72-9.824L256 65.89 164.1 2.736c-9.125-6.332-21.74-1.107-23.72 9.824L121.6 121.6 12.56 141.3C1.633 143.2-3.596 155.9 2.736 164.1L65.89 256 2.74 347.01c-6.332 9.125-1.105 21.74 9.824 23.72l109 19.7 19.7 109c1.975 10.93 14.59 16.16 23.72 9.824L256 446.1l91.01 63.15c9.127 6.334 21.75 1.107 23.72-9.822l19.7-109 109-19.7C510.4 368.8 515.6 356.1 509.3 347zM256 383.1c-70.69.0-127.1-57.31-127.1-127.1.0-70.69 57.31-127.1 127.1-127.1S383.1 186.2 383.1 256c0 70.7-56.4 127.1-127.1 127.1z"/></svg>
+</span>
+</div>
+</button>
+</div>
+</div>
+<div class="-my-2 -mr-2 md:hidden">
+<label id=menu-button for=menu-controller class=block>
+<input type=checkbox id=menu-controller class=hidden>
+<div class="cursor-pointer hover:text-primary-600 dark:hover:text-primary-400">
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path fill="currentcolor" d="M0 96C0 78.33 14.33 64 32 64H416c17.7.0 32 14.33 32 32 0 17.7-14.3 32-32 32H32C14.33 128 0 113.7.0 96zM0 256c0-17.7 14.33-32 32-32H416c17.7.0 32 14.3 32 32s-14.3 32-32 32H32c-17.67.0-32-14.3-32-32zM416 448H32c-17.67.0-32-14.3-32-32s14.33-32 32-32H416c17.7.0 32 14.3 32 32s-14.3 32-32 32z"/></svg>
+</span>
+</div>
+<div id=menu-wrapper style=padding-top:25px class="fixed inset-0 z-30 invisible w-screen h-screen m-auto overflow-auto transition-opacity opacity-0 cursor-default bg-neutral-100/50 backdrop-blur-sm dark:bg-neutral-900/50">
+<ul class="flex movedown flex-col w-full px-6 py-6 mx-auto overflow-visible list-none ltr:text-right rtl:text-left max-w-7xl sm:px-14 md:px-24 lg:px-32 sm:py-10 sm:pt-10">
+<li class=mb-1>
+<span class="cursor-pointer hover:text-primary-600 dark:hover:text-primary-400">
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><path fill="currentcolor" d="M310.6 361.4c12.5 12.5 12.5 32.75.0 45.25C304.4 412.9 296.2 416 288 416s-16.38-3.125-22.62-9.375L160 301.3 54.63 406.6C48.38 412.9 40.19 416 32 416S15.63 412.9 9.375 406.6c-12.5-12.5-12.5-32.75.0-45.25l105.4-105.4L9.375 150.6c-12.5-12.5-12.5-32.75.0-45.25s32.75-12.5 45.25.0L160 210.8l105.4-105.4c12.5-12.5 32.75-12.5 45.25.0s12.5 32.75.0 45.25l-105.4 105.4L310.6 361.4z"/></svg>
+</span>
+</span>
+</li>
+<li class=mb-1>
+<a class="decoration-primary-500 hover:underline hover:decoration-2 hover:underline-offset-2" href=/posts/ title=Posts>
+Blog
+</a>
+</li>
+<li class=mb-1>
+<a class="decoration-primary-500 hover:underline hover:decoration-2 hover:underline-offset-2" href=/tags/ title=Tags>
+Tags
+</a>
+</li>
+<li class=mb-1>
+<a class="decoration-primary-500 hover:underline hover:decoration-2 hover:underline-offset-2" href=https://github.com/yteraoka title>
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><path fill="currentcolor" d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6.0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6.0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3.0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1.0-6.2-.3-40.4-.3-61.4.0.0-70 15-84.7-29.8.0.0-11.4-29.1-27.8-36.6.0.0-22.9-15.7 1.6-15.4.0.0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5.0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9.0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4.0 33.7-.3 75.4-.3 83.6.0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6.0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9.0-6.2-1.4-2.3-4-3.3-5.6-2z"/></svg>
+</span>
+&nbsp;
+GitHub
+</a>
+</li>
+<li class=mb-1>
+<a class="decoration-primary-500 hover:underline hover:decoration-2 hover:underline-offset-2" href=https://twitter.com/yteraoka title>
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentcolor" d="M459.37 151.716c.325 4.548.325 9.097.325 13.645.0 138.72-105.583 298.558-298.558 298.558-59.452.0-114.68-17.219-161.137-47.106 8.447.974 16.568 1.299 25.34 1.299 49.055.0 94.213-16.568 130.274-44.832-46.132-.975-84.792-31.188-98.112-72.772 6.498.974 12.995 1.624 19.818 1.624 9.421.0 18.843-1.3 27.614-3.573-48.081-9.747-84.143-51.98-84.143-102.985v-1.299c13.969 7.797 30.214 12.67 47.431 13.319-28.264-18.843-46.781-51.005-46.781-87.391.0-19.492 5.197-37.36 14.294-52.954 51.655 63.675 129.3 105.258 216.365 109.807-1.624-7.797-2.599-15.918-2.599-24.04.0-57.828 46.782-104.934 104.934-104.934 30.213.0 57.502 12.67 76.67 33.137 23.715-4.548 46.456-13.32 66.599-25.34-7.798 24.366-24.366 44.833-46.132 57.827 21.117-2.273 41.584-8.122 60.426-16.243-14.292 20.791-32.161 39.308-52.628 54.253z"/></svg>
+</span>
+&nbsp;
+Twitter
+</a>
+</li>
+<li class=mb-1>
+<a class="decoration-primary-500 hover:underline hover:decoration-2 hover:underline-offset-2" href=https://qiita.com/yteraoka title>
+Qiita
+</a>
+</li>
+</ul>
+</div>
+</label>
+</div>
+</div>
+<div id=mobile-menu class="fixed inset-0 z-30 invisible w-screen h-screen m-auto overflow-auto transition-opacity opacity-0 cursor-default bg-neutral-100/50 backdrop-blur-sm dark:bg-neutral-900/50">
+<ul class="flex movedown flex-col w-full px-6 py-6 mx-auto overflow-visible list-none ltr:text-right rtl:text-left max-w-7xl sm:px-14 md:px-24 lg:px-32 sm:py-10 sm:pt-10">
+<li class=mb-1>
+<span class="cursor-pointer hover:text-primary-600 dark:hover:text-primary-400">
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><path fill="currentcolor" d="M310.6 361.4c12.5 12.5 12.5 32.75.0 45.25C304.4 412.9 296.2 416 288 416s-16.38-3.125-22.62-9.375L160 301.3 54.63 406.6C48.38 412.9 40.19 416 32 416S15.63 412.9 9.375 406.6c-12.5-12.5-12.5-32.75.0-45.25l105.4-105.4L9.375 150.6c-12.5-12.5-12.5-32.75.0-45.25s32.75-12.5 45.25.0L160 210.8l105.4-105.4c12.5-12.5 32.75-12.5 45.25.0s12.5 32.75.0 45.25l-105.4 105.4L310.6 361.4z"/></svg>
+</span>
+</span>
+</li>
+<li class=mb-1>
+<a class="decoration-primary-500 hover:underline hover:decoration-2 hover:underline-offset-2" href=/posts/ title=Posts>Blog</a>
+</li>
+<li class=mb-1>
+<a class="decoration-primary-500 hover:underline hover:decoration-2 hover:underline-offset-2" href=/tags/ title=Tags>Tags</a>
+</li>
+<li class=mb-1>
+<a class="decoration-primary-500 hover:underline hover:decoration-2 hover:underline-offset-2" href=https://github.com/yteraoka title>GitHub</a>
+</li>
+<li class=mb-1>
+<a class="decoration-primary-500 hover:underline hover:decoration-2 hover:underline-offset-2" href=https://twitter.com/yteraoka title>Twitter</a>
+</li>
+<li class=mb-1>
+<a class="decoration-primary-500 hover:underline hover:decoration-2 hover:underline-offset-2" href=https://qiita.com/yteraoka title>Qiita</a>
+</li>
+<li>
+<button id=search-button-mobile class="text-base hover:text-primary-600 dark:hover:text-primary-400">
+<span class="relative inline-block align-text-bottom icon"><svg aria-hidden="true" focusable="false" data-prefix="fas" data-icon="search" class="svg-inline--fa fa-search fa-w-16" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentcolor" d="M505 442.7 405.3 343c-4.5-4.5-10.6-7-17-7H372c27.6-35.3 44-79.7 44-128C416 93.1 322.9.0 208 0S0 93.1.0 208s93.1 208 208 208c48.3.0 92.7-16.4 128-44v16.3c0 6.4 2.5 12.5 7 17l99.7 99.7c9.4 9.4 24.6 9.4 33.9.0l28.3-28.3c9.4-9.4 9.4-24.6.1-34zM208 336c-70.7.0-128-57.2-128-128 0-70.7 57.2-128 128-128 70.7.0 128 57.2 128 128 0 70.7-57.2 128-128 128z"/></svg>
+</span>
+</button>
+</li>
+</ul>
+</div>
+<div class="relative flex flex-col grow">
+<main id=main-content class=grow>
+<article>
+<header class=max-w-prose>
+<ol class="text-sm text-neutral-500 dark:text-neutral-400 print:hidden">
+<li class="inline hidden">
+<a class="hover:underline decoration-neutral-300 dark:underline-neutral-600" href=/>1Q77</a><span class="px-1 text-primary-500">/</span>
+</li>
+<li class=inline>
+<a class="hover:underline decoration-neutral-300 dark:underline-neutral-600" href=/posts/>Posts</a><span class="px-1 text-primary-500">/</span>
+</li>
+<li class="inline hidden">
+<a class="hover:underline decoration-neutral-300 dark:underline-neutral-600" href=/2020/03/istio-part12/>Istio 導入への道 – sidecar の調整編</a><span class="px-1 text-primary-500">/</span>
+</li>
+</ol>
+<h1 class="mt-0 text-4xl font-extrabold text-neutral-900 dark:text-neutral">
+Istio 導入への道 – sidecar の調整編
+</h1>
+<div class="mt-8 mb-12 text-base text-neutral-500 dark:text-neutral-400 print:hidden">
+<div class="flex flex-row flex-wrap items-center">
+<time datetime="2020-03-29 17:01:29 +0000 UTC">2020年3月29日</time>
+</div>
+<div class="flex flex-row flex-wrap items-center">
+<span style=margin-top:.5rem class=mr-2 onclick='window.open("/tags/istio/")'>
+<span class=flex>
+<span class="rounded-md border border-primary-400 px-1 py-[1px] text-xs font-normal text-primary-700 dark:border-primary-600 dark:text-primary-400">
+Istio
+</span>
+</span>
+</span>
+<span style=margin-top:.5rem class=mr-2 onclick='window.open("/tags/kubernetes/")'>
+<span class=flex>
+<span class="rounded-md border border-primary-400 px-1 py-[1px] text-xs font-normal text-primary-700 dark:border-primary-600 dark:text-primary-400">
+Kubernetes
+</span>
+</span>
+</span>
+</div>
+</div>
+</header>
+<section class="flex flex-col max-w-full mt-0 prose dark:prose-invert lg:flex-row">
+<div class="order-first px-0 lg:order-last lg:max-w-xs ltr:lg:pl-8 rtl:lg:pr-8">
+<div class="toc ltr:pl-5 rtl:pr-5 print:hidden lg:sticky lg:top-10">
+<details open class="mt-0 overflow-hidden rounded-lg ltr:-ml-5 ltr:pl-5 rtl:-mr-5 rtl:pr-5 hidden lg:block">
+<summary class="block py-1 text-lg font-semibold cursor-pointer bg-neutral-100 text-neutral-800 ltr:-ml-5 ltr:pl-5 rtl:-mr-5 rtl:pr-5 dark:bg-neutral-700 dark:text-neutral-100 lg:hidden">
+目次
+</summary>
+<div class="py-2 border-dotted border-neutral-300 ltr:-ml-5 ltr:border-l ltr:pl-5 rtl:-mr-5 rtl:border-r rtl:pr-5 dark:border-neutral-600">
+<nav id=TableOfContents>
+<ul>
+<li><a href=#prestop-フック>preStop フック</a>
+<ul>
+<li><a href=#istio-sidecar-injector-configmap-の-config>istio-sidecar-injector ConfigMap の config</a></li>
+<li><a href=#istio-sidecar-injector-configmap-の-values>istio-sidecar-injector ConfigMap の values</a></li>
+<li><a href=#prestop-hook-のカスタマイズ>preStop hook のカスタマイズ</a></li>
+</ul>
+</li>
+</ul>
+</nav>
+</div>
+</details>
+<details class="mt-0 overflow-hidden rounded-lg ltr:-ml-5 ltr:pl-5 rtl:-mr-5 rtl:pr-5 lg:hidden">
+<summary class="py-1 text-lg font-semibold cursor-pointer bg-neutral-100 text-neutral-800 ltr:-ml-5 ltr:pl-5 rtl:-mr-5 rtl:pr-5 dark:bg-neutral-700 dark:text-neutral-100 lg:hidden">
+目次
+</summary>
+<div class="py-2 border-dotted border-neutral-300 ltr:-ml-5 ltr:border-l ltr:pl-5 rtl:-mr-5 rtl:border-r rtl:pr-5 dark:border-neutral-600">
+<nav id=TableOfContents>
+<ul>
+<li><a href=#prestop-フック>preStop フック</a>
+<ul>
+<li><a href=#istio-sidecar-injector-configmap-の-config>istio-sidecar-injector ConfigMap の config</a></li>
+<li><a href=#istio-sidecar-injector-configmap-の-values>istio-sidecar-injector ConfigMap の values</a></li>
+<li><a href=#prestop-hook-のカスタマイズ>preStop hook のカスタマイズ</a></li>
+</ul>
+</li>
+</ul>
+</nav>
+</div>
+</details>
+</div>
+</div>
+<div class="min-w-0 min-h-0 max-w-prose">
+<p><a href=/category/kubernetes/istio/>Istio シリーズ</a> 第12回です。</p>
+<p>Istio は各 Pod に sidecar として Envoy コンテナを差し込み、通信の受信も送信も Envoy を経由します。アプリの更新時などに旧バージョンの Pod の停止する時、先に Envoy コンテナが停止してしまうとアプリのコンテナが通信できなくなり処理が完了できなくなったりします。開始時にもコンテナの起動順序は不定であるため起動スクリプトの調整や LivnessProbe, ReadinessProbe は重要です。</p>
+<h2 id=prestop-フック class="relative group">preStop フック <span class="absolute top-0 w-6 transition-opacity opacity-0 ltr:-left-6 rtl:-right-6 not-prose group-hover:opacity-100"><a class="group-hover:text-primary-300 dark:group-hover:text-neutral-700" style=text-decoration-line:none!important href=#prestop-%e3%83%95%e3%83%83%e3%82%af aria-label=アンカー>#</a></span></h2>
+<p>そこで、sidecar である Envoy が先に終了してしまわないようにするために Pod の <a href=https://kubernetes.io/docs/concepts/containers/container-lifecycle-hooks/#hook-details>preStop hook</a> を活用することができます。</p>
+<p>Envoy sidecar は istio によって deploy 時に inject されますが、どんな設定を inject するかは istio-system ネームスペースにある istio-sidecar-injector という ConfigMap に定義されています。</p>
+<pre tabindex=0><code>$ kubectl get configmap -n istio-system
+NAME                     DATA   AGE
+istio                    3      21d
+istio-ca-root-cert       1      21d
+istio-leader             0      21d
+istio-security           1      21d
+istio-sidecar-injector   2      21d
+pilot-envoy-config       1      21d
+prometheus               1      21d
+</code></pre><p>config にテンプレートなどと、そのテンプレートに渡す values という変数が入っています。</p>
+<h3 id=istio-sidecar-injector-configmap-の-config class="relative group">istio-sidecar-injector ConfigMap の config <span class="absolute top-0 w-6 transition-opacity opacity-0 ltr:-left-6 rtl:-right-6 not-prose group-hover:opacity-100"><a class="group-hover:text-primary-300 dark:group-hover:text-neutral-700" style=text-decoration-line:none!important href=#istio-sidecar-injector-configmap-%e3%81%ae-config aria-label=アンカー>#</a></span></h3>
+<pre tabindex=0><code>$ kubectl get configmap -n istio-system istio-sidecar-injector -o jsonpath='{.data.config}'
+</code></pre><pre tabindex=0><code>policy: enabled
+alwaysInjectSelector:
+        []
+neverInjectSelector:
+        []
+injectedAnnotations:
+
+# Configmap optimized for Istiod. Please DO NOT MERGE all changes from istio - in particular those dependent on
+# Values.yaml, which should not be used by istiod.
+
+# Istiod only uses SDS based config ( files will mapped/handled by SDS).
+
+template: |
+  rewriteAppHTTPProbe: {{ valueOrDefault .Values.sidecarInjectorWebhook.rewriteAppHTTPProbe false }}
+  initContainers:
+  {{ if ne (annotation .ObjectMeta `sidecar.istio.io/interceptionMode` .ProxyConfig.InterceptionMode) `NONE` }}
+  {{ if .Values.istio_cni.enabled -}}
+  - name: istio-validation
+  {{ else -}}
+  - name: istio-init
+  {{ end -}}
+  {{- if contains &quot;/&quot; .Values.global.proxy_init.image }}
+    image: &quot;{{ .Values.global.proxy_init.image }}&quot;
+  {{- else }}
+    image: &quot;{{ .Values.global.hub }}/{{ .Values.global.proxy_init.image }}:{{ .Values.global.tag }}&quot;
+  {{- end }}
+    command:
+    - istio-iptables
+    - &quot;-p&quot;
+    - 15001
+    - &quot;-z&quot;
+    - &quot;15006&quot;
+    - &quot;-u&quot;
+    - 1337
+    - &quot;-m&quot;
+    - &quot;{{ annotation .ObjectMeta `sidecar.istio.io/interceptionMode` .ProxyConfig.InterceptionMode }}&quot;
+    - &quot;-i&quot;
+    - &quot;{{ annotation .ObjectMeta `traffic.sidecar.istio.io/includeOutboundIPRanges` .Values.global.proxy.includeIPRanges }}&quot;
+    - &quot;-x&quot;
+    - &quot;{{ annotation .ObjectMeta `traffic.sidecar.istio.io/excludeOutboundIPRanges` .Values.global.proxy.excludeIPRanges }}&quot;
+    - &quot;-b&quot;
+    - &quot;{{ annotation .ObjectMeta `traffic.sidecar.istio.io/includeInboundPorts` `*` }}&quot;
+    - &quot;-d&quot;
+    - &quot;15090,{{ excludeInboundPort (annotation .ObjectMeta `status.sidecar.istio.io/port` .Values.global.proxy.statusPort) (annotation .ObjectMeta `traffic.sidecar.istio.io/excludeInboundPorts` .Values.global.proxy.excludeInboundPorts) }}&quot;
+    {{ if or (isset .ObjectMeta.Annotations `traffic.sidecar.istio.io/excludeOutboundPorts`) (ne (valueOrDefault .Values.global.proxy.excludeOutboundPorts &quot;&quot;) &quot;&quot;) -}}
+    - &quot;-o&quot;
+    - &quot;{{ annotation .ObjectMeta `traffic.sidecar.istio.io/excludeOutboundPorts` .Values.global.proxy.excludeOutboundPorts }}&quot;
+    {{ end -}}
+    {{ if (isset .ObjectMeta.Annotations `traffic.sidecar.istio.io/kubevirtInterfaces`) -}}
+    - &quot;-k&quot;
+    - &quot;{{ index .ObjectMeta.Annotations `traffic.sidecar.istio.io/kubevirtInterfaces` }}&quot;
+    {{ end -}}
+    {{ if .Values.istio_cni.enabled -}}
+    - &quot;--run-validation&quot;
+    - &quot;--skip-rule-apply&quot;
+    {{ end -}}
+    imagePullPolicy: &quot;{{ valueOrDefault .Values.global.imagePullPolicy `Always` }}&quot;
+  {{- if .Values.global.proxy_init.resources }}
+    resources:
+      {{ toYaml .Values.global.proxy_init.resources | indent 4 }}
+  {{- else }}
+    resources: {}
+  {{- end }}
+    securityContext:
+      allowPrivilegeEscalation: {{ .Values.global.proxy.privileged }}
+      privileged: {{ .Values.global.proxy.privileged }}
+      capabilities:
+    {{- if not .Values.istio_cni.enabled }}
+        add:
+        - NET_ADMIN
+        - NET_RAW
+    {{- end }}
+        drop:
+        - ALL
+      readOnlyRootFilesystem: false
+    {{- if not .Values.istio_cni.enabled }}
+      runAsGroup: 0
+      runAsNonRoot: false
+      runAsUser: 0
+    {{- else }}
+      runAsGroup: 1337
+      runAsUser: 1337
+      runAsNonRoot: true
+    {{- end }}
+    restartPolicy: Always
+  {{ end -}}
+  {{- if eq .Values.global.proxy.enableCoreDump true }}
+  - name: enable-core-dump
+    args:
+    - -c
+    - sysctl -w kernel.core_pattern=/var/lib/istio/core.proxy &amp;&amp; ulimit -c unlimited
+    command:
+      - /bin/sh
+  {{- if contains &quot;/&quot; .Values.global.proxy_init.image }}
+    image: &quot;{{ .Values.global.proxy_init.image }}&quot;
+  {{- else }}
+    image: &quot;{{ .Values.global.hub }}/{{ .Values.global.proxy_init.image }}:{{ .Values.global.tag }}&quot;
+  {{- end }}
+    imagePullPolicy: &quot;{{ valueOrDefault .Values.global.imagePullPolicy `Always` }}&quot;
+    resources: {}
+    securityContext:
+      allowPrivilegeEscalation: true
+      capabilities:
+        add:
+        - SYS_ADMIN
+        drop:
+        - ALL
+      privileged: true
+      readOnlyRootFilesystem: false
+      runAsGroup: 0
+      runAsNonRoot: false
+      runAsUser: 0
+  {{ end }}
+  containers:
+  - name: istio-proxy
+  {{- if contains &quot;/&quot; (annotation .ObjectMeta `sidecar.istio.io/proxyImage` .Values.global.proxy.image) }}
+    image: &quot;{{ annotation .ObjectMeta `sidecar.istio.io/proxyImage` .Values.global.proxy.image }}&quot;
+  {{- else }}
+    image: &quot;{{ .Values.global.hub }}/{{ .Values.global.proxy.image }}:{{ .Values.global.tag }}&quot;
+  {{- end }}
+    ports:
+    - containerPort: 15090
+      protocol: TCP
+      name: http-envoy-prom
+    args:
+    - proxy
+    - sidecar
+    - --domain
+    - $(POD_NAMESPACE).svc.{{ .Values.global.proxy.clusterDomain }}
+    - --configPath
+    - &quot;/etc/istio/proxy&quot;
+    - --binaryPath
+    - &quot;/usr/local/bin/envoy&quot;
+    - --serviceCluster
+    {{ if ne &quot;&quot; (index .ObjectMeta.Labels &quot;app&quot;) -}}
+    - &quot;{{ index .ObjectMeta.Labels `app` }}.$(POD_NAMESPACE)&quot;
+    {{ else -}}
+    - &quot;{{ valueOrDefault .DeploymentMeta.Name `istio-proxy` }}.{{ valueOrDefault .DeploymentMeta.Namespace `default` }}&quot;
+    {{ end -}}
+    - --drainDuration
+    - &quot;{{ formatDuration .ProxyConfig.DrainDuration }}&quot;
+    - --parentShutdownDuration
+    - &quot;{{ formatDuration .ProxyConfig.ParentShutdownDuration }}&quot;
+    - --discoveryAddress
+    - &quot;{{ annotation .ObjectMeta `sidecar.istio.io/discoveryAddress` .ProxyConfig.DiscoveryAddress }}&quot;
+  {{- if eq .Values.global.proxy.tracer &quot;lightstep&quot; }}
+    - --lightstepAddress
+    - &quot;{{ .ProxyConfig.GetTracing.GetLightstep.GetAddress }}&quot;
+    - --lightstepAccessToken
+    - &quot;{{ .ProxyConfig.GetTracing.GetLightstep.GetAccessToken }}&quot;
+    - --lightstepSecure={{ .ProxyConfig.GetTracing.GetLightstep.GetSecure }}
+    - --lightstepCacertPath
+    - &quot;{{ .ProxyConfig.GetTracing.GetLightstep.GetCacertPath }}&quot;
+  {{- else if eq .Values.global.proxy.tracer &quot;zipkin&quot; }}
+    - --zipkinAddress
+    - &quot;{{ .ProxyConfig.GetTracing.GetZipkin.GetAddress }}&quot;
+  {{- else if eq .Values.global.proxy.tracer &quot;datadog&quot; }}
+    - --datadogAgentAddress
+    - &quot;{{ .ProxyConfig.GetTracing.GetDatadog.GetAddress }}&quot;
+  {{- end }}
+    - --proxyLogLevel={{ annotation .ObjectMeta `sidecar.istio.io/logLevel` .Values.global.proxy.logLevel}}
+    - --proxyComponentLogLevel={{ annotation .ObjectMeta `sidecar.istio.io/componentLogLevel` .Values.global.proxy.componentLogLevel}}
+    - --connectTimeout
+    - &quot;{{ formatDuration .ProxyConfig.ConnectTimeout }}&quot;
+  {{- if .Values.global.proxy.envoyStatsd.enabled }}
+    - --statsdUdpAddress
+    - &quot;{{ .ProxyConfig.StatsdUdpAddress }}&quot;
+  {{- end }}
+  {{- if .Values.global.proxy.envoyMetricsService.enabled }}
+    - --envoyMetricsService
+    - '{{ protoToJSON .ProxyConfig.EnvoyMetricsService }}'
+  {{- end }}
+  {{- if .Values.global.proxy.envoyAccessLogService.enabled }}
+    - --envoyAccessLogService
+    - '{{ protoToJSON .ProxyConfig.EnvoyAccessLogService }}'
+  {{- end }}
+    - --proxyAdminPort
+    - &quot;{{ .ProxyConfig.ProxyAdminPort }}&quot;
+    {{ if gt .ProxyConfig.Concurrency 0 -}}
+    - --concurrency
+    - &quot;{{ .ProxyConfig.Concurrency }}&quot;
+    {{ end -}}
+    {{- if .Values.global.istiod.enabled }}
+    - --controlPlaneAuthPolicy
+    - NONE
+    {{- else if .Values.global.controlPlaneSecurityEnabled }}
+    - --controlPlaneAuthPolicy
+    - MUTUAL_TLS
+    {{- else }}
+    - --controlPlaneAuthPolicy
+    - NONE
+    {{- end }}
+    - --dnsRefreshRate
+    - {{ valueOrDefault .Values.global.proxy.dnsRefreshRate &quot;300s&quot; }}
+  {{- if (ne (annotation .ObjectMeta &quot;status.sidecar.istio.io/port&quot; .Values.global.proxy.statusPort) &quot;0&quot;) }}
+    - --statusPort
+    - &quot;{{ annotation .ObjectMeta `status.sidecar.istio.io/port` .Values.global.proxy.statusPort }}&quot;
+  {{- end }}
+  {{- if .Values.global.sts.servicePort }}
+    - --stsPort={{ .Values.global.sts.servicePort }}
+  {{- end }}
+  {{- if .Values.global.trustDomain }}
+    - --trust-domain={{ .Values.global.trustDomain }}
+  {{- end }}
+  {{- if .Values.global.logAsJson }}
+    - --log_as_json
+  {{- end }}
+    - --controlPlaneBootstrap=false
+  {{- if .Values.global.proxy.lifecycle }}
+    lifecycle:
+      {{ toYaml .Values.global.proxy.lifecycle | indent 4 }}
+    {{- end }}
+    env:
+    - name: JWT_POLICY
+      value: {{ .Values.global.jwtPolicy }}
+    - name: PILOT_CERT_PROVIDER
+      value: {{ .Values.global.pilotCertProvider }}
+    # Temp, pending PR to make it default or based on the istiodAddr env
+    - name: CA_ADDR
+    {{- if .Values.global.configNamespace }}
+      value: istio-pilot.{{ .Values.global.configNamespace }}.svc:15012
+    {{- else }}
+      value: istio-pilot.istio-system.svc:15012
+    {{- end }}
+    - name: POD_NAME
+      valueFrom:
+        fieldRef:
+          fieldPath: metadata.name
+    - name: POD_NAMESPACE
+      valueFrom:
+        fieldRef:
+          fieldPath: metadata.namespace
+    - name: INSTANCE_IP
+      valueFrom:
+        fieldRef:
+          fieldPath: status.podIP
+    - name: SERVICE_ACCOUNT
+      valueFrom:
+        fieldRef:
+          fieldPath: spec.serviceAccountName
+    - name: HOST_IP
+      valueFrom:
+        fieldRef:
+          fieldPath: status.hostIP
+  {{- if eq .Values.global.proxy.tracer &quot;datadog&quot; }}
+  {{- if isset .ObjectMeta.Annotations `apm.datadoghq.com/env` }}
+  {{- range $key, $value := fromJSON (index .ObjectMeta.Annotations `apm.datadoghq.com/env`) }}
+    - name: {{ $key }}
+      value: &quot;{{ $value }}&quot;
+  {{- end }}
+  {{- end }}
+  {{- end }}
+    - name: ISTIO_META_POD_PORTS
+      value: |-
+        [
+        {{- $first := true }}
+        {{- range $index1, $c := .Spec.Containers }}
+          {{- range $index2, $p := $c.Ports }}
+            {{- if (structToJSON $p) }}
+            {{if not $first}},{{end}}{{ structToJSON $p }}
+            {{- $first = false }}
+            {{- end }}
+          {{- end}}
+        {{- end}}
+        ]
+    - name: ISTIO_META_CLUSTER_ID
+      value: &quot;{{ valueOrDefault .Values.global.multiCluster.clusterName `Kubernetes` }}&quot;
+    - name: ISTIO_META_POD_NAME
+      valueFrom:
+        fieldRef:
+          fieldPath: metadata.name
+    - name: ISTIO_META_CONFIG_NAMESPACE
+      valueFrom:
+        fieldRef:
+          fieldPath: metadata.namespace
+    - name: ISTIO_META_INTERCEPTION_MODE
+      value: &quot;{{ or (index .ObjectMeta.Annotations `sidecar.istio.io/interceptionMode`) .ProxyConfig.InterceptionMode.String }}&quot;
+    {{- if .Values.global.network }}
+    - name: ISTIO_META_NETWORK
+      value: &quot;{{ .Values.global.network }}&quot;
+    {{- end }}
+    {{ if .ObjectMeta.Annotations }}
+    - name: ISTIO_METAJSON_ANNOTATIONS
+      value: |
+             {{ toJSON .ObjectMeta.Annotations }}
+    {{ end }}
+    {{- if .DeploymentMeta.Name }}
+    - name: ISTIO_META_WORKLOAD_NAME
+      value: {{ .DeploymentMeta.Name }}
+    {{ end }}
+    {{- if and .TypeMeta.APIVersion .DeploymentMeta.Name }}
+    - name: ISTIO_META_OWNER
+      value: kubernetes://apis/{{ .TypeMeta.APIVersion }}/namespaces/{{ valueOrDefault .DeploymentMeta.Namespace `default` }}/{{ toLower .TypeMeta.Kind}}s/{{ .DeploymentMeta.Name }}
+    {{- end}}
+    {{- if (isset .ObjectMeta.Annotations `sidecar.istio.io/bootstrapOverride`) }}
+    - name: ISTIO_BOOTSTRAP_OVERRIDE
+      value: &quot;/etc/istio/custom-bootstrap/custom_bootstrap.json&quot;
+    {{- end }}
+    {{- if .Values.global.meshID }}
+    - name: ISTIO_META_MESH_ID
+      value: &quot;{{ .Values.global.meshID }}&quot;
+    {{- else if .Values.global.trustDomain }}
+    - name: ISTIO_META_MESH_ID
+      value: &quot;{{ .Values.global.trustDomain }}&quot;
+    {{- end }}
+    {{- if eq .Values.global.proxy.tracer &quot;stackdriver&quot; }}
+    - name: STACKDRIVER_TRACING_ENABLED
+      value: &quot;true&quot;
+    - name: STACKDRIVER_TRACING_DEBUG
+      value: &quot;{{ .ProxyConfig.GetTracing.GetStackdriver.GetDebug }}&quot;
+    - name: STACKDRIVER_TRACING_MAX_NUMBER_OF_ANNOTATIONS
+      value: &quot;{{ .ProxyConfig.GetTracing.GetStackdriver.GetMaxNumberOfAnnotations.Value }}&quot;
+    - name: STACKDRIVER_TRACING_MAX_NUMBER_OF_ATTRIBUTES
+      value: &quot;{{ .ProxyConfig.GetTracing.GetStackdriver.GetMaxNumberOfAttributes.Value }}&quot;
+    - name: STACKDRIVER_TRACING_MAX_NUMBER_OF_MESSAGE_EVENTS
+      value: &quot;{{ .ProxyConfig.GetTracing.GetStackdriver.GetMaxNumberOfMessageEvents.Value }}&quot;
+    {{- end }}
+    {{- if and (eq .Values.global.proxy.tracer &quot;datadog&quot;) (isset .ObjectMeta.Annotations `apm.datadoghq.com/env`) }}
+    {{- range $key, $value := fromJSON (index .ObjectMeta.Annotations `apm.datadoghq.com/env`) }}
+      - name: {{ $key }}
+        value: &quot;{{ $value }}&quot;
+    {{- end }}
+    {{- end }}
+    {{- range $key, $value := .ProxyConfig.ProxyMetadata }}
+    - name: {{ $key }}
+      value: &quot;{{ $value }}&quot;
+    {{- end }}
+    imagePullPolicy: &quot;{{ valueOrDefault .Values.global.imagePullPolicy `Always` }}&quot;
+    {{ if ne (annotation .ObjectMeta `status.sidecar.istio.io/port` .Values.global.proxy.statusPort) `0` }}
+    readinessProbe:
+      httpGet:
+        path: /healthz/ready
+        port: {{ annotation .ObjectMeta `status.sidecar.istio.io/port` .Values.global.proxy.statusPort }}
+      initialDelaySeconds: {{ annotation .ObjectMeta `readiness.status.sidecar.istio.io/initialDelaySeconds` .Values.global.proxy.readinessInitialDelaySeconds }}
+      periodSeconds: {{ annotation .ObjectMeta `readiness.status.sidecar.istio.io/periodSeconds` .Values.global.proxy.readinessPeriodSeconds }}
+      failureThreshold: {{ annotation .ObjectMeta `readiness.status.sidecar.istio.io/failureThreshold` .Values.global.proxy.readinessFailureThreshold }}
+    {{ end -}}
+    securityContext:
+      allowPrivilegeEscalation: {{ .Values.global.proxy.privileged }}
+      capabilities:
+        {{ if or (eq (annotation .ObjectMeta `sidecar.istio.io/interceptionMode` .ProxyConfig.InterceptionMode) `TPROXY`) (eq (annotation .ObjectMeta `sidecar.istio.io/capNetBindService` .Values.global.proxy.capNetBindService) `true`) -}}
+        add:
+        {{ if eq (annotation .ObjectMeta `sidecar.istio.io/interceptionMode` .ProxyConfig.InterceptionMode) `TPROXY` -}}
+        - NET_ADMIN
+        {{- end }}
+        {{ if eq (annotation .ObjectMeta `sidecar.istio.io/capNetBindService` .Values.global.proxy.capNetBindService) `true` -}}
+        - NET_BIND_SERVICE
+        {{- end }}
+        {{- end }}
+        drop:
+        - ALL
+      privileged: {{ .Values.global.proxy.privileged }}
+      readOnlyRootFilesystem: {{ not .Values.global.proxy.enableCoreDump }}
+      runAsGroup: 1337
+      fsGroup: 1337
+      {{ if or (eq (annotation .ObjectMeta `sidecar.istio.io/interceptionMode` .ProxyConfig.InterceptionMode) `TPROXY`) (eq (annotation .ObjectMeta `sidecar.istio.io/capNetBindService` .Values.global.proxy.capNetBindService) `true`) -}}
+      runAsNonRoot: false
+      runAsUser: 0
+      {{- else -}}
+      runAsNonRoot: true
+      runAsUser: 1337
+      {{- end }}
+    resources:
+      {{ if or (isset .ObjectMeta.Annotations `sidecar.istio.io/proxyCPU`) (isset .ObjectMeta.Annotations `sidecar.istio.io/proxyMemory`) -}}
+      requests:
+        {{ if (isset .ObjectMeta.Annotations `sidecar.istio.io/proxyCPU`) -}}
+        cpu: &quot;{{ index .ObjectMeta.Annotations `sidecar.istio.io/proxyCPU` }}&quot;
+        {{ end}}
+        {{ if (isset .ObjectMeta.Annotations `sidecar.istio.io/proxyMemory`) -}}
+        memory: &quot;{{ index .ObjectMeta.Annotations `sidecar.istio.io/proxyMemory` }}&quot;
+        {{ end }}
+    {{ else -}}
+  {{- if .Values.global.proxy.resources }}
+      {{ toYaml .Values.global.proxy.resources | indent 4 }}
+  {{- end }}
+    {{  end -}}
+    volumeMounts:
+    {{- if eq .Values.global.pilotCertProvider &quot;istiod&quot; }}
+    - mountPath: /var/run/secrets/istio
+      name: istiod-ca-cert
+    {{- end }}
+    {{ if (isset .ObjectMeta.Annotations `sidecar.istio.io/bootstrapOverride`) }}
+    - mountPath: /etc/istio/custom-bootstrap
+      name: custom-bootstrap-volume
+    {{- end }}
+    # SDS channel between istioagent and Envoy
+    - mountPath: /etc/istio/proxy
+      name: istio-envoy
+    {{- if eq .Values.global.jwtPolicy &quot;third-party-jwt&quot; }}
+    - mountPath: /var/run/secrets/tokens
+      name: istio-token
+    {{- end }}
+    {{- if .Values.global.mountMtlsCerts }}
+    # Use the key and cert mounted to /etc/certs/ for the in-cluster mTLS communications.
+    - mountPath: /etc/certs/
+      name: istio-certs
+      readOnly: true
+    {{- end }}
+    - name: podinfo
+      mountPath: /etc/istio/pod
+    {{- if and (eq .Values.global.proxy.tracer &quot;lightstep&quot;) .Values.global.tracer.lightstep.cacertPath }}
+    - mountPath: {{ directory .ProxyConfig.GetTracing.GetLightstep.GetCacertPath }}
+      name: lightstep-certs
+      readOnly: true
+    {{- end }}
+      {{- if isset .ObjectMeta.Annotations `sidecar.istio.io/userVolumeMount` }}
+      {{ range $index, $value := fromJSON (index .ObjectMeta.Annotations `sidecar.istio.io/userVolumeMount`) }}
+    - name: &quot;{{  $index }}&quot;
+      {{ toYaml $value | indent 4 }}
+      {{ end }}
+      {{- end }}
+  volumes:
+  {{- if (isset .ObjectMeta.Annotations `sidecar.istio.io/bootstrapOverride`) }}
+  - name: custom-bootstrap-volume
+    configMap:
+      name: {{ annotation .ObjectMeta `sidecar.istio.io/bootstrapOverride` &quot;&quot; }}
+  {{- end }}
+  # SDS channel between istioagent and Envoy
+  - emptyDir:
+      medium: Memory
+    name: istio-envoy
+  - name: podinfo
+    downwardAPI:
+      items:
+        - path: &quot;labels&quot;
+          fieldRef:
+            fieldPath: metadata.labels
+        - path: &quot;annotations&quot;
+          fieldRef:
+            fieldPath: metadata.annotations
+  {{- if eq .Values.global.jwtPolicy &quot;third-party-jwt&quot; }}
+  - name: istio-token
+    projected:
+      sources:
+      - serviceAccountToken:
+          path: istio-token
+          expirationSeconds: 43200
+          audience: {{ .Values.global.sds.token.aud }}
+  {{- end }}
+  {{- if eq .Values.global.pilotCertProvider &quot;istiod&quot; }}
+  - name: istiod-ca-cert
+    configMap:
+      name: istio-ca-root-cert
+  {{- end }}
+  {{- if .Values.global.mountMtlsCerts }}
+  # Use the key and cert mounted to /etc/certs/ for the in-cluster mTLS communications.
+  - name: istio-certs
+    secret:
+      optional: true
+      {{ if eq .Spec.ServiceAccountName &quot;&quot; }}
+      secretName: istio.default
+      {{ else -}}
+      secretName: {{  printf &quot;istio.%s&quot; .Spec.ServiceAccountName }}
+      {{  end -}}
+  {{- end }}
+    {{- if isset .ObjectMeta.Annotations `sidecar.istio.io/userVolume` }}
+    {{range $index, $value := fromJSON (index .ObjectMeta.Annotations `sidecar.istio.io/userVolume`) }}
+  - name: &quot;{{ $index }}&quot;
+    {{ toYaml $value | indent 2 }}
+    {{ end }}
+    {{ end }}
+  {{- if and (eq .Values.global.proxy.tracer &quot;lightstep&quot;) .Values.global.tracer.lightstep.cacertPath }}
+  - name: lightstep-certs
+    secret:
+      optional: true
+      secretName: lightstep.cacert
+  {{- end }}
+  {{- if .Values.global.podDNSSearchNamespaces }}
+  dnsConfig:
+    searches:
+      {{- range .Values.global.podDNSSearchNamespaces }}
+      - {{ render . }}
+      {{- end }}
+  {{- end }}
+  podRedirectAnnot:
+    sidecar.istio.io/interceptionMode: &quot;{{ annotation .ObjectMeta `sidecar.istio.io/interceptionMode` .ProxyConfig.InterceptionMode }}&quot;
+    traffic.sidecar.istio.io/includeOutboundIPRanges: &quot;{{ annotation .ObjectMeta `traffic.sidecar.istio.io/includeOutboundIPRanges` .Values.global.proxy.includeIPRanges }}&quot;
+    traffic.sidecar.istio.io/excludeOutboundIPRanges: &quot;{{ annotation .ObjectMeta `traffic.sidecar.istio.io/excludeOutboundIPRanges` .Values.global.proxy.excludeIPRanges }}&quot;
+    traffic.sidecar.istio.io/includeInboundPorts: &quot;{{ annotation .ObjectMeta `traffic.sidecar.istio.io/includeInboundPorts` (includeInboundPorts .Spec.Containers) }}&quot;
+    traffic.sidecar.istio.io/excludeInboundPorts: &quot;{{ excludeInboundPort (annotation .ObjectMeta `status.sidecar.istio.io/port` .Values.global.proxy.statusPort) (annotation .ObjectMeta `traffic.sidecar.istio.io/excludeInboundPorts` .Values.global.proxy.excludeInboundPorts) }}&quot;
+  {{ if or (isset .ObjectMeta.Annotations `traffic.sidecar.istio.io/excludeOutboundPorts`) (ne .Values.global.proxy.excludeOutboundPorts &quot;&quot;) }}
+    traffic.sidecar.istio.io/excludeOutboundPorts: &quot;{{ annotation .ObjectMeta `traffic.sidecar.istio.io/excludeOutboundPorts` .Values.global.proxy.excludeOutboundPorts }}&quot;
+  {{- end }}
+    traffic.sidecar.istio.io/kubevirtInterfaces: &quot;{{ index .ObjectMeta.Annotations `traffic.sidecar.istio.io/kubevirtInterfaces` }}&quot;
+</code></pre><h3 id=istio-sidecar-injector-configmap-の-values class="relative group">istio-sidecar-injector ConfigMap の values <span class="absolute top-0 w-6 transition-opacity opacity-0 ltr:-left-6 rtl:-right-6 not-prose group-hover:opacity-100"><a class="group-hover:text-primary-300 dark:group-hover:text-neutral-700" style=text-decoration-line:none!important href=#istio-sidecar-injector-configmap-%e3%81%ae-values aria-label=アンカー>#</a></span></h3>
+<pre tabindex=0><code>$ kubectl get configmap -n istio-system istio-sidecar-injector -o jsonpath='{.data.values}'
+</code></pre><div class=highlight><pre tabindex=0 class=chroma><code class=language-json data-lang=json><span class=p>{</span>
+  <span class=nt>&#34;global&#34;</span><span class=p>:</span> <span class=p>{</span>
+    <span class=nt>&#34;arch&#34;</span><span class=p>:</span> <span class=p>{</span>
+      <span class=nt>&#34;amd64&#34;</span><span class=p>:</span> <span class=mi>2</span><span class=p>,</span>
+      <span class=nt>&#34;ppc64le&#34;</span><span class=p>:</span> <span class=mi>2</span><span class=p>,</span>
+      <span class=nt>&#34;s390x&#34;</span><span class=p>:</span> <span class=mi>2</span>
+    <span class=p>},</span>
+    <span class=nt>&#34;certificates&#34;</span><span class=p>:</span> <span class=p>[],</span>
+    <span class=nt>&#34;configNamespace&#34;</span><span class=p>:</span> <span class=s2>&#34;istio-system&#34;</span><span class=p>,</span>
+    <span class=nt>&#34;configValidation&#34;</span><span class=p>:</span> <span class=kc>true</span><span class=p>,</span>
+    <span class=nt>&#34;controlPlaneSecurityEnabled&#34;</span><span class=p>:</span> <span class=kc>true</span><span class=p>,</span>
+    <span class=nt>&#34;defaultNodeSelector&#34;</span><span class=p>:</span> <span class=p>{},</span>
+    <span class=nt>&#34;defaultPodDisruptionBudget&#34;</span><span class=p>:</span> <span class=p>{</span>
+      <span class=nt>&#34;enabled&#34;</span><span class=p>:</span> <span class=kc>true</span>
+    <span class=p>},</span>
+    <span class=nt>&#34;defaultResources&#34;</span><span class=p>:</span> <span class=p>{</span>
+      <span class=nt>&#34;requests&#34;</span><span class=p>:</span> <span class=p>{</span>
+        <span class=nt>&#34;cpu&#34;</span><span class=p>:</span> <span class=s2>&#34;10m&#34;</span>
+      <span class=p>}</span>
+    <span class=p>},</span>
+    <span class=nt>&#34;disablePolicyChecks&#34;</span><span class=p>:</span> <span class=kc>true</span><span class=p>,</span>
+    <span class=nt>&#34;enableHelmTest&#34;</span><span class=p>:</span> <span class=kc>false</span><span class=p>,</span>
+    <span class=nt>&#34;enableTracing&#34;</span><span class=p>:</span> <span class=kc>true</span><span class=p>,</span>
+    <span class=nt>&#34;enabled&#34;</span><span class=p>:</span> <span class=kc>true</span><span class=p>,</span>
+    <span class=nt>&#34;hub&#34;</span><span class=p>:</span> <span class=s2>&#34;docker.io/istio&#34;</span><span class=p>,</span>
+    <span class=nt>&#34;imagePullPolicy&#34;</span><span class=p>:</span> <span class=s2>&#34;IfNotPresent&#34;</span><span class=p>,</span>
+    <span class=nt>&#34;imagePullSecrets&#34;</span><span class=p>:</span> <span class=p>[],</span>
+    <span class=nt>&#34;istioNamespace&#34;</span><span class=p>:</span> <span class=s2>&#34;istio-system&#34;</span><span class=p>,</span>
+    <span class=nt>&#34;istiod&#34;</span><span class=p>:</span> <span class=p>{</span>
+      <span class=nt>&#34;enabled&#34;</span><span class=p>:</span> <span class=kc>true</span>
+    <span class=p>},</span>
+    <span class=nt>&#34;jwtPolicy&#34;</span><span class=p>:</span> <span class=s2>&#34;first-party-jwt&#34;</span><span class=p>,</span>
+    <span class=nt>&#34;k8sIngress&#34;</span><span class=p>:</span> <span class=p>{</span>
+      <span class=nt>&#34;enableHttps&#34;</span><span class=p>:</span> <span class=kc>false</span><span class=p>,</span>
+      <span class=nt>&#34;enabled&#34;</span><span class=p>:</span> <span class=kc>false</span><span class=p>,</span>
+      <span class=nt>&#34;gatewayName&#34;</span><span class=p>:</span> <span class=s2>&#34;ingressgateway&#34;</span>
+    <span class=p>},</span>
+    <span class=nt>&#34;localityLbSetting&#34;</span><span class=p>:</span> <span class=p>{</span>
+      <span class=nt>&#34;enabled&#34;</span><span class=p>:</span> <span class=kc>true</span>
+    <span class=p>},</span>
+    <span class=nt>&#34;logAsJson&#34;</span><span class=p>:</span> <span class=kc>false</span><span class=p>,</span>
+    <span class=nt>&#34;logging&#34;</span><span class=p>:</span> <span class=p>{</span>
+      <span class=nt>&#34;level&#34;</span><span class=p>:</span> <span class=s2>&#34;default:info&#34;</span>
+    <span class=p>},</span>
+    <span class=nt>&#34;meshExpansion&#34;</span><span class=p>:</span> <span class=p>{</span>
+      <span class=nt>&#34;enabled&#34;</span><span class=p>:</span> <span class=kc>false</span><span class=p>,</span>
+      <span class=nt>&#34;useILB&#34;</span><span class=p>:</span> <span class=kc>false</span>
+    <span class=p>},</span>
+    <span class=nt>&#34;meshNetworks&#34;</span><span class=p>:</span> <span class=p>{},</span>
+    <span class=nt>&#34;mountMtlsCerts&#34;</span><span class=p>:</span> <span class=kc>false</span><span class=p>,</span>
+    <span class=nt>&#34;mtls&#34;</span><span class=p>:</span> <span class=p>{</span>
+      <span class=nt>&#34;auto&#34;</span><span class=p>:</span> <span class=kc>true</span><span class=p>,</span>
+      <span class=nt>&#34;enabled&#34;</span><span class=p>:</span> <span class=kc>false</span>
+    <span class=p>},</span>
+    <span class=nt>&#34;multiCluster&#34;</span><span class=p>:</span> <span class=p>{</span>
+      <span class=nt>&#34;clusterName&#34;</span><span class=p>:</span> <span class=s2>&#34;&#34;</span><span class=p>,</span>
+      <span class=nt>&#34;enabled&#34;</span><span class=p>:</span> <span class=kc>false</span>
+    <span class=p>},</span>
+    <span class=nt>&#34;namespace&#34;</span><span class=p>:</span> <span class=s2>&#34;istio-system&#34;</span><span class=p>,</span>
+    <span class=nt>&#34;network&#34;</span><span class=p>:</span> <span class=s2>&#34;&#34;</span><span class=p>,</span>
+    <span class=nt>&#34;omitSidecarInjectorConfigMap&#34;</span><span class=p>:</span> <span class=kc>false</span><span class=p>,</span>
+    <span class=nt>&#34;oneNamespace&#34;</span><span class=p>:</span> <span class=kc>false</span><span class=p>,</span>
+    <span class=nt>&#34;operatorManageWebhooks&#34;</span><span class=p>:</span> <span class=kc>false</span><span class=p>,</span>
+    <span class=nt>&#34;outboundTrafficPolicy&#34;</span><span class=p>:</span> <span class=p>{</span>
+      <span class=nt>&#34;mode&#34;</span><span class=p>:</span> <span class=s2>&#34;ALLOW_ANY&#34;</span>
+    <span class=p>},</span>
+    <span class=nt>&#34;pilotCertProvider&#34;</span><span class=p>:</span> <span class=s2>&#34;istiod&#34;</span><span class=p>,</span>
+    <span class=nt>&#34;policyCheckFailOpen&#34;</span><span class=p>:</span> <span class=kc>false</span><span class=p>,</span>
+    <span class=nt>&#34;policyNamespace&#34;</span><span class=p>:</span> <span class=s2>&#34;istio-system&#34;</span><span class=p>,</span>
+    <span class=nt>&#34;priorityClassName&#34;</span><span class=p>:</span> <span class=s2>&#34;&#34;</span><span class=p>,</span>
+    <span class=nt>&#34;prometheusNamespace&#34;</span><span class=p>:</span> <span class=s2>&#34;istio-system&#34;</span><span class=p>,</span>
+    <span class=nt>&#34;proxy&#34;</span><span class=p>:</span> <span class=p>{</span>
+      <span class=nt>&#34;accessLogEncoding&#34;</span><span class=p>:</span> <span class=s2>&#34;JSON&#34;</span><span class=p>,</span>
+      <span class=nt>&#34;accessLogFile&#34;</span><span class=p>:</span> <span class=s2>&#34;/dev/stdout&#34;</span><span class=p>,</span>
+      <span class=nt>&#34;accessLogFormat&#34;</span><span class=p>:</span> <span class=s2>&#34;&#34;</span><span class=p>,</span>
+      <span class=nt>&#34;autoInject&#34;</span><span class=p>:</span> <span class=s2>&#34;enabled&#34;</span><span class=p>,</span>
+      <span class=nt>&#34;clusterDomain&#34;</span><span class=p>:</span> <span class=s2>&#34;cluster.local&#34;</span><span class=p>,</span>
+      <span class=nt>&#34;componentLogLevel&#34;</span><span class=p>:</span> <span class=s2>&#34;misc:error&#34;</span><span class=p>,</span>
+      <span class=nt>&#34;concurrency&#34;</span><span class=p>:</span> <span class=mi>2</span><span class=p>,</span>
+      <span class=nt>&#34;dnsRefreshRate&#34;</span><span class=p>:</span> <span class=s2>&#34;300s&#34;</span><span class=p>,</span>
+      <span class=nt>&#34;enableCoreDump&#34;</span><span class=p>:</span> <span class=kc>false</span><span class=p>,</span>
+      <span class=nt>&#34;envoyAccessLogService&#34;</span><span class=p>:</span> <span class=p>{</span>
+        <span class=nt>&#34;enabled&#34;</span><span class=p>:</span> <span class=kc>false</span>
+      <span class=p>},</span>
+      <span class=nt>&#34;envoyMetricsService&#34;</span><span class=p>:</span> <span class=p>{</span>
+        <span class=nt>&#34;enabled&#34;</span><span class=p>:</span> <span class=kc>false</span><span class=p>,</span>
+        <span class=nt>&#34;tcpKeepalive&#34;</span><span class=p>:</span> <span class=p>{</span>
+          <span class=nt>&#34;interval&#34;</span><span class=p>:</span> <span class=s2>&#34;10s&#34;</span><span class=p>,</span>
+          <span class=nt>&#34;probes&#34;</span><span class=p>:</span> <span class=mi>3</span><span class=p>,</span>
+          <span class=nt>&#34;time&#34;</span><span class=p>:</span> <span class=s2>&#34;10s&#34;</span>
+        <span class=p>},</span>
+        <span class=nt>&#34;tlsSettings&#34;</span><span class=p>:</span> <span class=p>{</span>
+          <span class=nt>&#34;mode&#34;</span><span class=p>:</span> <span class=s2>&#34;DISABLE&#34;</span><span class=p>,</span>
+          <span class=nt>&#34;subjectAltNames&#34;</span><span class=p>:</span> <span class=p>[]</span>
+        <span class=p>}</span>
+      <span class=p>},</span>
+      <span class=nt>&#34;envoyStatsd&#34;</span><span class=p>:</span> <span class=p>{</span>
+        <span class=nt>&#34;enabled&#34;</span><span class=p>:</span> <span class=kc>false</span>
+      <span class=p>},</span>
+      <span class=nt>&#34;excludeIPRanges&#34;</span><span class=p>:</span> <span class=s2>&#34;&#34;</span><span class=p>,</span>
+      <span class=nt>&#34;excludeInboundPorts&#34;</span><span class=p>:</span> <span class=s2>&#34;&#34;</span><span class=p>,</span>
+      <span class=nt>&#34;excludeOutboundPorts&#34;</span><span class=p>:</span> <span class=s2>&#34;&#34;</span><span class=p>,</span>
+      <span class=nt>&#34;image&#34;</span><span class=p>:</span> <span class=s2>&#34;proxyv2&#34;</span><span class=p>,</span>
+      <span class=nt>&#34;includeIPRanges&#34;</span><span class=p>:</span> <span class=s2>&#34;*&#34;</span><span class=p>,</span>
+      <span class=nt>&#34;includeInboundPorts&#34;</span><span class=p>:</span> <span class=s2>&#34;*&#34;</span><span class=p>,</span>
+      <span class=nt>&#34;kubevirtInterfaces&#34;</span><span class=p>:</span> <span class=s2>&#34;&#34;</span><span class=p>,</span>
+      <span class=nt>&#34;logLevel&#34;</span><span class=p>:</span> <span class=s2>&#34;warning&#34;</span><span class=p>,</span>
+      <span class=nt>&#34;privileged&#34;</span><span class=p>:</span> <span class=kc>false</span><span class=p>,</span>
+      <span class=nt>&#34;protocolDetectionTimeout&#34;</span><span class=p>:</span> <span class=s2>&#34;100ms&#34;</span><span class=p>,</span>
+      <span class=nt>&#34;readinessFailureThreshold&#34;</span><span class=p>:</span> <span class=mi>30</span><span class=p>,</span>
+      <span class=nt>&#34;readinessInitialDelaySeconds&#34;</span><span class=p>:</span> <span class=mi>1</span><span class=p>,</span>
+      <span class=nt>&#34;readinessPeriodSeconds&#34;</span><span class=p>:</span> <span class=mi>2</span><span class=p>,</span>
+      <span class=nt>&#34;resources&#34;</span><span class=p>:</span> <span class=p>{</span>
+        <span class=nt>&#34;limits&#34;</span><span class=p>:</span> <span class=p>{</span>
+          <span class=nt>&#34;cpu&#34;</span><span class=p>:</span> <span class=s2>&#34;2000m&#34;</span><span class=p>,</span>
+          <span class=nt>&#34;memory&#34;</span><span class=p>:</span> <span class=s2>&#34;1024Mi&#34;</span>
+        <span class=p>},</span>
+        <span class=nt>&#34;requests&#34;</span><span class=p>:</span> <span class=p>{</span>
+          <span class=nt>&#34;cpu&#34;</span><span class=p>:</span> <span class=s2>&#34;100m&#34;</span><span class=p>,</span>
+          <span class=nt>&#34;memory&#34;</span><span class=p>:</span> <span class=s2>&#34;128Mi&#34;</span>
+        <span class=p>}</span>
+      <span class=p>},</span>
+      <span class=nt>&#34;statusPort&#34;</span><span class=p>:</span> <span class=mi>15020</span><span class=p>,</span>
+      <span class=nt>&#34;tracer&#34;</span><span class=p>:</span> <span class=s2>&#34;zipkin&#34;</span>
+    <span class=p>},</span>
+    <span class=nt>&#34;proxy_init&#34;</span><span class=p>:</span> <span class=p>{</span>
+      <span class=nt>&#34;image&#34;</span><span class=p>:</span> <span class=s2>&#34;proxyv2&#34;</span><span class=p>,</span>
+      <span class=nt>&#34;resources&#34;</span><span class=p>:</span> <span class=p>{</span>
+        <span class=nt>&#34;limits&#34;</span><span class=p>:</span> <span class=p>{</span>
+          <span class=nt>&#34;cpu&#34;</span><span class=p>:</span> <span class=s2>&#34;100m&#34;</span><span class=p>,</span>
+          <span class=nt>&#34;memory&#34;</span><span class=p>:</span> <span class=s2>&#34;50Mi&#34;</span>
+        <span class=p>},</span>
+        <span class=nt>&#34;requests&#34;</span><span class=p>:</span> <span class=p>{</span>
+          <span class=nt>&#34;cpu&#34;</span><span class=p>:</span> <span class=s2>&#34;10m&#34;</span><span class=p>,</span>
+          <span class=nt>&#34;memory&#34;</span><span class=p>:</span> <span class=s2>&#34;10Mi&#34;</span>
+        <span class=p>}</span>
+      <span class=p>}</span>
+    <span class=p>},</span>
+    <span class=nt>&#34;sds&#34;</span><span class=p>:</span> <span class=p>{</span>
+      <span class=nt>&#34;enabled&#34;</span><span class=p>:</span> <span class=kc>false</span><span class=p>,</span>
+      <span class=nt>&#34;token&#34;</span><span class=p>:</span> <span class=p>{</span>
+        <span class=nt>&#34;aud&#34;</span><span class=p>:</span> <span class=s2>&#34;istio-ca&#34;</span>
+      <span class=p>},</span>
+      <span class=nt>&#34;udsPath&#34;</span><span class=p>:</span> <span class=s2>&#34;&#34;</span>
+    <span class=p>},</span>
+    <span class=nt>&#34;securityNamespace&#34;</span><span class=p>:</span> <span class=s2>&#34;istio-system&#34;</span><span class=p>,</span>
+    <span class=nt>&#34;sts&#34;</span><span class=p>:</span> <span class=p>{</span>
+      <span class=nt>&#34;servicePort&#34;</span><span class=p>:</span> <span class=mi>0</span>
+    <span class=p>},</span>
+    <span class=nt>&#34;tag&#34;</span><span class=p>:</span> <span class=s2>&#34;1.5.0&#34;</span><span class=p>,</span>
+    <span class=nt>&#34;telemetryNamespace&#34;</span><span class=p>:</span> <span class=s2>&#34;istio-system&#34;</span><span class=p>,</span>
+    <span class=nt>&#34;tracer&#34;</span><span class=p>:</span> <span class=p>{</span>
+      <span class=nt>&#34;datadog&#34;</span><span class=p>:</span> <span class=p>{</span>
+        <span class=nt>&#34;address&#34;</span><span class=p>:</span> <span class=s2>&#34;$(HOST_IP):8126&#34;</span>
+      <span class=p>},</span>
+      <span class=nt>&#34;lightstep&#34;</span><span class=p>:</span> <span class=p>{</span>
+        <span class=nt>&#34;accessToken&#34;</span><span class=p>:</span> <span class=s2>&#34;&#34;</span><span class=p>,</span>
+        <span class=nt>&#34;address&#34;</span><span class=p>:</span> <span class=s2>&#34;&#34;</span><span class=p>,</span>
+        <span class=nt>&#34;cacertPath&#34;</span><span class=p>:</span> <span class=s2>&#34;&#34;</span><span class=p>,</span>
+        <span class=nt>&#34;secure&#34;</span><span class=p>:</span> <span class=kc>true</span>
+      <span class=p>},</span>
+      <span class=nt>&#34;stackdriver&#34;</span><span class=p>:</span> <span class=p>{</span>
+        <span class=nt>&#34;debug&#34;</span><span class=p>:</span> <span class=kc>false</span><span class=p>,</span>
+        <span class=nt>&#34;maxNumberOfAnnotations&#34;</span><span class=p>:</span> <span class=mi>200</span><span class=p>,</span>
+        <span class=nt>&#34;maxNumberOfAttributes&#34;</span><span class=p>:</span> <span class=mi>200</span><span class=p>,</span>
+        <span class=nt>&#34;maxNumberOfMessageEvents&#34;</span><span class=p>:</span> <span class=mi>200</span>
+      <span class=p>},</span>
+      <span class=nt>&#34;zipkin&#34;</span><span class=p>:</span> <span class=p>{</span>
+        <span class=nt>&#34;address&#34;</span><span class=p>:</span> <span class=s2>&#34;&#34;</span>
+      <span class=p>}</span>
+    <span class=p>},</span>
+    <span class=nt>&#34;trustDomain&#34;</span><span class=p>:</span> <span class=s2>&#34;cluster.local&#34;</span><span class=p>,</span>
+    <span class=nt>&#34;useMCP&#34;</span><span class=p>:</span> <span class=kc>false</span>
+  <span class=p>},</span>
+  <span class=nt>&#34;istio_cni&#34;</span><span class=p>:</span> <span class=p>{</span>
+    <span class=nt>&#34;enabled&#34;</span><span class=p>:</span> <span class=kc>false</span>
+  <span class=p>},</span>
+  <span class=nt>&#34;sidecarInjectorWebhook&#34;</span><span class=p>:</span> <span class=p>{</span>
+    <span class=nt>&#34;alwaysInjectSelector&#34;</span><span class=p>:</span> <span class=p>[],</span>
+    <span class=nt>&#34;enableNamespacesByDefault&#34;</span><span class=p>:</span> <span class=kc>false</span><span class=p>,</span>
+    <span class=nt>&#34;enabled&#34;</span><span class=p>:</span> <span class=kc>false</span><span class=p>,</span>
+    <span class=nt>&#34;image&#34;</span><span class=p>:</span> <span class=s2>&#34;sidecar_injector&#34;</span><span class=p>,</span>
+    <span class=nt>&#34;injectLabel&#34;</span><span class=p>:</span> <span class=s2>&#34;istio-injection&#34;</span><span class=p>,</span>
+    <span class=nt>&#34;injectedAnnotations&#34;</span><span class=p>:</span> <span class=p>{},</span>
+    <span class=nt>&#34;namespace&#34;</span><span class=p>:</span> <span class=s2>&#34;istio-system&#34;</span><span class=p>,</span>
+    <span class=nt>&#34;neverInjectSelector&#34;</span><span class=p>:</span> <span class=p>[],</span>
+    <span class=nt>&#34;objectSelector&#34;</span><span class=p>:</span> <span class=p>{</span>
+      <span class=nt>&#34;autoInject&#34;</span><span class=p>:</span> <span class=kc>true</span><span class=p>,</span>
+      <span class=nt>&#34;enabled&#34;</span><span class=p>:</span> <span class=kc>false</span>
+    <span class=p>},</span>
+    <span class=nt>&#34;rewriteAppHTTPProbe&#34;</span><span class=p>:</span> <span class=kc>false</span><span class=p>,</span>
+    <span class=nt>&#34;selfSigned&#34;</span><span class=p>:</span> <span class=kc>false</span>
+  <span class=p>}</span>
+<span class=p>}</span>
+</code></pre></div><h3 id=prestop-hook-のカスタマイズ class="relative group">preStop hook のカスタマイズ <span class="absolute top-0 w-6 transition-opacity opacity-0 ltr:-left-6 rtl:-right-6 not-prose group-hover:opacity-100"><a class="group-hover:text-primary-300 dark:group-hover:text-neutral-700" style=text-decoration-line:none!important href=#prestop-hook-%e3%81%ae%e3%82%ab%e3%82%b9%e3%82%bf%e3%83%9e%e3%82%a4%e3%82%ba aria-label=アンカー>#</a></span></h3>
+<p><strong>template</strong> の中に次のような箇所があります。よって、<strong>values</strong> でこの <code>global.proxy.lifecycle</code> を定義してやれば preStop hook を入れることが可能になります。</p>
+<pre tabindex=0><code>  {{- if .Values.global.proxy.lifecycle }}
+    lifecycle:
+      {{ toYaml .Values.global.proxy.lifecycle | indent 4 }}
+    {{- end }}
+</code></pre><p>preStop hook にどんなコマンドを入れるかですが「<a href=https://medium.com/google-cloud-jp/adopting-istio-for-a-multi-tenant-kubernetes-cluster-in-production-jp-f37865f5009a>本番環境のマルチテナント Kubernetes クラスタへの Istio 導入</a>」で Istio の <a href=https://github.com/istio/istio/issues/7136>issue #7136</a> に投稿されているものが紹介されています。</p>
+<div class=highlight><pre tabindex=0 class=chroma><code class=language-yaml data-lang=yaml><span class=nt>lifecycle</span><span class=p>:</span><span class=w>
+</span><span class=w>  </span><span class=nt>preStop</span><span class=p>:</span><span class=w>
+</span><span class=w>    </span><span class=nt>exec</span><span class=p>:</span><span class=w>
+</span><span class=w>      </span><span class=nt>command</span><span class=p>:</span><span class=w>
+</span><span class=w>        </span>- <span class=s2>&#34;/bin/sh&#34;</span><span class=w>
+</span><span class=w>        </span>- <span class=s2>&#34;-c&#34;</span><span class=w>
+</span><span class=w>        </span>- <span class=s2>&#34;while [ $(netstat -plunt | grep tcp | grep -v envoy | wc -l | xargs) -ne 0 ]; do sleep 1; done&#34;</span><span class=w>
+</span></code></pre></div><p>netstat で envoy 以外に port を listen しているプロセスが存在するかどうかを確認して、存在しなくなるまで sleep 1 して再チェックを繰り返し、存在しなくなったら終了します。その後コンテナのプロセスに対して SIGTERM が送られます。</p>
+<p>試しに Istio 1.5 環境で netstat -plunt を実行してみると次のようになりました。pilot-agent も istio-proxy コンテナ内で実行されているため、このコマンドのままでは terminationGracePeriodSeconds （デフォルト30秒） を待っても終了せず、その2秒後に SIGTERM が送られることになります。</p>
+<pre tabindex=0><code>$ netstat -plunt
+Active Internet connections (only servers)
+Proto Recv-Q Send-Q Local Address           Foreign Address         State       PID/Program name    
+tcp        0      0 0.0.0.0:80              0.0.0.0:*               LISTEN      -                   
+tcp        0      0 0.0.0.0:15090           0.0.0.0:*               LISTEN      18/envoy            
+tcp        0      0 127.0.0.1:15000         0.0.0.0:*               LISTEN      18/envoy            
+tcp        0      0 0.0.0.0:15001           0.0.0.0:*               LISTEN      18/envoy            
+tcp        0      0 0.0.0.0:15006           0.0.0.0:*               LISTEN      18/envoy            
+tcp6       0      0 :::15020                :::*                    LISTEN      1/pilot-agent
+</code></pre><p>ところで、netstat に <code>-u</code> がついてるけど <code>grep tcp</code> してるから意味ないな。あと、<code>xargs</code> って何の意味があるんだろうか？？</p>
+<p>ということで <code>global.proxy.lifecycle</code> に設定するのは次のようになる。<code>kubectl edit cm istio-sidecar-injector -n istio-system</code> で編集します。</p>
+<pre tabindex=0><code>$ kubectl -n istio-system get configmap istio-sidecar-injector -o=jsonpath='{.data.values}' | jq .global.proxy.lifecycle 
+{
+  &quot;preStop&quot;: {
+    &quot;exec&quot;: {
+      &quot;command&quot;: [
+        &quot;/bin/sh&quot;,
+        &quot;-c&quot;,
+        &quot;while [ $(netstat -plnt | grep tcp | egrep -v 'envoy|pilot-agent' | wc -l) -ne 0 ]; do sleep 1; done&quot;
+      ]
+    }
+  }
+}
+</code></pre><p>Deployment の Pod を削除すれば新しい Pod が作成される時に新しい設定で istio-proxy が Inject されるため、<code>kubectl get pod</code> で確認できる。</p>
+<pre tabindex=0><code>$ kubectl get pod httpbin-deployment-v2-ccd49cc9c-5z9mt -o jsonpath='{.spec.containers[*].lifecycle.preStop}'
+map[exec:map[command:[/bin/sh -c while [ $(netstat -plnt | grep tcp | egrep -v 'envoy|pilot-agent' | wc -l) -ne 0 ]; do sleep 1; done]]]
+</code></pre><hr>
+<p>Istio 導入への道シリーズ</p>
+<ul>
+<li><a href=/2020/03/istio-part1/>Istio 導入への道 (1) – インストール編</a></li>
+<li><a href=/2020/03/istio-part2/>Istio 導入への道 (2) – サービス間通信編</a></li>
+<li><a href=/2020/03/istio-part3/>Istio 導入への道 (3) – VirtualService 編</a></li>
+<li><a href=/2020/03/istio-part4/>Istio 導入への道 (4) – Fault Injection 編</a></li>
+<li><a href=/2020/03/istio-part5/>Istio 導入への道 (5) – OutlierDetection と Retry 編</a></li>
+<li><a href=/2020/03/istio-part6/>Istio 導入への道 (6) – Ingress Gatway 編</a></li>
+<li><a href=/2020/03/istio-part7/>Istio 導入への道 (7) – 外部へのアクセス / ServiceEntry 編</a></li>
+<li><a href=/2020/03/istio-part8/>Istio 導入への道 (8) – 外部へのアクセスでも Fault Injection 編</a></li>
+<li><a href=/2020/03/istio-part9/>Istio 導入への道 (9) – gRPC でも Fault Injection 編</a></li>
+<li><a href=/2020/03/istio-part10/>Istio 導入への道 (10) – 図解</a></li>
+<li><a href=/2020/03/istio-part11/>Istio 導入への道 (11) – Ingress Gateway で TLS Termination 編</a></li>
+<li>Istio 導入への道 (12) – sidecar の調整編</li>
+</ul>
+</div>
+<script>var liked_article=!1,oid,id,viewed,oid_likes,id_likes,liked;typeof auth!='undefined'&&(oid="views_posts/istio-part12.md",id=oid&&oid.replaceAll("/","-"),viewed=localStorage.getItem(id),viewed||auth.signInAnonymously().then(()=>{var a=db.collection('views').doc(id);localStorage.setItem(id,!0),a.get().then(a=>{a.exists?db.collection('views').doc(id).update({views:firebase.firestore.FieldValue.increment(1)}):db.collection('views').doc(id).set({views:1})}).catch(a=>{console.log("Error getting document:",a)})}).catch(a=>{var b=a.code,c=a.message;console.error(b,c)}),oid_likes="likes_posts/istio-part12.md",id_likes=oid_likes&&oid_likes.replaceAll("/","-"),liked=localStorage.getItem(id_likes),liked&&(liked_article=!0,document.querySelectorAll("button[id='likes_button']")[0].innerText="Remove Like"));function like_article(a){console.log("add"),liked_article=!0,localStorage.setItem(a,!0),document.querySelectorAll("button[id='likes_button']")[0].innerText="Remove Like",auth.signInAnonymously().then(()=>{var b=db.collection('likes').doc(a);b.get().then(b=>{b.exists?db.collection('likes').doc(a).update({likes:firebase.firestore.FieldValue.increment(1)}):db.collection('likes').doc(a).set({likes:1})}).catch(a=>{console.log("Error getting document:",a)})}).catch(a=>{var b=a.code,c=a.message;console.error(b,c)})}function remove_like_article(a){console.log("remove"),liked_article=!1,localStorage.setItem(a,!1),document.querySelectorAll("button[id='likes_button']")[0].innerText="Like",auth.signInAnonymously().then(()=>{var b=db.collection('likes').doc(a);b.get().then(b=>{b.exists?db.collection('likes').doc(a).update({likes:firebase.firestore.FieldValue.increment(-1)}):db.collection('likes').doc(a).set({likes:0})}).catch(a=>{console.log("Error getting document:",a)})}).catch(a=>{var b=a.code,c=a.message;console.error(b,c)})}function process_article(){var a="likes_posts/istio-part12.md",b=a&&a.replaceAll("/","-");liked_article?remove_like_article(b):like_article(b)}</script>
+</section>
+<footer class="pt-8 max-w-prose print:hidden">
+<div class=flex>
+<div class=place-self-center>
+<div class="text-[0.6rem] uppercase leading-3 text-neutral-500 dark:text-neutral-400">
+著者
+</div>
+<div class="font-semibold leading-6 text-neutral-800 dark:text-neutral-300">
+Yoshinori Teraoka
+</div>
+<div class="text-2xl sm:text-lg">
+<div class="flex flex-wrap text-neutral-400 dark:text-neutral-500">
+<a class="px-1 hover:text-primary-700 dark:hover:text-primary-400" href=https://twitter.com/yteraoka target=_blank aria-label=Twitter rel="me noopener noreferrer">
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentcolor" d="M459.37 151.716c.325 4.548.325 9.097.325 13.645.0 138.72-105.583 298.558-298.558 298.558-59.452.0-114.68-17.219-161.137-47.106 8.447.974 16.568 1.299 25.34 1.299 49.055.0 94.213-16.568 130.274-44.832-46.132-.975-84.792-31.188-98.112-72.772 6.498.974 12.995 1.624 19.818 1.624 9.421.0 18.843-1.3 27.614-3.573-48.081-9.747-84.143-51.98-84.143-102.985v-1.299c13.969 7.797 30.214 12.67 47.431 13.319-28.264-18.843-46.781-51.005-46.781-87.391.0-19.492 5.197-37.36 14.294-52.954 51.655 63.675 129.3 105.258 216.365 109.807-1.624-7.797-2.599-15.918-2.599-24.04.0-57.828 46.782-104.934 104.934-104.934 30.213.0 57.502 12.67 76.67 33.137 23.715-4.548 46.456-13.32 66.599-25.34-7.798 24.366-24.366 44.833-46.132 57.827 21.117-2.273 41.584-8.122 60.426-16.243-14.292 20.791-32.161 39.308-52.628 54.253z"/></svg>
+</span>
+</a>
+<a class="px-1 hover:text-primary-700 dark:hover:text-primary-400" href=https://github.com/yteraoka target=_blank aria-label=Github rel="me noopener noreferrer">
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><path fill="currentcolor" d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6.0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6.0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3.0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1.0-6.2-.3-40.4-.3-61.4.0.0-70 15-84.7-29.8.0.0-11.4-29.1-27.8-36.6.0.0-22.9-15.7 1.6-15.4.0.0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5.0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9.0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4.0 33.7-.3 75.4-.3 83.6.0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6.0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9.0-6.2-1.4-2.3-4-3.3-5.6-2z"/></svg>
+</span>
+</a>
+<a class="px-1 hover:text-primary-700 dark:hover:text-primary-400" href=https://linkedin.com/in/fa5b66b7-9c77-4e1b-8b97-40ba4a5a2c13/ target=_blank aria-label=Linkedin rel="me noopener noreferrer">
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path fill="currentcolor" d="M416 32H31.9C14.3 32 0 46.5.0 64.3v383.4C0 465.5 14.3 480 31.9 480H416c17.6.0 32-14.5 32-32.3V64.3c0-17.8-14.4-32.3-32-32.3zM135.4 416H69V202.2h66.5V416zm-33.2-243c-21.3.0-38.5-17.3-38.5-38.5S80.9 96 102.2 96c21.2.0 38.5 17.3 38.5 38.5.0 21.3-17.2 38.5-38.5 38.5zm282.1 243h-66.4V312c0-24.8-.5-56.7-34.5-56.7-34.6.0-39.9 27-39.9 54.9V416h-66.4V202.2h63.7v29.2h.9c8.9-16.8 30.6-34.5 62.9-34.5 67.2.0 79.7 44.3 79.7 101.9V416z"/></svg>
+</span>
+</a>
+<a class="px-1 hover:text-primary-700 dark:hover:text-primary-400" href=https://medium.com/@yteraoka target=_blank aria-label=Medium rel="me noopener noreferrer">
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512"><path fill="currentcolor" d="M180.5 74.262C80.813 74.262.0 155.633.0 256S80.819 437.738 180.5 437.738 361 356.373 361 256 280.191 74.262 180.5 74.262zm288.25 10.646c-49.845.0-90.245 76.619-90.245 171.095s40.406 171.1 90.251 171.1 90.251-76.619 90.251-171.1H559C559 161.5 518.6 84.908 468.752 84.908zm139.506 17.821c-17.526.0-31.735 68.628-31.735 153.274s14.2 153.274 31.735 153.274S640 340.631 640 256c0-84.649-14.215-153.271-31.742-153.271z"/></svg>
+</span>
+</a>
+</div>
+</div>
+</div>
+</div>
+<section class="flex flex-row flex-wrap justify-center pt-4 text-xl">
+<a class="m-1 inline-block min-w-[2.4rem] rounded bg-neutral-300 p-1 text-center text-neutral-700 hover:bg-primary-500 hover:text-neutral dark:bg-neutral-700 dark:text-neutral-300 dark:hover:bg-primary-400 dark:hover:text-neutral-800" href="https://www.linkedin.com/shareArticle?mini=true&url=https://preview-blog.1q77.com/2020/03/istio-part12/&title=Istio%20%e5%b0%8e%e5%85%a5%e3%81%b8%e3%81%ae%e9%81%93%20%e2%80%93%20sidecar%20%e3%81%ae%e8%aa%bf%e6%95%b4%e7%b7%a8" title=LinkedInでシェアする aria-label=LinkedInでシェアする>
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path fill="currentcolor" d="M416 32H31.9C14.3 32 0 46.5.0 64.3v383.4C0 465.5 14.3 480 31.9 480H416c17.6.0 32-14.5 32-32.3V64.3c0-17.8-14.4-32.3-32-32.3zM135.4 416H69V202.2h66.5V416zm-33.2-243c-21.3.0-38.5-17.3-38.5-38.5S80.9 96 102.2 96c21.2.0 38.5 17.3 38.5 38.5.0 21.3-17.2 38.5-38.5 38.5zm282.1 243h-66.4V312c0-24.8-.5-56.7-34.5-56.7-34.6.0-39.9 27-39.9 54.9V416h-66.4V202.2h63.7v29.2h.9c8.9-16.8 30.6-34.5 62.9-34.5 67.2.0 79.7 44.3 79.7 101.9V416z"/></svg>
+</span>
+</a>
+<a class="m-1 inline-block min-w-[2.4rem] rounded bg-neutral-300 p-1 text-center text-neutral-700 hover:bg-primary-500 hover:text-neutral dark:bg-neutral-700 dark:text-neutral-300 dark:hover:bg-primary-400 dark:hover:text-neutral-800" href="https://twitter.com/intent/tweet/?url=https://preview-blog.1q77.com/2020/03/istio-part12/&text=Istio%20%e5%b0%8e%e5%85%a5%e3%81%b8%e3%81%ae%e9%81%93%20%e2%80%93%20sidecar%20%e3%81%ae%e8%aa%bf%e6%95%b4%e7%b7%a8" title=Twitterに投稿する aria-label=Twitterに投稿する>
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentcolor" d="M459.37 151.716c.325 4.548.325 9.097.325 13.645.0 138.72-105.583 298.558-298.558 298.558-59.452.0-114.68-17.219-161.137-47.106 8.447.974 16.568 1.299 25.34 1.299 49.055.0 94.213-16.568 130.274-44.832-46.132-.975-84.792-31.188-98.112-72.772 6.498.974 12.995 1.624 19.818 1.624 9.421.0 18.843-1.3 27.614-3.573-48.081-9.747-84.143-51.98-84.143-102.985v-1.299c13.969 7.797 30.214 12.67 47.431 13.319-28.264-18.843-46.781-51.005-46.781-87.391.0-19.492 5.197-37.36 14.294-52.954 51.655 63.675 129.3 105.258 216.365 109.807-1.624-7.797-2.599-15.918-2.599-24.04.0-57.828 46.782-104.934 104.934-104.934 30.213.0 57.502 12.67 76.67 33.137 23.715-4.548 46.456-13.32 66.599-25.34-7.798 24.366-24.366 44.833-46.132 57.827 21.117-2.273 41.584-8.122 60.426-16.243-14.292 20.791-32.161 39.308-52.628 54.253z"/></svg>
+</span>
+</a>
+</section>
+<div class=pt-8>
+<hr class="border-dotted border-neutral-300 dark:border-neutral-600">
+<div class="flex justify-between pt-3">
+<span>
+<a class="flex group" href=/2020/03/cert-manager/>
+<span class="mr-3 text-neutral-700 group-hover:text-primary-600 ltr:inline rtl:hidden dark:text-neutral dark:group-hover:text-primary-400">&larr;</span>
+<span class="ml-3 text-neutral-700 group-hover:text-primary-600 ltr:hidden rtl:inline dark:text-neutral dark:group-hover:text-primary-400">&rarr;</span>
+<span class="flex flex-col">
+<span class="mt-[0.1rem] leading-6 group-hover:underline group-hover:decoration-primary-500">cert-manager で証明書管理</span>
+<span class="mt-[0.1rem] text-xs text-neutral-500 dark:text-neutral-400">
+<time datetime="2020-03-28 14:02:59 +0000 UTC">2020年3月28日</time>
+</span>
+</span>
+</a>
+</span>
+<span>
+<a class="flex text-right group" href=/2020/04/ssh-connection-through-session-manager/>
+<span class="flex flex-col">
+<span class="mt-[0.1rem] leading-6 group-hover:underline group-hover:decoration-primary-500">SSM Session Manager 経由での SSH</span>
+<span class="mt-[0.1rem] text-xs text-neutral-500 dark:text-neutral-400">
+<time datetime="2020-04-05 14:49:01 +0000 UTC">2020年4月5日</time>
+</span>
+</span>
+<span class="ml-3 text-neutral-700 group-hover:text-primary-600 ltr:inline rtl:hidden dark:text-neutral dark:group-hover:text-primary-400">&rarr;</span>
+<span class="mr-3 text-neutral-700 group-hover:text-primary-600 ltr:hidden rtl:inline dark:text-neutral dark:group-hover:text-primary-400">&larr;</span>
+</a>
+</span>
+</div>
+</div>
+</footer>
+</article>
+<div class="pointer-events-none absolute top-[100vh] bottom-0 w-12 ltr:right-0 rtl:left-0">
+<a href=#the-top class="pointer-events-auto sticky top-[calc(100vh-5.5rem)] flex h-12 w-12 items-center justify-center rounded-full bg-neutral/50 text-xl text-neutral-700 backdrop-blur hover:text-primary-600 dark:bg-neutral-800/50 dark:text-neutral dark:hover:text-primary-400" aria-label=TOPへスクロール title=TOPへスクロール>
+&uarr;
+</a>
+</div>
+</main><footer class="py-10 print:hidden">
+<div class="flex items-center justify-between">
+<p class="text-sm text-neutral-500 dark:text-neutral-400">
+&copy;
+2022
+Yoshinori Teraoka
+</p>
+</div>
+<script>mediumZoom(document.querySelectorAll("img:not(.nozoom)"),{margin:24,background:'rgba(0,0,0,0.5)',scrollOffset:0})</script>
+<script type=text/javascript src=/js/process.min.48d08339b8a087b59c7b8cb42b6717aeeed3e07bfc68b1654cac27f00583284dac59cae47fb686dd7c0e9ff1d2745689dc2071230dff432ca6d7fc24b9f2e036.js integrity="sha512-SNCDObigh7Wce4y0K2cXru7T4Hv8aLFlTKwn8AWDKE2sWcrkf7aG3XwOn/HSdFaJ3CBxIw3/Qyym1/wkufLgNg=="></script>
+</footer><div id=search-wrapper class="invisible fixed inset-0 z-50 flex h-screen w-screen cursor-default flex-col bg-neutral-500/50 p-4 backdrop-blur-sm dark:bg-neutral-900/50 sm:p-6 md:p-[10vh] lg:p-[12vh]" data-url=https://preview-blog.1q77.com/>
+<div id=search-modal class="flex flex-col w-full max-w-3xl min-h-0 mx-auto border rounded-md shadow-lg top-20 border-neutral-200 bg-neutral dark:border-neutral-700 dark:bg-neutral-800">
+<header class="relative z-10 flex items-center justify-between flex-none px-2">
+<form class="flex items-center flex-auto min-w-0">
+<div class="flex items-center justify-center w-8 h-8 text-neutral-400">
+<span class="relative inline-block align-text-bottom icon"><svg aria-hidden="true" focusable="false" data-prefix="fas" data-icon="search" class="svg-inline--fa fa-search fa-w-16" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentcolor" d="M505 442.7 405.3 343c-4.5-4.5-10.6-7-17-7H372c27.6-35.3 44-79.7 44-128C416 93.1 322.9.0 208 0S0 93.1.0 208s93.1 208 208 208c48.3.0 92.7-16.4 128-44v16.3c0 6.4 2.5 12.5 7 17l99.7 99.7c9.4 9.4 24.6 9.4 33.9.0l28.3-28.3c9.4-9.4 9.4-24.6.1-34zM208 336c-70.7.0-128-57.2-128-128 0-70.7 57.2-128 128-128 70.7.0 128 57.2 128 128 0 70.7-57.2 128-128 128z"/></svg>
+</span>
+</div>
+<input type=search id=search-query class="flex flex-auto h-12 mx-1 bg-transparent appearance-none focus:outline-dotted focus:outline-2 focus:outline-transparent" placeholder=Search tabindex=0>
+</form>
+<button id=close-search-button class="flex items-center justify-center w-8 h-8 text-neutral-700 hover:text-primary-600 dark:text-neutral dark:hover:text-primary-400" title="閉じる (Esc)">
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><path fill="currentcolor" d="M310.6 361.4c12.5 12.5 12.5 32.75.0 45.25C304.4 412.9 296.2 416 288 416s-16.38-3.125-22.62-9.375L160 301.3 54.63 406.6C48.38 412.9 40.19 416 32 416S15.63 412.9 9.375 406.6c-12.5-12.5-12.5-32.75.0-45.25l105.4-105.4L9.375 150.6c-12.5-12.5-12.5-32.75.0-45.25s32.75-12.5 45.25.0L160 210.8l105.4-105.4c12.5-12.5 32.75-12.5 45.25.0s12.5 32.75.0 45.25l-105.4 105.4L310.6 361.4z"/></svg>
+</span>
+</button>
+</header>
+<section class="flex-auto px-2 overflow-auto">
+<ul id=search-results>
+</ul>
+</section>
+</div>
+</div>
+</div>
+</body>
+</html>

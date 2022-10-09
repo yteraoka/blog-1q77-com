@@ -1,0 +1,957 @@
+<!doctype html><html lang=ja dir=ltr class=scroll-smooth data-default-appearance=light data-auto-appearance=true><head>
+<meta charset=utf-8>
+<meta http-equiv=content-language content="ja">
+<meta name=viewport content="width=device-width,initial-scale=1">
+<meta http-equiv=x-ua-compatible content="ie=edge">
+<title>Docker 1.12-rc5 を試す - part1 &#183; 1Q77</title>
+<meta name=title content="Docker 1.12-rc5 を試す - part1 &#183; 1Q77">
+<link rel=canonical href=https://preview-blog.1q77.com/2016/07/docker-1-12-rc5-part1/>
+<link type=text/css rel=stylesheet href=/css/main.bundle.min.a9d40529d239a91ecb75447e67ee6c80c1f1c28593904b4052651b12220121e13ec42904268b0193a6858f039cf8bfdd2b1331529ed341ddc7488cec3bdcbc2e.css integrity="sha512-qdQFKdI5qR7LdUR+Z+5sgMHxwoWTkEtAUmUbEiIBIeE+xCkEJosBk6aFjwOc+L/dKxMxUp7TQd3HSIzsO9y8Lg==">
+<script type=text/javascript src=/js/main.min.cf83e1357eefb8bdf1542850d66d8007d620e4050b5715dc83f4a921d36ce9ce47d0d13c5d85f2b0ff8318d2877eec2f63b931bd47417a81a538327af927da3e.js integrity="sha512-z4PhNX7vuL3xVChQ1m2AB9Yg5AULVxXcg/SpIdNs6c5H0NE8XYXysP+DGNKHfuwvY7kxvUdBeoGlODJ6+SfaPg=="></script>
+<script type=text/javascript src=/js/appearance.min.49025a779c36ad37a5bf9f1cc6bffd35ccb69ce15560ef1b10057ddf31576265b19f8bcc1733207336c9144926f7b18aea2e5895f29e858b24271332a2fa5cd5.js integrity="sha512-SQJad5w2rTelv58cxr/9Ncy2nOFVYO8bEAV93zFXYmWxn4vMFzMgczbJFEkm97GK6i5YlfKehYskJxMyovpc1Q=="></script>
+<script defer type=text/javascript id=script-bundle src=/js/main.bundle.min.34ee8372ff77835535e486c6ed01ff6993374a1cec8108898cad793fc6ae7520778e24db68e085c762d25af6fa7d00b57d7a791438dc68b676581f8c8344f6e0.js integrity="sha512-NO6Dcv93g1U15IbG7QH/aZM3ShzsgQiJjK15P8audSB3jiTbaOCFx2LSWvb6fQC1fXp5FDjcaLZ2WB+Mg0T24A==" data-copy data-copied></script>
+<script src=/js/zoom.min.js></script>
+<link rel=apple-touch-icon sizes=180x180 href=/apple-touch-icon.png>
+<link rel=icon type=image/png sizes=32x32 href=/favicon-32x32.png>
+<link rel=icon type=image/png sizes=16x16 href=/favicon-16x16.png>
+<link rel=manifest href=/site.webmanifest>
+<meta property="og:title" content="Docker 1.12-rc5 を試す - part1">
+<meta property="og:description" content="そろそろ 1.12 の正式版がリリースされる予定ですが DigitalOcean に Ubuntu 14.04 を4台用意して Docker 1.12-rc5 をインストールします。 root@sm01:~# curl -fsSL https://test.docker.com/ | sh root@sm01:~# docker version Client: Version: 1.12.0-rc5 API version: 1.24 Go version: go1.6.3 Git commit: a3f2063 Built: Tue Jul">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://preview-blog.1q77.com/2016/07/docker-1-12-rc5-part1/"><meta property="article:section" content="posts">
+<meta property="article:published_time" content="2016-07-28T16:47:56+00:00">
+<meta property="article:modified_time" content="2016-07-28T16:47:56+00:00">
+<meta name=twitter:card content="summary">
+<meta name=twitter:title content="Docker 1.12-rc5 を試す - part1">
+<meta name=twitter:description content="そろそろ 1.12 の正式版がリリースされる予定ですが DigitalOcean に Ubuntu 14.04 を4台用意して Docker 1.12-rc5 をインストールします。 root@sm01:~# curl -fsSL https://test.docker.com/ | sh root@sm01:~# docker version Client: Version: 1.12.0-rc5 API version: 1.24 Go version: go1.6.3 Git commit: a3f2063 Built: Tue Jul">
+<script type=application/ld+json>[{"@context":"https://schema.org","@type":"Article","articleSection":"Posts","name":"Docker 1.12-rc5 を試す - part1","headline":"Docker 1.12-rc5 を試す - part1","abstract":"そろそろ 1.12 の正式版がリリースされる予定ですが DigitalOcean に Ubuntu 14.04 を4台用意して Docker 1.12-rc5 をインストールします。 root@sm01:~# curl -fsSL https:\/\/test.docker.com\/ | sh root@sm01:~# docker version Client: Version: 1.12.0-rc5 API version: 1.24 Go version: go1.6.3 Git commit: a3f2063 Built: Tue Jul","inLanguage":"ja","url":"https:\/\/preview-blog.1q77.com\/2016\/07\/docker-1-12-rc5-part1\/","author":{"@type":"Person","name":"Yoshinori Teraoka"},"copyrightYear":"2016","dateCreated":"2016-07-28T16:47:56\u002b00:00","datePublished":"2016-07-28T16:47:56\u002b00:00","dateModified":"2016-07-28T16:47:56\u002b00:00","keywords":["DigitalOcean","Docker","Swarm"],"mainEntityOfPage":"true","wordCount":"3431"}]</script>
+<meta name=author content="Yoshinori Teraoka">
+<link href=https://twitter.com/yteraoka rel=me>
+<link href=https://github.com/yteraoka rel=me>
+<link href=https://linkedin.com/in/fa5b66b7-9c77-4e1b-8b97-40ba4a5a2c13/ rel=me>
+<link href=https://medium.com/@yteraoka rel=me>
+<link rel=stylesheet href=https://rsms.me/inter/inter.css>
+</head><body class="flex flex-col h-screen px-6 m-auto text-lg leading-7 max-w-7xl bg-neutral text-neutral-900 dark:bg-neutral-800 dark:text-neutral sm:px-14 md:px-24 lg:px-32">
+<div id=the-top class="absolute flex self-center">
+<a class="px-3 py-1 text-sm -translate-y-8 rounded-b-lg bg-primary-200 focus:translate-y-0 dark:bg-neutral-600" href=#main-content><span class="font-bold text-primary-600 ltr:pr-2 rtl:pl-2 dark:text-primary-400">&darr;</span>メインコンテンツへスキップ</a>
+</div>
+<div style=padding-left:0;padding-right:0 class="flex items-center justify-between px-4 py-6 sm:px-6 md:justify-start space-x-3">
+<div class="flex flex-1 items-center justify-between">
+<nav class="flex space-x-3">
+<a href=/ class="text-base font-medium text-gray-500 hover:text-gray-900">1Q77</a>
+</nav>
+<div class="hidden md:flex items-center space-x-5 md:ml-12">
+<a href=/posts/ class="text-base font-medium text-gray-500 hover:text-gray-900" title=Posts>
+Blog
+</a>
+<a href=/tags/ class="text-base font-medium text-gray-500 hover:text-gray-900" title=Tags>
+Tags
+</a>
+<a href=https://github.com/yteraoka class="text-base font-medium text-gray-500 hover:text-gray-900" title>
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><path fill="currentcolor" d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6.0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6.0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3.0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1.0-6.2-.3-40.4-.3-61.4.0.0-70 15-84.7-29.8.0.0-11.4-29.1-27.8-36.6.0.0-22.9-15.7 1.6-15.4.0.0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5.0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9.0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4.0 33.7-.3 75.4-.3 83.6.0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6.0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9.0-6.2-1.4-2.3-4-3.3-5.6-2z"/></svg>
+</span>
+&nbsp;
+GitHub
+</a>
+<a href=https://twitter.com/yteraoka class="text-base font-medium text-gray-500 hover:text-gray-900" title>
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentcolor" d="M459.37 151.716c.325 4.548.325 9.097.325 13.645.0 138.72-105.583 298.558-298.558 298.558-59.452.0-114.68-17.219-161.137-47.106 8.447.974 16.568 1.299 25.34 1.299 49.055.0 94.213-16.568 130.274-44.832-46.132-.975-84.792-31.188-98.112-72.772 6.498.974 12.995 1.624 19.818 1.624 9.421.0 18.843-1.3 27.614-3.573-48.081-9.747-84.143-51.98-84.143-102.985v-1.299c13.969 7.797 30.214 12.67 47.431 13.319-28.264-18.843-46.781-51.005-46.781-87.391.0-19.492 5.197-37.36 14.294-52.954 51.655 63.675 129.3 105.258 216.365 109.807-1.624-7.797-2.599-15.918-2.599-24.04.0-57.828 46.782-104.934 104.934-104.934 30.213.0 57.502 12.67 76.67 33.137 23.715-4.548 46.456-13.32 66.599-25.34-7.798 24.366-24.366 44.833-46.132 57.827 21.117-2.273 41.584-8.122 60.426-16.243-14.292 20.791-32.161 39.308-52.628 54.253z"/></svg>
+</span>
+&nbsp;
+Twitter
+</a>
+<a href=https://qiita.com/yteraoka class="text-base font-medium text-gray-500 hover:text-gray-900" title>
+Qiita
+</a>
+<button id=search-button class="text-base hover:text-primary-600 dark:hover:text-primary-400" title>
+<span class="relative inline-block align-text-bottom icon"><svg aria-hidden="true" focusable="false" data-prefix="fas" data-icon="search" class="svg-inline--fa fa-search fa-w-16" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentcolor" d="M505 442.7 405.3 343c-4.5-4.5-10.6-7-17-7H372c27.6-35.3 44-79.7 44-128C416 93.1 322.9.0 208 0S0 93.1.0 208s93.1 208 208 208c48.3.0 92.7-16.4 128-44v16.3c0 6.4 2.5 12.5 7 17l99.7 99.7c9.4 9.4 24.6 9.4 33.9.0l28.3-28.3c9.4-9.4 9.4-24.6.1-34zM208 336c-70.7.0-128-57.2-128-128 0-70.7 57.2-128 128-128 70.7.0 128 57.2 128 128 0 70.7-57.2 128-128 128z"/></svg>
+</span>
+</button>
+<div class="ltr:mr-14 rtl:ml-14 cursor-pointer text-sm text-neutral-700 hover:text-primary-600 dark:text-neutral dark:hover:text-primary-400">
+<button id=appearance-switcher type=button>
+<div class="flex items-center justify-center h-12 dark:hidden">
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentcolor" d="M32 256C32 132.2 132.3 32 255.8 32c11.36.0 29.7 1.668 40.9 3.746 9.616 1.777 11.75 14.63 3.279 19.44C245 86.5 211.2 144.6 211.2 207.8c0 109.7 99.71 193 208.3 172.3 9.561-1.805 16.28 9.324 10.11 16.95C387.9 448.6 324.8 480 255.8 480 132.1 480 32 379.6 32 256z"/></svg>
+</span>
+</div>
+<div class="items-center justify-center hidden h-12 dark:flex">
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentcolor" d="M256 159.1c-53.02.0-95.1 42.98-95.1 95.1s41.2 96.9 95.1 96.9 95.1-42.98 95.1-95.1S309 159.1 256 159.1zM509.3 347l-63.2-91.9 63.15-91.01c6.332-9.125 1.104-21.74-9.826-23.72l-109-19.7-19.7-109c-1.975-10.93-14.59-16.16-23.72-9.824L256 65.89 164.1 2.736c-9.125-6.332-21.74-1.107-23.72 9.824L121.6 121.6 12.56 141.3C1.633 143.2-3.596 155.9 2.736 164.1L65.89 256 2.74 347.01c-6.332 9.125-1.105 21.74 9.824 23.72l109 19.7 19.7 109c1.975 10.93 14.59 16.16 23.72 9.824L256 446.1l91.01 63.15c9.127 6.334 21.75 1.107 23.72-9.822l19.7-109 109-19.7C510.4 368.8 515.6 356.1 509.3 347zM256 383.1c-70.69.0-127.1-57.31-127.1-127.1.0-70.69 57.31-127.1 127.1-127.1S383.1 186.2 383.1 256c0 70.7-56.4 127.1-127.1 127.1z"/></svg>
+</span>
+</div>
+</button>
+</div>
+</div>
+<div class="flex md:hidden items-center space-x-5 md:ml-12">
+<span></span>
+<button id=search-button-mobile class="text-base hover:text-primary-600 dark:hover:text-primary-400" title>
+<span class="relative inline-block align-text-bottom icon"><svg aria-hidden="true" focusable="false" data-prefix="fas" data-icon="search" class="svg-inline--fa fa-search fa-w-16" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentcolor" d="M505 442.7 405.3 343c-4.5-4.5-10.6-7-17-7H372c27.6-35.3 44-79.7 44-128C416 93.1 322.9.0 208 0S0 93.1.0 208s93.1 208 208 208c48.3.0 92.7-16.4 128-44v16.3c0 6.4 2.5 12.5 7 17l99.7 99.7c9.4 9.4 24.6 9.4 33.9.0l28.3-28.3c9.4-9.4 9.4-24.6.1-34zM208 336c-70.7.0-128-57.2-128-128 0-70.7 57.2-128 128-128 70.7.0 128 57.2 128 128 0 70.7-57.2 128-128 128z"/></svg>
+</span>
+</button>
+<button id=appearance-switcher-mobile type=button style=margin-right:5px>
+<div class="flex items-center justify-center h-12 dark:hidden">
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentcolor" d="M32 256C32 132.2 132.3 32 255.8 32c11.36.0 29.7 1.668 40.9 3.746 9.616 1.777 11.75 14.63 3.279 19.44C245 86.5 211.2 144.6 211.2 207.8c0 109.7 99.71 193 208.3 172.3 9.561-1.805 16.28 9.324 10.11 16.95C387.9 448.6 324.8 480 255.8 480 132.1 480 32 379.6 32 256z"/></svg>
+</span>
+</div>
+<div class="items-center justify-center hidden h-12 dark:flex">
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentcolor" d="M256 159.1c-53.02.0-95.1 42.98-95.1 95.1s41.2 96.9 95.1 96.9 95.1-42.98 95.1-95.1S309 159.1 256 159.1zM509.3 347l-63.2-91.9 63.15-91.01c6.332-9.125 1.104-21.74-9.826-23.72l-109-19.7-19.7-109c-1.975-10.93-14.59-16.16-23.72-9.824L256 65.89 164.1 2.736c-9.125-6.332-21.74-1.107-23.72 9.824L121.6 121.6 12.56 141.3C1.633 143.2-3.596 155.9 2.736 164.1L65.89 256 2.74 347.01c-6.332 9.125-1.105 21.74 9.824 23.72l109 19.7 19.7 109c1.975 10.93 14.59 16.16 23.72 9.824L256 446.1l91.01 63.15c9.127 6.334 21.75 1.107 23.72-9.822l19.7-109 109-19.7C510.4 368.8 515.6 356.1 509.3 347zM256 383.1c-70.69.0-127.1-57.31-127.1-127.1.0-70.69 57.31-127.1 127.1-127.1S383.1 186.2 383.1 256c0 70.7-56.4 127.1-127.1 127.1z"/></svg>
+</span>
+</div>
+</button>
+</div>
+</div>
+<div class="-my-2 -mr-2 md:hidden">
+<label id=menu-button for=menu-controller class=block>
+<input type=checkbox id=menu-controller class=hidden>
+<div class="cursor-pointer hover:text-primary-600 dark:hover:text-primary-400">
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path fill="currentcolor" d="M0 96C0 78.33 14.33 64 32 64H416c17.7.0 32 14.33 32 32 0 17.7-14.3 32-32 32H32C14.33 128 0 113.7.0 96zM0 256c0-17.7 14.33-32 32-32H416c17.7.0 32 14.3 32 32s-14.3 32-32 32H32c-17.67.0-32-14.3-32-32zM416 448H32c-17.67.0-32-14.3-32-32s14.33-32 32-32H416c17.7.0 32 14.3 32 32s-14.3 32-32 32z"/></svg>
+</span>
+</div>
+<div id=menu-wrapper style=padding-top:25px class="fixed inset-0 z-30 invisible w-screen h-screen m-auto overflow-auto transition-opacity opacity-0 cursor-default bg-neutral-100/50 backdrop-blur-sm dark:bg-neutral-900/50">
+<ul class="flex movedown flex-col w-full px-6 py-6 mx-auto overflow-visible list-none ltr:text-right rtl:text-left max-w-7xl sm:px-14 md:px-24 lg:px-32 sm:py-10 sm:pt-10">
+<li class=mb-1>
+<span class="cursor-pointer hover:text-primary-600 dark:hover:text-primary-400">
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><path fill="currentcolor" d="M310.6 361.4c12.5 12.5 12.5 32.75.0 45.25C304.4 412.9 296.2 416 288 416s-16.38-3.125-22.62-9.375L160 301.3 54.63 406.6C48.38 412.9 40.19 416 32 416S15.63 412.9 9.375 406.6c-12.5-12.5-12.5-32.75.0-45.25l105.4-105.4L9.375 150.6c-12.5-12.5-12.5-32.75.0-45.25s32.75-12.5 45.25.0L160 210.8l105.4-105.4c12.5-12.5 32.75-12.5 45.25.0s12.5 32.75.0 45.25l-105.4 105.4L310.6 361.4z"/></svg>
+</span>
+</span>
+</li>
+<li class=mb-1>
+<a class="decoration-primary-500 hover:underline hover:decoration-2 hover:underline-offset-2" href=/posts/ title=Posts>
+Blog
+</a>
+</li>
+<li class=mb-1>
+<a class="decoration-primary-500 hover:underline hover:decoration-2 hover:underline-offset-2" href=/tags/ title=Tags>
+Tags
+</a>
+</li>
+<li class=mb-1>
+<a class="decoration-primary-500 hover:underline hover:decoration-2 hover:underline-offset-2" href=https://github.com/yteraoka title>
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><path fill="currentcolor" d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6.0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6.0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3.0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1.0-6.2-.3-40.4-.3-61.4.0.0-70 15-84.7-29.8.0.0-11.4-29.1-27.8-36.6.0.0-22.9-15.7 1.6-15.4.0.0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5.0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9.0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4.0 33.7-.3 75.4-.3 83.6.0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6.0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9.0-6.2-1.4-2.3-4-3.3-5.6-2z"/></svg>
+</span>
+&nbsp;
+GitHub
+</a>
+</li>
+<li class=mb-1>
+<a class="decoration-primary-500 hover:underline hover:decoration-2 hover:underline-offset-2" href=https://twitter.com/yteraoka title>
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentcolor" d="M459.37 151.716c.325 4.548.325 9.097.325 13.645.0 138.72-105.583 298.558-298.558 298.558-59.452.0-114.68-17.219-161.137-47.106 8.447.974 16.568 1.299 25.34 1.299 49.055.0 94.213-16.568 130.274-44.832-46.132-.975-84.792-31.188-98.112-72.772 6.498.974 12.995 1.624 19.818 1.624 9.421.0 18.843-1.3 27.614-3.573-48.081-9.747-84.143-51.98-84.143-102.985v-1.299c13.969 7.797 30.214 12.67 47.431 13.319-28.264-18.843-46.781-51.005-46.781-87.391.0-19.492 5.197-37.36 14.294-52.954 51.655 63.675 129.3 105.258 216.365 109.807-1.624-7.797-2.599-15.918-2.599-24.04.0-57.828 46.782-104.934 104.934-104.934 30.213.0 57.502 12.67 76.67 33.137 23.715-4.548 46.456-13.32 66.599-25.34-7.798 24.366-24.366 44.833-46.132 57.827 21.117-2.273 41.584-8.122 60.426-16.243-14.292 20.791-32.161 39.308-52.628 54.253z"/></svg>
+</span>
+&nbsp;
+Twitter
+</a>
+</li>
+<li class=mb-1>
+<a class="decoration-primary-500 hover:underline hover:decoration-2 hover:underline-offset-2" href=https://qiita.com/yteraoka title>
+Qiita
+</a>
+</li>
+</ul>
+</div>
+</label>
+</div>
+</div>
+<div id=mobile-menu class="fixed inset-0 z-30 invisible w-screen h-screen m-auto overflow-auto transition-opacity opacity-0 cursor-default bg-neutral-100/50 backdrop-blur-sm dark:bg-neutral-900/50">
+<ul class="flex movedown flex-col w-full px-6 py-6 mx-auto overflow-visible list-none ltr:text-right rtl:text-left max-w-7xl sm:px-14 md:px-24 lg:px-32 sm:py-10 sm:pt-10">
+<li class=mb-1>
+<span class="cursor-pointer hover:text-primary-600 dark:hover:text-primary-400">
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><path fill="currentcolor" d="M310.6 361.4c12.5 12.5 12.5 32.75.0 45.25C304.4 412.9 296.2 416 288 416s-16.38-3.125-22.62-9.375L160 301.3 54.63 406.6C48.38 412.9 40.19 416 32 416S15.63 412.9 9.375 406.6c-12.5-12.5-12.5-32.75.0-45.25l105.4-105.4L9.375 150.6c-12.5-12.5-12.5-32.75.0-45.25s32.75-12.5 45.25.0L160 210.8l105.4-105.4c12.5-12.5 32.75-12.5 45.25.0s12.5 32.75.0 45.25l-105.4 105.4L310.6 361.4z"/></svg>
+</span>
+</span>
+</li>
+<li class=mb-1>
+<a class="decoration-primary-500 hover:underline hover:decoration-2 hover:underline-offset-2" href=/posts/ title=Posts>Blog</a>
+</li>
+<li class=mb-1>
+<a class="decoration-primary-500 hover:underline hover:decoration-2 hover:underline-offset-2" href=/tags/ title=Tags>Tags</a>
+</li>
+<li class=mb-1>
+<a class="decoration-primary-500 hover:underline hover:decoration-2 hover:underline-offset-2" href=https://github.com/yteraoka title>GitHub</a>
+</li>
+<li class=mb-1>
+<a class="decoration-primary-500 hover:underline hover:decoration-2 hover:underline-offset-2" href=https://twitter.com/yteraoka title>Twitter</a>
+</li>
+<li class=mb-1>
+<a class="decoration-primary-500 hover:underline hover:decoration-2 hover:underline-offset-2" href=https://qiita.com/yteraoka title>Qiita</a>
+</li>
+<li>
+<button id=search-button-mobile class="text-base hover:text-primary-600 dark:hover:text-primary-400">
+<span class="relative inline-block align-text-bottom icon"><svg aria-hidden="true" focusable="false" data-prefix="fas" data-icon="search" class="svg-inline--fa fa-search fa-w-16" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentcolor" d="M505 442.7 405.3 343c-4.5-4.5-10.6-7-17-7H372c27.6-35.3 44-79.7 44-128C416 93.1 322.9.0 208 0S0 93.1.0 208s93.1 208 208 208c48.3.0 92.7-16.4 128-44v16.3c0 6.4 2.5 12.5 7 17l99.7 99.7c9.4 9.4 24.6 9.4 33.9.0l28.3-28.3c9.4-9.4 9.4-24.6.1-34zM208 336c-70.7.0-128-57.2-128-128 0-70.7 57.2-128 128-128 70.7.0 128 57.2 128 128 0 70.7-57.2 128-128 128z"/></svg>
+</span>
+</button>
+</li>
+</ul>
+</div>
+<div class="relative flex flex-col grow">
+<main id=main-content class=grow>
+<article>
+<header class=max-w-prose>
+<ol class="text-sm text-neutral-500 dark:text-neutral-400 print:hidden">
+<li class="inline hidden">
+<a class="hover:underline decoration-neutral-300 dark:underline-neutral-600" href=/>1Q77</a><span class="px-1 text-primary-500">/</span>
+</li>
+<li class=inline>
+<a class="hover:underline decoration-neutral-300 dark:underline-neutral-600" href=/posts/>Posts</a><span class="px-1 text-primary-500">/</span>
+</li>
+<li class="inline hidden">
+<a class="hover:underline decoration-neutral-300 dark:underline-neutral-600" href=/2016/07/docker-1-12-rc5-part1/>Docker 1.12-rc5 を試す - part1</a><span class="px-1 text-primary-500">/</span>
+</li>
+</ol>
+<h1 class="mt-0 text-4xl font-extrabold text-neutral-900 dark:text-neutral">
+Docker 1.12-rc5 を試す - part1
+</h1>
+<div class="mt-8 mb-12 text-base text-neutral-500 dark:text-neutral-400 print:hidden">
+<div class="flex flex-row flex-wrap items-center">
+<time datetime="2016-07-28 16:47:56 +0000 UTC">2016年7月28日</time>
+</div>
+<div class="flex flex-row flex-wrap items-center">
+<span style=margin-top:.5rem class=mr-2 onclick='window.open("/tags/digitalocean/")'>
+<span class=flex>
+<span class="rounded-md border border-primary-400 px-1 py-[1px] text-xs font-normal text-primary-700 dark:border-primary-600 dark:text-primary-400">
+DigitalOcean
+</span>
+</span>
+</span>
+<span style=margin-top:.5rem class=mr-2 onclick='window.open("/tags/docker/")'>
+<span class=flex>
+<span class="rounded-md border border-primary-400 px-1 py-[1px] text-xs font-normal text-primary-700 dark:border-primary-600 dark:text-primary-400">
+Docker
+</span>
+</span>
+</span>
+<span style=margin-top:.5rem class=mr-2 onclick='window.open("/tags/swarm/")'>
+<span class=flex>
+<span class="rounded-md border border-primary-400 px-1 py-[1px] text-xs font-normal text-primary-700 dark:border-primary-600 dark:text-primary-400">
+Swarm
+</span>
+</span>
+</span>
+</div>
+</div>
+</header>
+<section class="flex flex-col max-w-full mt-0 prose dark:prose-invert lg:flex-row">
+<div class="min-w-0 min-h-0 max-w-prose">
+<p>そろそろ 1.12 の正式版がリリースされる予定ですが <a href=https://m.do.co/c/97e74a2e7336>DigitalOcean</a> に Ubuntu 14.04 を4台用意して Docker 1.12-rc5 をインストールします。</p>
+<pre tabindex=0><code>root@sm01:~# curl -fsSL https://test.docker.com/ | sh
+</code></pre><pre tabindex=0><code>root@sm01:~# docker version
+Client:
+ Version:      1.12.0-rc5
+ API version:  1.24
+ Go version:   go1.6.3
+ Git commit:   a3f2063
+ Built:        Tue Jul 26 13:32:56 2016
+ OS/Arch:      linux/amd64
+
+Server:
+ Version:      1.12.0-rc5
+ API version:  1.24
+ Go version:   go1.6.3
+ Git commit:   a3f2063
+ Built:        Tue Jul 26 13:32:56 2016
+ OS/Arch:      linux/amd64
+root@sm01:~#
+</code></pre><pre tabindex=0><code>root@sm01:~# docker info
+Containers: 0
+ Running: 0
+ Paused: 0
+ Stopped: 0
+Images: 0
+Server Version: 1.12.0-rc5
+Storage Driver: aufs
+ Root Dir: /var/lib/docker/aufs
+ Backing Filesystem: extfs
+ Dirs: 0
+ Dirperm1 Supported: true
+Logging Driver: json-file
+Cgroup Driver: cgroupfs
+Plugins:
+ Volume: local
+ Network: null host bridge overlay
+Swarm: inactive
+Runtimes: runc
+Default Runtime: runc
+Security Options: apparmor
+Kernel Version: 4.4.0-31-generic
+Operating System: Ubuntu 14.04.4 LTS
+OSType: linux
+Architecture: x86\_64
+CPUs: 2
+Total Memory: 1.954 GiB
+Name: sm01
+ID: MGAP:D3I3:LLZT:4RRL:WVUI:HR6U:6XJ3:ON3D:OERN:RBRR:7H6A:I3YG
+Docker Root Dir: /var/lib/docker
+Debug Mode (client): false
+Debug Mode (server): false
+Registry: https://index.docker.io/v1/
+WARNING: No swap limit support
+Insecure Registries:
+ 127.0.0.0/8
+root@sm01:~#
+</code></pre><p>1.12 といえば Swarm mode なので早速</p>
+<pre tabindex=0><code>root@sm01:~# docker swarm init --help
+
+Usage:  docker swarm init [OPTIONS]
+
+Initialize a swarm
+
+Options:
+      --advertise-addr string           Advertised address (format: &lt;ip|interface&gt;[:port])
+      --cert-expiry duration            Validity period for node certificates (default 2160h0m0s)
+      --dispatcher-heartbeat duration   Dispatcher heartbeat period (default 5s)
+      --external-ca value               Specifications of one or more certificate signing endpoints
+      --force-new-cluster               Force create a new cluster from current state.
+      --help                            Print usage
+      --listen-addr value               Listen address (format: &lt;ip|interface&gt;[:port]) (default 0.0.0.0:2377)
+      --task-history-limit int          Task history retention limit (default 5)
+root@sm01:~#
+</code></pre><p>4台の Private address は次の通り</p>
+<pre tabindex=0><code>sm01 eth1 10.130.9.198
+sm02 eth1 10.130.14.153
+sm03 eth1 10.130.21.166
+sm04 eth1 10.130.42.39
+</code></pre><pre tabindex=0><code>root@sm01:~# docker swarm init --listen-addr eth1 --advertise-addr eth1
+Swarm initialized: current node (8y26xoif1ucu2dr4lnet0z4rk) is now a manager.
+
+To add a worker to this swarm, run the following command:
+    docker swarm join \
+    --token SWMTKN-1-4lz4k3n65d76akrxn934md0e0zrgq5bsq5jf2gq54icncq37qp-009402j3gts3zm1vvqrkqp79f \
+    10.130.9.198:2377
+
+To add a manager to this swarm, run the following command:
+    docker swarm join \
+    --token SWMTKN-1-4lz4k3n65d76akrxn934md0e0zrgq5bsq5jf2gq54icncq37qp-2nxm00jx3vehtromd3xdgalgg \
+    10.130.9.198:2377
+root@sm01:~#
+</code></pre><p><code>worker</code> として join するか <code>manager</code> として join するかは <code>--token</code> の値によって決まるようです。rc4 までにあった <code>--manager</code> というオプションはなくなっています。<code>--auto-accept</code> もなくなりました。 init 時の <code>--advertise-addr</code> も必須になりました。これを明示しなくてハマる人が多かったようです。<code>--task-history-limit</code> は説明「Task history retention limit (default 5)」を読んでも謎ですね。これは Docker イメージの更新などで入れかわた container の履歴とそのボリューム(?)を何世代残すかという設定になります。これを超えてはじめて docker rm されることになります。 それでは manager x3 + worker x1 の構成にしてみます。</p>
+<pre tabindex=0><code>root@sm02:~# docker swarm join --listen-addr eth1 --advertise-addr eth1 \
+  --token SWMTKN-1-4lz4k3n65d76akrxn934md0e0zrgq5bsq5jf2gq54icncq37qp-2nxm00jx3vehtromd3xdgalgg \
+  10.130.9.198:2377
+This node joined a swarm as a manager.
+root@sm02:~#
+</code></pre><p>sm03 は sm02 と同じなので省略</p>
+<pre tabindex=0><code>root@sm04:~# docker swarm join --listen-addr eth1 --advertise-addr eth1 \
+  --token SWMTKN-1-4lz4k3n65d76akrxn934md0e0zrgq5bsq5jf2gq54icncq37qp-009402j3gts3zm1vvqrkqp79f \
+  10.130.9.198:2377
+This node joined a swarm as a worker.
+root@sm04:~#
+</code></pre><pre tabindex=0><code>root@sm01:~# docker node ls
+ID                           HOSTNAME  STATUS  AVAILABILITY  **MANAGER STATUS**
+3v11smnwwulxd987mtix494so    sm02      Ready   Active        **Reachable**
+4mg10n4rirjylaaekiekybcnl    sm03      Ready   Active        **Reachable**
+4p396pp5d3qe3e8sns6er3bgx    sm04      Ready   Active
+8y26xoif1ucu2dr4lnet0z4rk *  sm01      Ready   Active        **Leader**
+root@sm01:~#
+</code></pre><p>join される側での accept 処理は不要になってます。もう完成してしまいました。 token を忘れたり、漏洩しちゃったらどうしましょう？ 忘れた場合は <code>docker swarm join-token {manager|worker}</code> で確認できます。</p>
+<pre tabindex=0><code>root@sm01:~# docker swarm join-token worker
+To add a worker to this swarm, run the following command:
+    docker swarm join \
+    --token SWMTKN-1-4lz4k3n65d76akrxn934md0e0zrgq5bsq5jf2gq54icncq37qp-009402j3gts3zm1vvqrkqp79f \
+    10.130.9.198:2377
+root@sm01:~# docker swarm join-token manager
+To add a manager to this swarm, run the following command:
+    docker swarm join \
+    --token SWMTKN-1-4lz4k3n65d76akrxn934md0e0zrgq5bsq5jf2gq54icncq37qp-2nxm00jx3vehtromd3xdgalgg \
+    10.130.9.198:2377
+root@sm01:~# 
+</code></pre><p>漏洩しちゃったり、しばらく使わないという場合は rotate させます。</p>
+<pre tabindex=0><code>root@sm01:~# docker swarm join-token --rotate worker
+To add a worker to this swarm, run the following command:
+    docker swarm join \
+    --token SWMTKN-1-4lz4k3n65d76akrxn934md0e0zrgq5bsq5jf2gq54icncq37qp-4igl65pp3mbgt29t8wy1visjk \
+    10.130.9.198:2377
+root@sm01:~# docker swarm join-token --rotate manager
+To add a manager to this swarm, run the following command:
+    docker swarm join \
+    --token SWMTKN-1-4lz4k3n65d76akrxn934md0e0zrgq5bsq5jf2gq54icncq37qp-bbb6n7i318f6npco5wd5mg43y \
+    10.130.9.198:2377
+root@sm01:~#
+</code></pre><p>これで新しい token が発行され、古いものは無効になりました。join のためのコマンドまで表示されてちょっとうざいっていう場合は <code>-q</code> を追加します。</p>
+<pre tabindex=0><code>root@sm01:~# docker swarm join-token -q worker
+SWMTKN-1-4lz4k3n65d76akrxn934md0e0zrgq5bsq5jf2gq54icncq37qp-4igl65pp3mbgt29t8wy1visjk
+root@sm01:~# docker swarm join-token -q manager
+SWMTKN-1-4lz4k3n65d76akrxn934md0e0zrgq5bsq5jf2gq54icncq37qp-bbb6n7i318f6npco5wd5mg43y
+root@sm01:~# 
+</code></pre><pre tabindex=0><code>root@sm01:~# docker info
+Containers: 0
+ Running: 0
+ Paused: 0
+ Stopped: 0
+Images: 0
+Server Version: 1.12.0-rc5
+Storage Driver: aufs
+ Root Dir: /var/lib/docker/aufs
+ Backing Filesystem: extfs
+ Dirs: 0
+ Dirperm1 Supported: true
+Logging Driver: json-file
+Cgroup Driver: cgroupfs
+Plugins:
+ Volume: local
+ Network: bridge null host overlay
+Swarm: active
+ NodeID: 8y26xoif1ucu2dr4lnet0z4rk
+ Is Manager: true
+ Managers: 3
+ Nodes: 4
+ Node Address: 10.130.9.198
+Runtimes: runc
+Default Runtime: runc
+Security Options: apparmor
+Kernel Version: 4.4.0-31-generic
+Operating System: Ubuntu 14.04.4 LTS
+OSType: linux
+Architecture: x86_64
+CPUs: 2
+Total Memory: 1.954 GiB
+Name: sm01
+ID: MGAP:D3I3:LLZT:4RRL:WVUI:HR6U:6XJ3:ON3D:OERN:RBRR:7H6A:I3YG
+Docker Root Dir: /var/lib/docker
+Debug Mode (client): false
+Debug Mode (server): false
+Registry: https://index.docker.io/v1/
+WARNING: No swap limit support
+Insecure Registries:
+ 127.0.0.0/8
+root@sm01:~#
+</code></pre><pre tabindex=0><code>Swarm: active
+ NodeID: 8y26xoif1ucu2dr4lnet0z4rk
+ Is Manager: true
+ Managers: 3
+ Nodes: 4
+ Node Address: 10.130.9.198
+</code></pre><p>docker-compose のインストール</p>
+<pre tabindex=0><code>root@sm01:~# curl -Lo /usr/bin/docker-compose https://github.com/docker/compose/releases/download/1.8.0/docker-compose-`uname -s`-`uname -m`
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+100   600    0   600    0     0    509      0 --:--:--  0:00:01 --:--:--   509
+100 7783k  100 7783k    0     0   925k      0  0:00:08  0:00:08 --:--:-- 1660k
+root@sm01:~# chmod 755 /usr/bin/docker-compose 
+root@sm01:~# 
+</code></pre><p><a href=https://docs.docker.com/compose/wordpress/>https://docs.docker.com/compose/wordpress/</a> にある wordpress を実行するための docker-compose.yml を使ってコンテナを実行してみます</p>
+<pre tabindex=0><code>root@sm01:~/wordpress# vi docker-compose.yml
+root@sm01:~/wordpress# docker-compose up -d
+WARNING: The Docker Engine you're using is running in swarm mode.
+
+Compose does not use swarm mode to deploy services to multiple nodes in a swarm. All containers will be scheduled on the current node.
+
+To deploy your application across the swarm, use the bundle feature of the Docker experimental build.
+
+More info:
+https://docs.docker.com/compose/bundles
+
+Creating network &quot;wordpress_default&quot; with the default driver
+Pulling db (mysql:5.7)...
+5.7: Pulling from library/mysql
+5c90d4a2d1a8: Pull complete
+...
+b836883cb3d9: Pull complete
+Digest: sha256:a9a5b559f8821fe73d58c3606c812d1c044868d42c63817fa5125fd9d8b7b539
+Status: Downloaded newer image for mysql:5.7
+Pulling wordpress (wordpress:latest)...
+latest: Pulling from library/wordpress
+5c90d4a2d1a8: Already exists
+9e955ea56615: Pull complete
+...
+417100314774: Pull complete
+Digest: sha256:0f73fa5e20b0194c6cffc78143e9b9b966c952b57118be12526edb058726cd92
+Status: Downloaded newer image for wordpress:latest
+Creating wordpress_db_1
+Creating wordpress_wordpress_1
+root@sm01:~/wordpress# docker-compose ps
+        Name                       Command               State          Ports         
+-------------------------------------------------------------------------------------
+wordpress_db_1          docker-entrypoint.sh mysqld      Up      3306/tcp             
+wordpress_wordpress_1   /entrypoint.sh apache2-for ...   Up      0.0.0.0:8000-&gt;80/tcp 
+root@sm01:~/wordpress# 
+</code></pre><p>docker ホストの 8000 番ポートにアクセスすると wordpress が起動しています。</p>
+<img src=docker-wordpress.png>
+<p>ですが、次のような WARNING が出ています</p>
+<p><strong>WARNING</strong>: The Docker Engine you&rsquo;re using is running in swarm mode. Compose does not use swarm mode to deploy services to multiple nodes in a swarm. All containers will be scheduled on the current node. To deploy your application across the swarm, use the bundle feature of the Docker experimental build. More info: <a href=https://docs.docker.com/compose/bundles>https://docs.docker.com/compose/bundles</a></p>
+<p>1.11 の Swarm では docker-compose でも node をまたがって container が展開されていましたが、それをやりたかたら bundle を使えってことのようです。でも bundle ってまだ仕様も固まってないんじゃなかったかな？ 今回の docker-compose.yml には</p>
+<div class=highlight><pre tabindex=0 class=chroma><code class=language-yaml data-lang=yaml><span class=w>    </span><span class=nt>volumes</span><span class=p>:</span><span class=w>
+</span><span class=w>      </span>- <span class=s2>&#34;./.data/db:/var/lib/mysql&#34;</span><span class=w>
+</span></code></pre></div><p>てな定義もあるからどっちにしてもダメか.. ちょっと dockercon 2016 にあわせていろいろ詰め込み過ぎたんじゃないかと思うわけですが、Docker の release policy は次のようになっているので&mldr; <a href=https://github.com/docker/docker/wiki>https://github.com/docker/docker/wiki</a></p>
+<blockquote>
+<p>The Docker follows a time-based release process, currently aiming at releasing a new major version every two months. We issue a code freeze several weeks before the scheduled release date during which nothing but bugfixes can be added to the release. Even though the process is time-based, the Docker Engine sets short-term goals for the upcoming release(s). However, time will always win over features: the code freeze will happen regardless of our goals being met.</p>
+</blockquote>
+<p>Service について</p>
+<pre tabindex=0><code>root@sm01:~/wordpress# docker service create --name nginx --replicas 5 nginx
+e28bh091n39zxvav6f3agmf1v
+</code></pre><p>これだけで nginx container を 5 つキープしてくれる が、<code>docker run</code> に比べて圧倒的に起動時のオプションが少ない</p>
+<pre tabindex=0><code>root@sm01:~/wordpress# docker service create --help
+
+Usage:	docker service create [OPTIONS] IMAGE [COMMAND] [ARG...]
+
+Create a new service
+
+Options:
+      --constraint value               Placement constraints (default [])
+      --container-label value          Container labels (default [])
+      --endpoint-mode string           Endpoint mode (vip or dnsrr)
+  -e, --env value                      Set environment variables (default [])
+      --help                           Print usage
+  -l, --label value                    Service labels (default [])
+      --limit-cpu value                Limit CPUs (default 0.000)
+      --limit-memory value             Limit Memory (default 0 B)
+      --log-driver string              Logging driver for service
+      --log-opt value                  Logging driver options (default [])
+      --mode string                    Service mode (replicated or global) (default &quot;replicated&quot;)
+      --mount value                    Attach a mount to the service
+      --name string                    Service name
+      --network value                  Network attachments (default [])
+  -p, --publish value                  Publish a port as a node port (default [])
+      --replicas value                 Number of tasks (default none)
+      --reserve-cpu value              Reserve CPUs (default 0.000)
+      --reserve-memory value           Reserve Memory (default 0 B)
+      --restart-condition string       Restart when condition is met (none, on-failure, or any)
+      --restart-delay value            Delay between restart attempts (default none)
+      --restart-max-attempts value     Maximum number of restarts before giving up (default none)
+      --restart-window value           Window used to evaluate the restart policy (default none)
+      --stop-grace-period value        Time to wait before force killing a container (default none)
+      --update-delay duration          Delay between updates
+      --update-failure-action string   Action on update failure (pause|continue) (default &quot;pause&quot;)
+      --update-parallelism uint        Maximum number of tasks updated simultaneously (0 to update all at once) (default 1)
+  -u, --user string                    Username or UID
+      --with-registry-auth             Send registry authentication details to swarm agents
+  -w, --workdir string                 Working directory inside the container
+</code></pre><pre tabindex=0><code>root@sm01:~/wordpress# docker service inspect e2
+[
+    {
+        &quot;ID&quot;: &quot;e28bh091n39zxvav6f3agmf1v&quot;,
+        &quot;Version&quot;: {
+            &quot;Index&quot;: 45
+        },
+        &quot;CreatedAt&quot;: &quot;2016-07-28T16:17:29.6671509Z&quot;,
+        &quot;UpdatedAt&quot;: &quot;2016-07-28T16:17:29.6671509Z&quot;,
+        &quot;Spec&quot;: {
+            &quot;Name&quot;: &quot;nginx&quot;,
+            &quot;TaskTemplate&quot;: {
+                &quot;ContainerSpec&quot;: {
+                    &quot;Image&quot;: &quot;nginx&quot;
+                },
+                &quot;Resources&quot;: {
+                    &quot;Limits&quot;: {},
+                    &quot;Reservations&quot;: {}
+                },
+                &quot;RestartPolicy&quot;: {
+                    &quot;Condition&quot;: &quot;any&quot;,
+                    &quot;MaxAttempts&quot;: 0
+                },
+                &quot;Placement&quot;: {}
+            },
+            &quot;Mode&quot;: {
+                &quot;Replicated&quot;: {
+                    &quot;Replicas&quot;: 5
+                }
+            },
+            &quot;UpdateConfig&quot;: {
+                &quot;Parallelism&quot;: 1,
+                &quot;FailureAction&quot;: &quot;pause&quot;
+            },
+            &quot;EndpointSpec&quot;: {
+                &quot;Mode&quot;: &quot;vip&quot;
+            }
+        },
+        &quot;Endpoint&quot;: {
+            &quot;Spec&quot;: {}
+        },
+        &quot;UpdateStatus&quot;: {
+            &quot;StartedAt&quot;: &quot;0001-01-01T00:00:00Z&quot;,
+            &quot;CompletedAt&quot;: &quot;0001-01-01T00:00:00Z&quot;
+        }
+    }
+]
+root@sm01:~/wordpress# 
+</code></pre><pre tabindex=0><code>root@sm01:~/wordpress# docker ps
+CONTAINER ID        IMAGE               COMMAND                  CREATED             STATUS              PORTS                  NAMES
+3063f0490040        nginx:latest        &quot;nginx -g 'daemon off&quot;   2 minutes ago       Up 2 minutes        80/tcp, 443/tcp        nginx.1.4hxwvcyyk4wficzyqi3bmrxt3
+fde5a780144e        wordpress:latest    &quot;/entrypoint.sh apach&quot;   2 hours ago         Up 2 hours          0.0.0.0:8000-&gt;80/tcp   wordpress_wordpress_1
+359e31c3465a        mysql:5.7           &quot;docker-entrypoint.sh&quot;   2 hours ago         Up 2 hours          3306/tcp               wordpress_db_1
+root@sm01:~/wordpress# docker inspect 30
+[
+    {
+        &quot;Id&quot;: &quot;3063f04900407965e5d2a509fd24b15b54b7c1a1ed89712817507cdd3975e934&quot;,
+        &quot;Created&quot;: &quot;2016-07-28T16:17:51.378771708Z&quot;,
+        &quot;Path&quot;: &quot;nginx&quot;,
+        &quot;Args&quot;: [
+            &quot;-g&quot;,
+            &quot;daemon off;&quot;
+        ],
+        &quot;State&quot;: {
+            &quot;Status&quot;: &quot;running&quot;,
+            &quot;Running&quot;: true,
+            &quot;Paused&quot;: false,
+            &quot;Restarting&quot;: false,
+            &quot;OOMKilled&quot;: false,
+            &quot;Dead&quot;: false,
+            &quot;Pid&quot;: 6060,
+            &quot;ExitCode&quot;: 0,
+            &quot;Error&quot;: &quot;&quot;,
+            &quot;StartedAt&quot;: &quot;2016-07-28T16:17:51.714182965Z&quot;,
+            &quot;FinishedAt&quot;: &quot;0001-01-01T00:00:00Z&quot;
+        },
+        &quot;Image&quot;: &quot;sha256:0d409d33b27e47423b049f7f863faa08655a8c901749c2b25b93ca67d01a470d&quot;,
+        &quot;ResolvConfPath&quot;: &quot;/var/lib/docker/containers/3063f04900407965e5d2a509fd24b15b54b7c1a1ed89712817507cdd3975e934/resolv.conf&quot;,
+        &quot;HostnamePath&quot;: &quot;/var/lib/docker/containers/3063f04900407965e5d2a509fd24b15b54b7c1a1ed89712817507cdd3975e934/hostname&quot;,
+        &quot;HostsPath&quot;: &quot;/var/lib/docker/containers/3063f04900407965e5d2a509fd24b15b54b7c1a1ed89712817507cdd3975e934/hosts&quot;,
+        &quot;LogPath&quot;: &quot;/var/lib/docker/containers/3063f04900407965e5d2a509fd24b15b54b7c1a1ed89712817507cdd3975e934/3063f04900407965e5d2a509fd24b15b54b7c1a1ed89712817507cdd3975e934-json.log&quot;,
+        &quot;Name&quot;: &quot;/nginx.1.4hxwvcyyk4wficzyqi3bmrxt3&quot;,
+        &quot;RestartCount&quot;: 0,
+        &quot;Driver&quot;: &quot;aufs&quot;,
+        &quot;MountLabel&quot;: &quot;&quot;,
+        &quot;ProcessLabel&quot;: &quot;&quot;,
+        &quot;AppArmorProfile&quot;: &quot;&quot;,
+        &quot;ExecIDs&quot;: null,
+        &quot;HostConfig&quot;: {
+            &quot;Binds&quot;: null,
+            &quot;ContainerIDFile&quot;: &quot;&quot;,
+            &quot;LogConfig&quot;: {
+                &quot;Type&quot;: &quot;json-file&quot;,
+                &quot;Config&quot;: {}
+            },
+            &quot;NetworkMode&quot;: &quot;default&quot;,
+            &quot;PortBindings&quot;: null,
+            &quot;RestartPolicy&quot;: {
+                &quot;Name&quot;: &quot;&quot;,
+                &quot;MaximumRetryCount&quot;: 0
+            },
+            &quot;AutoRemove&quot;: false,
+            &quot;VolumeDriver&quot;: &quot;&quot;,
+            &quot;VolumesFrom&quot;: null,
+            &quot;CapAdd&quot;: null,
+            &quot;CapDrop&quot;: null,
+            &quot;Dns&quot;: null,
+            &quot;DnsOptions&quot;: null,
+            &quot;DnsSearch&quot;: null,
+            &quot;ExtraHosts&quot;: null,
+            &quot;GroupAdd&quot;: null,
+            &quot;IpcMode&quot;: &quot;&quot;,
+            &quot;Cgroup&quot;: &quot;&quot;,
+            &quot;Links&quot;: null,
+            &quot;OomScoreAdj&quot;: 0,
+            &quot;PidMode&quot;: &quot;&quot;,
+            &quot;Privileged&quot;: false,
+            &quot;PublishAllPorts&quot;: false,
+            &quot;ReadonlyRootfs&quot;: false,
+            &quot;SecurityOpt&quot;: null,
+            &quot;UTSMode&quot;: &quot;&quot;,
+            &quot;UsernsMode&quot;: &quot;&quot;,
+            &quot;ShmSize&quot;: 67108864,
+            &quot;Runtime&quot;: &quot;runc&quot;,
+            &quot;ConsoleSize&quot;: [
+                0,
+                0
+            ],
+            &quot;Isolation&quot;: &quot;&quot;,
+            &quot;CpuShares&quot;: 0,
+            &quot;Memory&quot;: 0,
+            &quot;CgroupParent&quot;: &quot;&quot;,
+            &quot;BlkioWeight&quot;: 0,
+            &quot;BlkioWeightDevice&quot;: null,
+            &quot;BlkioDeviceReadBps&quot;: null,
+            &quot;BlkioDeviceWriteBps&quot;: null,
+            &quot;BlkioDeviceReadIOps&quot;: null,
+            &quot;BlkioDeviceWriteIOps&quot;: null,
+            &quot;CpuPeriod&quot;: 0,
+            &quot;CpuQuota&quot;: 0,
+            &quot;CpusetCpus&quot;: &quot;&quot;,
+            &quot;CpusetMems&quot;: &quot;&quot;,
+            &quot;Devices&quot;: null,
+            &quot;DiskQuota&quot;: 0,
+            &quot;KernelMemory&quot;: 0,
+            &quot;MemoryReservation&quot;: 0,
+            &quot;MemorySwap&quot;: 0,
+            &quot;MemorySwappiness&quot;: -1,
+            &quot;OomKillDisable&quot;: false,
+            &quot;PidsLimit&quot;: 0,
+            &quot;Ulimits&quot;: null,
+            &quot;CpuCount&quot;: 0,
+            &quot;CpuPercent&quot;: 0,
+            &quot;IOMaximumIOps&quot;: 0,
+            &quot;IOMaximumBandwidth&quot;: 0
+        },
+        &quot;GraphDriver&quot;: {
+            &quot;Name&quot;: &quot;aufs&quot;,
+            &quot;Data&quot;: null
+        },
+        &quot;Mounts&quot;: [],
+        &quot;Config&quot;: {
+            &quot;Hostname&quot;: &quot;3063f0490040&quot;,
+            &quot;Domainname&quot;: &quot;&quot;,
+            &quot;User&quot;: &quot;&quot;,
+            &quot;AttachStdin&quot;: false,
+            &quot;AttachStdout&quot;: false,
+            &quot;AttachStderr&quot;: false,
+            &quot;ExposedPorts&quot;: {
+                &quot;443/tcp&quot;: {},
+                &quot;80/tcp&quot;: {}
+            },
+            &quot;Tty&quot;: false,
+            &quot;OpenStdin&quot;: false,
+            &quot;StdinOnce&quot;: false,
+            &quot;Env&quot;: [
+                &quot;PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin&quot;,
+                &quot;NGINX_VERSION=1.11.1-1~jessie&quot;
+            ],
+            &quot;Cmd&quot;: [
+                &quot;nginx&quot;,
+                &quot;-g&quot;,
+                &quot;daemon off;&quot;
+            ],
+            &quot;Image&quot;: &quot;nginx:latest&quot;,
+            &quot;Volumes&quot;: null,
+            &quot;WorkingDir&quot;: &quot;&quot;,
+            &quot;Entrypoint&quot;: null,
+            &quot;OnBuild&quot;: null,
+            &quot;Labels&quot;: {
+                &quot;com.docker.swarm.node.id&quot;: &quot;8y26xoif1ucu2dr4lnet0z4rk&quot;,
+                &quot;com.docker.swarm.service.id&quot;: &quot;e28bh091n39zxvav6f3agmf1v&quot;,
+                &quot;com.docker.swarm.service.name&quot;: &quot;nginx&quot;,
+                &quot;com.docker.swarm.task&quot;: &quot;&quot;,
+                &quot;com.docker.swarm.task.id&quot;: &quot;4hxwvcyyk4wficzyqi3bmrxt3&quot;,
+                &quot;com.docker.swarm.task.name&quot;: &quot;nginx.1&quot;
+            }
+        },
+        &quot;NetworkSettings&quot;: {
+            &quot;Bridge&quot;: &quot;&quot;,
+            &quot;SandboxID&quot;: &quot;e9163754dadff812153de58d8e2594ee41f2933baf2036e7d070020216c12dd0&quot;,
+            &quot;HairpinMode&quot;: false,
+            &quot;LinkLocalIPv6Address&quot;: &quot;&quot;,
+            &quot;LinkLocalIPv6PrefixLen&quot;: 0,
+            &quot;Ports&quot;: {
+                &quot;443/tcp&quot;: null,
+                &quot;80/tcp&quot;: null
+            },
+            &quot;SandboxKey&quot;: &quot;/var/run/docker/netns/e9163754dadf&quot;,
+            &quot;SecondaryIPAddresses&quot;: null,
+            &quot;SecondaryIPv6Addresses&quot;: null,
+            &quot;EndpointID&quot;: &quot;500d153bda733300fd88145230a8bb0f50c83b494d1d4ea8fbf3cd6f96c26d54&quot;,
+            &quot;Gateway&quot;: &quot;172.17.0.1&quot;,
+            &quot;GlobalIPv6Address&quot;: &quot;&quot;,
+            &quot;GlobalIPv6PrefixLen&quot;: 0,
+            &quot;IPAddress&quot;: &quot;172.17.0.2&quot;,
+            &quot;IPPrefixLen&quot;: 16,
+            &quot;IPv6Gateway&quot;: &quot;&quot;,
+            &quot;MacAddress&quot;: &quot;02:42:ac:11:00:02&quot;,
+            &quot;Networks&quot;: {
+                &quot;bridge&quot;: {
+                    &quot;IPAMConfig&quot;: null,
+                    &quot;Links&quot;: null,
+                    &quot;Aliases&quot;: null,
+                    &quot;NetworkID&quot;: &quot;aa10bf2517626132866dbf519bbd99163e65ed449e7ada028e1b723ee33f4b46&quot;,
+                    &quot;EndpointID&quot;: &quot;500d153bda733300fd88145230a8bb0f50c83b494d1d4ea8fbf3cd6f96c26d54&quot;,
+                    &quot;Gateway&quot;: &quot;172.17.0.1&quot;,
+                    &quot;IPAddress&quot;: &quot;172.17.0.2&quot;,
+                    &quot;IPPrefixLen&quot;: 16,
+                    &quot;IPv6Gateway&quot;: &quot;&quot;,
+                    &quot;GlobalIPv6Address&quot;: &quot;&quot;,
+                    &quot;GlobalIPv6PrefixLen&quot;: 0,
+                    &quot;MacAddress&quot;: &quot;02:42:ac:11:00:02&quot;
+                }
+            }
+        }
+    }
+]
+root@sm01:~/wordpress# 
+</code></pre><p>この状態から nginx.3 を <code>docker kill</code> で止めてみる</p>
+<pre tabindex=0><code>root@sm01:~/wordpress# docker service tasks nginx
+ID                         NAME     IMAGE  NODE  DESIRED STATE  CURRENT STATE          ERROR
+4hxwvcyyk4wficzyqi3bmrxt3  nginx.1  nginx  sm01  Running        Running 4 minutes ago  
+dgv49gkq3dlwm620vpz03f0c5  nginx.2  nginx  sm03  Running        Running 4 minutes ago  
+boscs727ouw0859osiiko5j3f  nginx.3  nginx  sm02  Running        Running 4 minutes ago  
+80e990f922jaohfalmtg20pjc  nginx.4  nginx  sm04  Running        Running 4 minutes ago  
+6tjgw5kqdoglzbk2ckgffr4dk  nginx.5  nginx  sm04  Running        Running 4 minutes ago  
+</code></pre><pre tabindex=0><code>root@sm02:~# docker ps
+CONTAINER ID        IMAGE               COMMAND                  CREATED             STATUS              PORTS               NAMES
+7bbace95d718        nginx:latest        &quot;nginx -g 'daemon off&quot;   4 minutes ago       Up 4 minutes        80/tcp, 443/tcp     nginx.3.boscs727ouw0859osiiko5j3f
+root@sm02:~# docker kill 7b
+7b
+root@sm02:~# 
+</code></pre><p>restart してくれた。 <code>_nginx.3</code> となっているのが swram init のところででてきた history というやつですね、デフォルトではこれが 5 つまでずらずらと残ります。</p>
+<pre tabindex=0><code>root@sm01:~/wordpress# docker service tasks nginx
+ID                         NAME         IMAGE  NODE  DESIRED STATE  CURRENT STATE            ERROR
+4hxwvcyyk4wficzyqi3bmrxt3  nginx.1      nginx  sm01  Running        Running 5 minutes ago    
+dgv49gkq3dlwm620vpz03f0c5  nginx.2      nginx  sm03  Running        Running 5 minutes ago    
+dd4tvbrsqc7zqelzqak4tar9c  nginx.3      nginx  sm02  Ready          Preparing 2 seconds ago  
+boscs727ouw0859osiiko5j3f   \_ nginx.3  nginx  sm02  Shutdown       Failed 2 seconds ago     &quot;task: non-zero exit (137)&quot;
+80e990f922jaohfalmtg20pjc  nginx.4      nginx  sm04  Running        Running 5 minutes ago    
+6tjgw5kqdoglzbk2ckgffr4dk  nginx.5      nginx  sm04  Running        Running 5 minutes ago    
+root@sm01:~/wordpress# docker service tasks nginx
+ID                         NAME         IMAGE  NODE  DESIRED STATE  CURRENT STATE          ERROR
+4hxwvcyyk4wficzyqi3bmrxt3  nginx.1      nginx  sm01  Running        Running 5 minutes ago  
+dgv49gkq3dlwm620vpz03f0c5  nginx.2      nginx  sm03  Running        Running 5 minutes ago  
+dd4tvbrsqc7zqelzqak4tar9c  nginx.3      nginx  sm02  Running        Running 7 seconds ago  
+boscs727ouw0859osiiko5j3f   \_ nginx.3  nginx  sm02  Shutdown       Failed 13 seconds ago  &quot;task: non-zero exit (137)&quot;
+80e990f922jaohfalmtg20pjc  nginx.4      nginx  sm04  Running        Running 5 minutes ago  
+6tjgw5kqdoglzbk2ckgffr4dk  nginx.5      nginx  sm04  Running        Running 5 minutes ago  
+</code></pre><p>Leader node (sm01) を停止させてみる (SIGKILL)</p>
+<pre tabindex=0><code>root@sm02:~# docker node ls
+ID                           HOSTNAME  STATUS  AVAILABILITY  MANAGER STATUS
+3v11smnwwulxd987mtix494so *  sm02      Ready   Active        Reachable
+4mg10n4rirjylaaekiekybcnl    sm03      Ready   Active        Reachable
+4p396pp5d3qe3e8sns6er3bgx    sm04      Ready   Active        
+8y26xoif1ucu2dr4lnet0z4rk    sm01      Ready   Active        Leader
+root@sm02:~# docker node ls
+ID                           HOSTNAME  STATUS   AVAILABILITY  MANAGER STATUS
+3v11smnwwulxd987mtix494so *  sm02      Unknown  Active        Leader
+4mg10n4rirjylaaekiekybcnl    sm03      Unknown  Active        Reachable
+4p396pp5d3qe3e8sns6er3bgx    sm04      Unknown  Active        
+8y26xoif1ucu2dr4lnet0z4rk    sm01      Unknown  Active        Unreachable
+</code></pre><p>sm02 が Leader に昇格しました。Service, Task についても sm01 で実行されていた task が sm03 で起動されました。</p>
+<pre tabindex=0><code>root@sm02:~# docker service tasks nginx
+ID                         NAME         IMAGE  NODE  DESIRED STATE  CURRENT STATE           ERROR
+4hxwvcyyk4wficzyqi3bmrxt3  nginx.1      nginx  sm01  Running        Running 15 minutes ago  
+dgv49gkq3dlwm620vpz03f0c5  nginx.2      nginx  sm03  Running        Running 15 minutes ago  
+dd4tvbrsqc7zqelzqak4tar9c  nginx.3      nginx  sm02  Running        Running 9 minutes ago   
+boscs727ouw0859osiiko5j3f   \_ nginx.3  nginx  sm02  Shutdown       Failed 10 minutes ago   &quot;task: non-zero exit (137)&quot;
+80e990f922jaohfalmtg20pjc  nginx.4      nginx  sm04  Running        Running 15 minutes ago  
+6tjgw5kqdoglzbk2ckgffr4dk  nginx.5      nginx  sm04  Running        Running 15 minutes ago  
+root@sm02:~# docker service tasks nginx
+ID                         NAME         IMAGE  NODE  DESIRED STATE  CURRENT STATE            ERROR
+22qjm1w4a0wkj2bkkbj7arji0  nginx.1      nginx  sm03  Running        Running 57 seconds ago   
+4hxwvcyyk4wficzyqi3bmrxt3   \_ nginx.1  nginx  sm01  Shutdown       Complete 21 seconds ago  
+dgv49gkq3dlwm620vpz03f0c5  nginx.2      nginx  sm03  Running        Running 16 minutes ago   
+dd4tvbrsqc7zqelzqak4tar9c  nginx.3      nginx  sm02  Running        Running 11 minutes ago   
+boscs727ouw0859osiiko5j3f   \_ nginx.3  nginx  sm02  Shutdown       Failed 11 minutes ago    &quot;task: non-zero exit (137)&quot;
+80e990f922jaohfalmtg20pjc  nginx.4      nginx  sm04  Running        Running 16 minutes ago   
+6tjgw5kqdoglzbk2ckgffr4dk  nginx.5      nginx  sm04  Running        Running 16 minutes ago   
+</code></pre><p>sm01 を再起動させたら何事もなかったかのようにクラスタに参加してきました</p>
+<pre tabindex=0><code>root@sm02:~# docker node ls
+ID                           HOSTNAME  STATUS  AVAILABILITY  MANAGER STATUS
+3v11smnwwulxd987mtix494so *  sm02      Ready   Active        Leader
+4mg10n4rirjylaaekiekybcnl    sm03      Ready   Active        Reachable
+4p396pp5d3qe3e8sns6er3bgx    sm04      Ready   Active        
+8y26xoif1ucu2dr4lnet0z4rk    sm01      Ready   Active        Reachable
+</code></pre><p>けれども勝手にリバランスされりはしないので nginx.4, nginx.5 の2つが稼働しえいる sm04 で nginx.5 を kill してみる</p>
+<pre tabindex=0><code>root@sm02:~# docker service tasks nginx
+ID                         NAME         IMAGE  NODE  DESIRED STATE  CURRENT STATE                ERROR
+22qjm1w4a0wkj2bkkbj7arji0  nginx.1      nginx  sm03  Running        Running 11 minutes ago       
+4hxwvcyyk4wficzyqi3bmrxt3   \_ nginx.1  nginx  sm01  Shutdown       Complete about a minute ago  
+dgv49gkq3dlwm620vpz03f0c5  nginx.2      nginx  sm03  Running        Running 26 minutes ago       
+dd4tvbrsqc7zqelzqak4tar9c  nginx.3      nginx  sm02  Running        Running 21 minutes ago       
+boscs727ouw0859osiiko5j3f   \_ nginx.3  nginx  sm02  Shutdown       Failed 21 minutes ago        &quot;task: non-zero exit (137)&quot;
+80e990f922jaohfalmtg20pjc  nginx.4      nginx  sm04  Running        Running 26 minutes ago       
+6tjgw5kqdoglzbk2ckgffr4dk  nginx.5      nginx  sm04  Running        Running 26 minutes ago       
+</code></pre><p>sm01 に配置されました</p>
+<pre tabindex=0><code>root@sm01:~# docker service tasks nginx
+ID                         NAME         IMAGE  NODE  DESIRED STATE  CURRENT STATE           ERROR
+22qjm1w4a0wkj2bkkbj7arji0  nginx.1      nginx  sm03  Running        Running 13 minutes ago  
+4hxwvcyyk4wficzyqi3bmrxt3   \_ nginx.1  nginx  sm01  Shutdown       Complete 3 minutes ago  
+dgv49gkq3dlwm620vpz03f0c5  nginx.2      nginx  sm03  Running        Running 28 minutes ago  
+dd4tvbrsqc7zqelzqak4tar9c  nginx.3      nginx  sm02  Running        Running 23 minutes ago  
+boscs727ouw0859osiiko5j3f   \_ nginx.3  nginx  sm02  Shutdown       Failed 23 minutes ago   &quot;task: non-zero exit (137)&quot;
+80e990f922jaohfalmtg20pjc  nginx.4      nginx  sm04  Running        Running 28 minutes ago  
+6p152l80j7kdlbhhitowbzn1a  nginx.5      nginx  sm01  Running        Running 12 seconds ago  
+6tjgw5kqdoglzbk2ckgffr4dk   \_ nginx.5  nginx  sm04  Shutdown       Failed 17 seconds ago   &quot;task: non-zero exit (137)&quot;
+</code></pre><p>簡単なテストは期待通りに動作したようです。 bundle について調査しなくっちゃ。</p>
+</div>
+<script>var liked_article=!1,oid,id,viewed,oid_likes,id_likes,liked;typeof auth!='undefined'&&(oid="views_posts/docker-1-12-rc5-part1/index.md",id=oid&&oid.replaceAll("/","-"),viewed=localStorage.getItem(id),viewed||auth.signInAnonymously().then(()=>{var a=db.collection('views').doc(id);localStorage.setItem(id,!0),a.get().then(a=>{a.exists?db.collection('views').doc(id).update({views:firebase.firestore.FieldValue.increment(1)}):db.collection('views').doc(id).set({views:1})}).catch(a=>{console.log("Error getting document:",a)})}).catch(a=>{var b=a.code,c=a.message;console.error(b,c)}),oid_likes="likes_posts/docker-1-12-rc5-part1/index.md",id_likes=oid_likes&&oid_likes.replaceAll("/","-"),liked=localStorage.getItem(id_likes),liked&&(liked_article=!0,document.querySelectorAll("button[id='likes_button']")[0].innerText="Remove Like"));function like_article(a){console.log("add"),liked_article=!0,localStorage.setItem(a,!0),document.querySelectorAll("button[id='likes_button']")[0].innerText="Remove Like",auth.signInAnonymously().then(()=>{var b=db.collection('likes').doc(a);b.get().then(b=>{b.exists?db.collection('likes').doc(a).update({likes:firebase.firestore.FieldValue.increment(1)}):db.collection('likes').doc(a).set({likes:1})}).catch(a=>{console.log("Error getting document:",a)})}).catch(a=>{var b=a.code,c=a.message;console.error(b,c)})}function remove_like_article(a){console.log("remove"),liked_article=!1,localStorage.setItem(a,!1),document.querySelectorAll("button[id='likes_button']")[0].innerText="Like",auth.signInAnonymously().then(()=>{var b=db.collection('likes').doc(a);b.get().then(b=>{b.exists?db.collection('likes').doc(a).update({likes:firebase.firestore.FieldValue.increment(-1)}):db.collection('likes').doc(a).set({likes:0})}).catch(a=>{console.log("Error getting document:",a)})}).catch(a=>{var b=a.code,c=a.message;console.error(b,c)})}function process_article(){var a="likes_posts/docker-1-12-rc5-part1/index.md",b=a&&a.replaceAll("/","-");liked_article?remove_like_article(b):like_article(b)}</script>
+</section>
+<footer class="pt-8 max-w-prose print:hidden">
+<div class=flex>
+<div class=place-self-center>
+<div class="text-[0.6rem] uppercase leading-3 text-neutral-500 dark:text-neutral-400">
+著者
+</div>
+<div class="font-semibold leading-6 text-neutral-800 dark:text-neutral-300">
+Yoshinori Teraoka
+</div>
+<div class="text-2xl sm:text-lg">
+<div class="flex flex-wrap text-neutral-400 dark:text-neutral-500">
+<a class="px-1 hover:text-primary-700 dark:hover:text-primary-400" href=https://twitter.com/yteraoka target=_blank aria-label=Twitter rel="me noopener noreferrer">
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentcolor" d="M459.37 151.716c.325 4.548.325 9.097.325 13.645.0 138.72-105.583 298.558-298.558 298.558-59.452.0-114.68-17.219-161.137-47.106 8.447.974 16.568 1.299 25.34 1.299 49.055.0 94.213-16.568 130.274-44.832-46.132-.975-84.792-31.188-98.112-72.772 6.498.974 12.995 1.624 19.818 1.624 9.421.0 18.843-1.3 27.614-3.573-48.081-9.747-84.143-51.98-84.143-102.985v-1.299c13.969 7.797 30.214 12.67 47.431 13.319-28.264-18.843-46.781-51.005-46.781-87.391.0-19.492 5.197-37.36 14.294-52.954 51.655 63.675 129.3 105.258 216.365 109.807-1.624-7.797-2.599-15.918-2.599-24.04.0-57.828 46.782-104.934 104.934-104.934 30.213.0 57.502 12.67 76.67 33.137 23.715-4.548 46.456-13.32 66.599-25.34-7.798 24.366-24.366 44.833-46.132 57.827 21.117-2.273 41.584-8.122 60.426-16.243-14.292 20.791-32.161 39.308-52.628 54.253z"/></svg>
+</span>
+</a>
+<a class="px-1 hover:text-primary-700 dark:hover:text-primary-400" href=https://github.com/yteraoka target=_blank aria-label=Github rel="me noopener noreferrer">
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><path fill="currentcolor" d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6.0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6.0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3.0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1.0-6.2-.3-40.4-.3-61.4.0.0-70 15-84.7-29.8.0.0-11.4-29.1-27.8-36.6.0.0-22.9-15.7 1.6-15.4.0.0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5.0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9.0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4.0 33.7-.3 75.4-.3 83.6.0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6.0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9.0-6.2-1.4-2.3-4-3.3-5.6-2z"/></svg>
+</span>
+</a>
+<a class="px-1 hover:text-primary-700 dark:hover:text-primary-400" href=https://linkedin.com/in/fa5b66b7-9c77-4e1b-8b97-40ba4a5a2c13/ target=_blank aria-label=Linkedin rel="me noopener noreferrer">
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path fill="currentcolor" d="M416 32H31.9C14.3 32 0 46.5.0 64.3v383.4C0 465.5 14.3 480 31.9 480H416c17.6.0 32-14.5 32-32.3V64.3c0-17.8-14.4-32.3-32-32.3zM135.4 416H69V202.2h66.5V416zm-33.2-243c-21.3.0-38.5-17.3-38.5-38.5S80.9 96 102.2 96c21.2.0 38.5 17.3 38.5 38.5.0 21.3-17.2 38.5-38.5 38.5zm282.1 243h-66.4V312c0-24.8-.5-56.7-34.5-56.7-34.6.0-39.9 27-39.9 54.9V416h-66.4V202.2h63.7v29.2h.9c8.9-16.8 30.6-34.5 62.9-34.5 67.2.0 79.7 44.3 79.7 101.9V416z"/></svg>
+</span>
+</a>
+<a class="px-1 hover:text-primary-700 dark:hover:text-primary-400" href=https://medium.com/@yteraoka target=_blank aria-label=Medium rel="me noopener noreferrer">
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512"><path fill="currentcolor" d="M180.5 74.262C80.813 74.262.0 155.633.0 256S80.819 437.738 180.5 437.738 361 356.373 361 256 280.191 74.262 180.5 74.262zm288.25 10.646c-49.845.0-90.245 76.619-90.245 171.095s40.406 171.1 90.251 171.1 90.251-76.619 90.251-171.1H559C559 161.5 518.6 84.908 468.752 84.908zm139.506 17.821c-17.526.0-31.735 68.628-31.735 153.274s14.2 153.274 31.735 153.274S640 340.631 640 256c0-84.649-14.215-153.271-31.742-153.271z"/></svg>
+</span>
+</a>
+</div>
+</div>
+</div>
+</div>
+<section class="flex flex-row flex-wrap justify-center pt-4 text-xl">
+<a class="m-1 inline-block min-w-[2.4rem] rounded bg-neutral-300 p-1 text-center text-neutral-700 hover:bg-primary-500 hover:text-neutral dark:bg-neutral-700 dark:text-neutral-300 dark:hover:bg-primary-400 dark:hover:text-neutral-800" href="https://www.linkedin.com/shareArticle?mini=true&url=https://preview-blog.1q77.com/2016/07/docker-1-12-rc5-part1/&title=Docker%201.12-rc5%20%e3%82%92%e8%a9%a6%e3%81%99%20-%20part1" title=LinkedInでシェアする aria-label=LinkedInでシェアする>
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path fill="currentcolor" d="M416 32H31.9C14.3 32 0 46.5.0 64.3v383.4C0 465.5 14.3 480 31.9 480H416c17.6.0 32-14.5 32-32.3V64.3c0-17.8-14.4-32.3-32-32.3zM135.4 416H69V202.2h66.5V416zm-33.2-243c-21.3.0-38.5-17.3-38.5-38.5S80.9 96 102.2 96c21.2.0 38.5 17.3 38.5 38.5.0 21.3-17.2 38.5-38.5 38.5zm282.1 243h-66.4V312c0-24.8-.5-56.7-34.5-56.7-34.6.0-39.9 27-39.9 54.9V416h-66.4V202.2h63.7v29.2h.9c8.9-16.8 30.6-34.5 62.9-34.5 67.2.0 79.7 44.3 79.7 101.9V416z"/></svg>
+</span>
+</a>
+<a class="m-1 inline-block min-w-[2.4rem] rounded bg-neutral-300 p-1 text-center text-neutral-700 hover:bg-primary-500 hover:text-neutral dark:bg-neutral-700 dark:text-neutral-300 dark:hover:bg-primary-400 dark:hover:text-neutral-800" href="https://twitter.com/intent/tweet/?url=https://preview-blog.1q77.com/2016/07/docker-1-12-rc5-part1/&text=Docker%201.12-rc5%20%e3%82%92%e8%a9%a6%e3%81%99%20-%20part1" title=Twitterに投稿する aria-label=Twitterに投稿する>
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentcolor" d="M459.37 151.716c.325 4.548.325 9.097.325 13.645.0 138.72-105.583 298.558-298.558 298.558-59.452.0-114.68-17.219-161.137-47.106 8.447.974 16.568 1.299 25.34 1.299 49.055.0 94.213-16.568 130.274-44.832-46.132-.975-84.792-31.188-98.112-72.772 6.498.974 12.995 1.624 19.818 1.624 9.421.0 18.843-1.3 27.614-3.573-48.081-9.747-84.143-51.98-84.143-102.985v-1.299c13.969 7.797 30.214 12.67 47.431 13.319-28.264-18.843-46.781-51.005-46.781-87.391.0-19.492 5.197-37.36 14.294-52.954 51.655 63.675 129.3 105.258 216.365 109.807-1.624-7.797-2.599-15.918-2.599-24.04.0-57.828 46.782-104.934 104.934-104.934 30.213.0 57.502 12.67 76.67 33.137 23.715-4.548 46.456-13.32 66.599-25.34-7.798 24.366-24.366 44.833-46.132 57.827 21.117-2.273 41.584-8.122 60.426-16.243-14.292 20.791-32.161 39.308-52.628 54.253z"/></svg>
+</span>
+</a>
+</section>
+<div class=pt-8>
+<hr class="border-dotted border-neutral-300 dark:border-neutral-600">
+<div class="flex justify-between pt-3">
+<span>
+<a class="flex group" href=/2016/07/auto-update-certificate-with-lego/>
+<span class="mr-3 text-neutral-700 group-hover:text-primary-600 ltr:inline rtl:hidden dark:text-neutral dark:group-hover:text-primary-400">&larr;</span>
+<span class="ml-3 text-neutral-700 group-hover:text-primary-600 ltr:hidden rtl:inline dark:text-neutral dark:group-hover:text-primary-400">&rarr;</span>
+<span class="flex flex-col">
+<span class="mt-[0.1rem] leading-6 group-hover:underline group-hover:decoration-primary-500">lego で Let's Encrypt の証明書を自動更新</span>
+<span class="mt-[0.1rem] text-xs text-neutral-500 dark:text-neutral-400">
+<time datetime="2016-07-13 15:53:37 +0000 UTC">2016年7月13日</time>
+</span>
+</span>
+</a>
+</span>
+<span>
+<a class="flex text-right group" href=/2016/08/using-bash-on-ubuntu-on-windows/>
+<span class="flex flex-col">
+<span class="mt-[0.1rem] leading-6 group-hover:underline group-hover:decoration-primary-500">Bash on Ubuntu on Windows をセットアップする</span>
+<span class="mt-[0.1rem] text-xs text-neutral-500 dark:text-neutral-400">
+<time datetime="2016-08-20 02:01:28 +0000 UTC">2016年8月20日</time>
+</span>
+</span>
+<span class="ml-3 text-neutral-700 group-hover:text-primary-600 ltr:inline rtl:hidden dark:text-neutral dark:group-hover:text-primary-400">&rarr;</span>
+<span class="mr-3 text-neutral-700 group-hover:text-primary-600 ltr:hidden rtl:inline dark:text-neutral dark:group-hover:text-primary-400">&larr;</span>
+</a>
+</span>
+</div>
+</div>
+</footer>
+</article>
+<div class="pointer-events-none absolute top-[100vh] bottom-0 w-12 ltr:right-0 rtl:left-0">
+<a href=#the-top class="pointer-events-auto sticky top-[calc(100vh-5.5rem)] flex h-12 w-12 items-center justify-center rounded-full bg-neutral/50 text-xl text-neutral-700 backdrop-blur hover:text-primary-600 dark:bg-neutral-800/50 dark:text-neutral dark:hover:text-primary-400" aria-label=TOPへスクロール title=TOPへスクロール>
+&uarr;
+</a>
+</div>
+</main><footer class="py-10 print:hidden">
+<div class="flex items-center justify-between">
+<p class="text-sm text-neutral-500 dark:text-neutral-400">
+&copy;
+2022
+Yoshinori Teraoka
+</p>
+</div>
+<script>mediumZoom(document.querySelectorAll("img:not(.nozoom)"),{margin:24,background:'rgba(0,0,0,0.5)',scrollOffset:0})</script>
+<script type=text/javascript src=/js/process.min.48d08339b8a087b59c7b8cb42b6717aeeed3e07bfc68b1654cac27f00583284dac59cae47fb686dd7c0e9ff1d2745689dc2071230dff432ca6d7fc24b9f2e036.js integrity="sha512-SNCDObigh7Wce4y0K2cXru7T4Hv8aLFlTKwn8AWDKE2sWcrkf7aG3XwOn/HSdFaJ3CBxIw3/Qyym1/wkufLgNg=="></script>
+</footer><div id=search-wrapper class="invisible fixed inset-0 z-50 flex h-screen w-screen cursor-default flex-col bg-neutral-500/50 p-4 backdrop-blur-sm dark:bg-neutral-900/50 sm:p-6 md:p-[10vh] lg:p-[12vh]" data-url=https://preview-blog.1q77.com/>
+<div id=search-modal class="flex flex-col w-full max-w-3xl min-h-0 mx-auto border rounded-md shadow-lg top-20 border-neutral-200 bg-neutral dark:border-neutral-700 dark:bg-neutral-800">
+<header class="relative z-10 flex items-center justify-between flex-none px-2">
+<form class="flex items-center flex-auto min-w-0">
+<div class="flex items-center justify-center w-8 h-8 text-neutral-400">
+<span class="relative inline-block align-text-bottom icon"><svg aria-hidden="true" focusable="false" data-prefix="fas" data-icon="search" class="svg-inline--fa fa-search fa-w-16" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentcolor" d="M505 442.7 405.3 343c-4.5-4.5-10.6-7-17-7H372c27.6-35.3 44-79.7 44-128C416 93.1 322.9.0 208 0S0 93.1.0 208s93.1 208 208 208c48.3.0 92.7-16.4 128-44v16.3c0 6.4 2.5 12.5 7 17l99.7 99.7c9.4 9.4 24.6 9.4 33.9.0l28.3-28.3c9.4-9.4 9.4-24.6.1-34zM208 336c-70.7.0-128-57.2-128-128 0-70.7 57.2-128 128-128 70.7.0 128 57.2 128 128 0 70.7-57.2 128-128 128z"/></svg>
+</span>
+</div>
+<input type=search id=search-query class="flex flex-auto h-12 mx-1 bg-transparent appearance-none focus:outline-dotted focus:outline-2 focus:outline-transparent" placeholder=Search tabindex=0>
+</form>
+<button id=close-search-button class="flex items-center justify-center w-8 h-8 text-neutral-700 hover:text-primary-600 dark:text-neutral dark:hover:text-primary-400" title="閉じる (Esc)">
+<span class="relative inline-block align-text-bottom icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><path fill="currentcolor" d="M310.6 361.4c12.5 12.5 12.5 32.75.0 45.25C304.4 412.9 296.2 416 288 416s-16.38-3.125-22.62-9.375L160 301.3 54.63 406.6C48.38 412.9 40.19 416 32 416S15.63 412.9 9.375 406.6c-12.5-12.5-12.5-32.75.0-45.25l105.4-105.4L9.375 150.6c-12.5-12.5-12.5-32.75.0-45.25s32.75-12.5 45.25.0L160 210.8l105.4-105.4c12.5-12.5 32.75-12.5 45.25.0s12.5 32.75.0 45.25l-105.4 105.4L310.6 361.4z"/></svg>
+</span>
+</button>
+</header>
+<section class="flex-auto px-2 overflow-auto">
+<ul id=search-results>
+</ul>
+</section>
+</div>
+</div>
+</div>
+</body>
+</html>
