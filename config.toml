@@ -1,0 +1,146 @@
+baseURL = 'https://preview-blog.1q77.com/'
+defaultContentLanguage = 'ja'
+languageCode = 'ja'
+title = '1Q77'
+theme = 'blowfish'
+paginate = 20
+#disableKinds = ['taxonomy', 'term']
+
+# summary の文字数適正化
+hasCJKLanguage = true
+
+[permalinks]
+  posts = '/:year/:month/:filename/'
+
+[sitemap]
+  filename = 'sitemap.xml'
+
+[outputs]
+  home = ["HTML", "RSS", "JSON"]
+
+[author]
+  name = 'Yoshinori Teraoka'
+  headline = 'A Software Engineer'
+  links = [
+    { twitter = "https://twitter.com/yteraoka" },
+    { github = "https://github.com/yteraoka" },
+    { linkedin = "https://linkedin.com/in/fa5b66b7-9c77-4e1b-8b97-40ba4a5a2c13/" },
+    { medium = "https://medium.com/@yteraoka" },
+  ]
+
+
+[markup.goldmark.renderer]
+  unsafe = true
+
+[markup.highlight]
+  noClasses = false
+
+[markup.tableOfContents]
+  startLevel = 2
+  endLevel = 4
+
+[[menus.main]]
+  name = "Blog"
+  pageRef = "posts"
+  weight = 10
+
+[[menus.main]]
+  name = "Tags"
+  pageRef = "tags"
+  weight = 20
+
+[[menus.main]]
+  pre = "github"
+  name = "GitHub"
+  url = "https://github.com/yteraoka"
+  weight = 30
+
+[[menus.main]]
+  pre = "twitter"
+  name = "Twitter"
+  url = "https://twitter.com/yteraoka"
+  weight = 40
+
+[[menus.main]]
+  name = "Qiita"
+  url = "https://qiita.com/yteraoka"
+  weight = 50
+
+[params]
+  colorScheme = "blowfish"
+  defaultAppearance = "light" # valid options: light or dark
+  autoSwitchAppearance = true
+
+  enableSearch = true
+  enableCodeCopy = true
+
+  mainSections = ["posts"]
+
+[params.footer]
+  showCopyright = true
+  showThemeAttribution = false
+  showAppearanceSwitcher = true
+  showScrollToTop = true
+
+[params.homepage]
+  layout = "profile" # valid options: page, profile, custom
+  showRecent = true
+  showRecentItems = 5
+  showMoreLink = true
+  showMoreLinkDest = "/posts"
+
+[params.article]
+  showDate = true
+  #showViews = true
+  #showLikes = true
+  showDateUpdated = false
+  showAuthor = true
+  showBreadcrumbs = true
+  showDraftLabel = true
+  showEdit = false
+  # editURL = "https://github.com/username/repo/"
+  editAppendPath = true
+  showHeadingAnchors = true
+  showPagination = true
+  invertPagination = false
+  showReadingTime = false
+  showTableOfContents = true
+  showTaxonomies = true 
+  showWordCount = false
+  showSummary = false
+  sharingLinks = ["linkedin", "twitter"]
+
+[params.list]
+  showBreadcrumbs = false
+  showSummary = true
+  showTableOfContents = false
+  showCards = true
+  groupByYear = true
+
+[params.taxonomy]
+  showTermCount = false
+
+[params.sitemap]
+  excludedKinds = []
+
+[params.firebase]
+  # apiKey = "XXXXXX"
+  # authDomain = "XXXXXX"
+  # projectId = "XXXXXX"
+  # storageBucket = "XXXXXX"
+  # messagingSenderId = "XXXXXX"
+  # appId = "XXXXXX"
+  # measurementId = "XXXXXX"
+
+[params.fathomAnalytics]
+  # site = "ABC12345"
+  # domain = "llama.yoursite.com"
+
+[params.verification]
+  # google = ""
+  # bing = ""
+  # pinterest = ""
+  # yandex = ""
+
+[taxonomies]
+  tag = 'tags'
