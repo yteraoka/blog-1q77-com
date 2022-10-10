@@ -266,8 +266,9 @@ Self-heal Daemon on gluster2                N/A       N/A        Y       16882
 Task Status of Volume vol1
 ------------------------------------------------------------------------------
 There are no active volume tasks
+```
 
-``````
+```
 $ sudo gluster volume status vol2
 Status of volume: vol2
 Gluster process                             TCP Port  RDMA Port  Online  Pid

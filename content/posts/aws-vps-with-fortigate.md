@@ -5,7 +5,9 @@ draft: true
 tags: ['AWS', 'VPC']
 ---
 
-FortiGate 310B で VPC 接続 Amazon で VPC 設定を進めると設定情報がもらえる```
+FortiGate 310B で VPC 接続 Amazon で VPC 設定を進めると設定情報がもらえる
+
+```
 VPN Connection Configuration
 ================================================================================
 AWS utilizes unique identifiers to manipulate the configuration of
@@ -19,8 +21,11 @@ Your Customer Gateway ID                 : cgw-CCCCCCCC
 
 A VPN Connection consists of a pair of IPSec tunnel security associations (SAs).
 It is important that both tunnel security associations be configured.
+```
 
-```IPSec項目 (2つ設定する)```
+IPSec項目 (2つ設定する)
+
+```
 IPSec Tunnel #1
   #1: Internet Key Exchange Configuration
 
@@ -77,5 +82,4 @@ IPSec Tunnel #1
       - Virtual Private  Gateway ASN          : 10124
       - Neighbor IP Address                   : 169.254.252.1
       - Neighbor Hold Time                    : 30
-
 ```

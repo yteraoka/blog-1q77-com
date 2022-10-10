@@ -64,6 +64,6 @@ env:
 
 **istio-system** の `istio-sidecar-injector` という ConfigMap の template という値に次のような感じで使われているので 1.7 の設定でもまだ使えます。
 
-```Go Text Template
+```go-text-template
 {{- $holdProxy := or .ProxyConfig.HoldApplicationUntilProxyStarts.GetValue .Values.global.proxy.holdApplicationUntilProxyStarts }}
 ```

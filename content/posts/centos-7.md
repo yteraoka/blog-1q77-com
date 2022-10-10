@@ -4,12 +4,18 @@ date:
 draft: true
 ---
 
-Timezone の設定```
-timedatectl set-timezone Asia/Tokyo
+Timezone の設定
 
-```Locale の設定```
+```
+timedatectl set-timezone Asia/Tokyo
+```
+
+Locale の設定
+
+```
 localectl status
 localectl list-locales
-localectl set-locale LANG=ja\_JP.utf8
+localectl set-locale LANG=ja_JP.utf8
+```
 
-```ファイルは /etc/locale.conf
+ファイルは /etc/locale.conf
