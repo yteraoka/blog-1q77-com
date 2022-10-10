@@ -19,7 +19,7 @@ hasCJKLanguage = true
   home = ["HTML", "RSS", "JSON"]
 
 [author]
-  name = 'Yoshinori Teraoka'
+  name = 'yteraoka'
   headline = 'A Software Engineer'
   links = [
     { twitter = "https://twitter.com/yteraoka" },
