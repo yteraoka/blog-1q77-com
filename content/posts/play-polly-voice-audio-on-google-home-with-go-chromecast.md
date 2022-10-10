@@ -12,21 +12,19 @@ tags: ['Ubuntu']
 [awscli](https://aws.amazon.com/jp/cli/) でテキストから音声ファイルを作成するには次のように実行するだけです。voice-id は女性なら `Mizuki` を、男性なら `Takumi` を指定するだけです。
 
 ```
-aws polly synthesize-speech \\
-    --output-format mp3 \\
-    --voice-id $voice\_id \\
-    --text "$message" \\
+aws polly synthesize-speech \
+    --output-format mp3 \
+    --voice-id $voice\_id \
+    --text "$message" \
     voice.mp3
-
 ```
 
 こうして作成した音声ファイルを再生するには、次のように load サブコマンドを実行するだけです
 
 ```
-go-chromecast load \\
-  /some/where/audio.mp3 \\
+go-chromecast load \
+  /some/where/audio.mp3 \
   -n $NODE\_NAME -i $INTERFACE
-
 ```
 
 次は LINE Bot を使って外から喋らせようかなと。固定電話をやめたら外から家族に電話しても気付けなかったりするので「電話に出てね」と喋らせるのは有効なんじゃないかと思ってる。
