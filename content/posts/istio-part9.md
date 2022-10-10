@@ -2,7 +2,7 @@
 title: 'Istio 導入への道 - gRPC でも Fault Injection 編'
 date: Sat, 14 Mar 2020 16:47:43 +0000
 draft: false
-tags: ['Istio', 'Istio']
+tags: ['Istio']
 ---
 
 [Istio シリーズ](/category/kubernetes/istio/) 第9回です。

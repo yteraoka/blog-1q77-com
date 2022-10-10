@@ -2,7 +2,7 @@
 title: 'Terraform 小ネタ - formatlist'
 date: Mon, 27 Jul 2020 15:30:51 +0000
 draft: false
-tags: ['Terraform', 'Terraform']
+tags: ['Terraform']
 ---
 
 Terraform の小ネタです。どうせまた自分でググることになるのでメモ。

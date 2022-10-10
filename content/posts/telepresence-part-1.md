@@ -2,7 +2,7 @@
 title: 'telepresence 入門 (1)'
 date: Fri, 31 Dec 2021 14:54:43 +0000
 draft: false
-tags: ['Kubernetes', 'Kubernetes', 'telepresence']
+tags: ['Kubernetes', 'telepresence']
 ---
 
 [telepresence](https://github.com/telepresenceio/telepresence) というツールがあります。手元の端末が Kubernetes クラスタ内にいるかのような通信を可能にし、Kubernetes の Pod の Container への通信をインターセプトして手元の端末に流すことができます。これの仕組みを調べてみます。(以前は Python で書かれていたようですが、v2 は Go で書き直されたみたいです)

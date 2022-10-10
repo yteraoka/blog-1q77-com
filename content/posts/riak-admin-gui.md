@@ -2,7 +2,7 @@
 title: 'Riak Admin GUI'
 date: Wed, 13 Feb 2013 16:19:45 +0000
 draft: false
-tags: ['Riak', 'riak']
+tags: ['Riak']
 ---
 
 Riak の bucket 設定とか、オブジェクトの管理ツールを Ruby on Rails の勉強がてら作ってみようかなぁと思ってたら... [ひとりでやるRiak Advent Calendar 2012 day1 - 入門 - kuenishi's blog](http://kuenishi.hatenadiary.jp/entry/2012/12/01/131759) ん？！

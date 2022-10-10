@@ -2,7 +2,7 @@
 title: 'docker-compose で wordpress サーバーを構築'
 date: Mon, 21 Sep 2020 15:23:08 +0000
 draft: false
-tags: ['Docker', 'WordPress', 'WordPress']
+tags: ['Docker', 'WordPress']
 ---
 
 Lightsail の wordpress (bitnami) イメージを使ってこのブログを運用していましたが、PHP の更新が必要だけど bitnami でのやり方がよくわからんし、調べるのも面倒ということで 1 vCPU, 1GB メモリの VM を2まで無料で使える Oracle Cloud に移設 & コンテナ化してしまうことにしました。 (が、Oracle Cloud の使い方を調べるのも超面倒... しかも学ぶモチベーションが... やっちまった)

@@ -2,7 +2,7 @@
 title: 'envoy-sidecar-helper で Job の終了後に istio-proxy を停止させる'
 date: Fri, 12 Aug 2022 11:51:14 +0000
 draft: false
-tags: ['Istio', 'Istio', 'Kubernetes']
+tags: ['Istio', 'Kubernetes']
 ---
 
 Istio を導入した環境で Job (CronJob) を実行すると、sidecar としての istio-proxy コンテナを Job 本来の処理が終わった後に istio-proxy コンテナを終了させないといつまで経っても Pod が終了しないという課題があります。 Istio に限らず、Job から生成される Pod の場合、一つでもコンテナが終了せずに残っていれば発生する問題で、例えば Cloud SQL Proxy を sidecar で実行する場合にも同じ問題が発生します。

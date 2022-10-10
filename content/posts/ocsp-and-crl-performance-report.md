@@ -2,7 +2,7 @@
 title: 'OCSP and CRL Performance Report'
 date: Tue, 08 Jan 2013 15:48:21 +0000
 draft: false
-tags: ['Linux', 'SSL']
+tags: ['Linux', 'TLS']
 ---
 
 [は参考になった。SSL の仕組みからするとそういう通信は発生するはずだよなぁとは思いつつも調べて見ることはしてこなかった。(まぁ、今回もちょっと調べるだけだけど) しかし、『安い証明書だと中間証明書というものが入っており』は間違いでしょ。GlobalSignだって3階層、EVは4階層で、VeriSignも同様。](http://d.hatena.ne.jp/tkng/20130108/1357610340 "なぜあなたがウェブサイトをHTTPS化するとサイトが遅くなってユーザーが逃げていくのか - 射撃しつつ前転") GlobalSign 以外はこれを速くするってことにあまり積極的じゃないのかな？ [OCSP and CRL Performance Report](https://revocation-report.x509labs.com/) を見ると GlobalSign が圧倒的!! VeriSign 傘下以外はアクセスが少ないから速いのかなぁ? 200ms 以上の差って大きいな。

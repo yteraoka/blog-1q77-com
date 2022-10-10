@@ -2,7 +2,7 @@
 title: 'Google 認証でクライアント証明書発行のセルフサービス化'
 date: Sat, 10 Apr 2021 14:44:13 +0000
 draft: false
-tags: ['TLS', 'TLS', 'smallstep']
+tags: ['TLS', 'smallstep']
 ---
 
 以前、[caddy について調べて](/2020/08/one-liner-https-reverse-proxy-caddy/)て発見した [smallstep](https://smallstep.com/) でクライアント証明書発行を便利にできないかなということで調査です。([Hashicorp Vault](https://www.vaultproject.io/) でもできるっぽいけど用途的にわざわざクラスタ組むの面倒だなあって)

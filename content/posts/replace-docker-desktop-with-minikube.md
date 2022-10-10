@@ -2,7 +2,7 @@
 title: 'Docker Desktop の代わりに Minikube を使ってみる'
 date: Sat, 18 Sep 2021 16:07:27 +0000
 draft: false
-tags: ['Docker', 'Docker', 'Kubernetes', 'minikube']
+tags: ['Docker', 'Kubernetes', 'minikube']
 ---
 
 Docker のおかげで今の便利なコンテナがあります、ありがとうございます。でもどうなるのかやってみたかったんです。

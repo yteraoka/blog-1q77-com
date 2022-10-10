@@ -2,7 +2,7 @@
 title: 'Istio 1.8 で holdApplicationUntilProxyStarts 設定に変更がありました'
 date: Mon, 07 Dec 2020 13:45:16 +0000
 draft: false
-tags: ['Istio', 'Istio', 'advent calendar 2020']
+tags: ['Istio', 'advent calendar 2020']
 ---
 
 [Advent Calendar 2020 全部オレシリーズ](https://qiita.com/advent-calendar/2020/yteraoka) 7日目です。もう完走は諦めました。

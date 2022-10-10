@@ -2,7 +2,7 @@
 title: 'KeePassでパスワード管理'
 date: Sun, 27 Jul 2014 14:46:29 +0000
 draft: false
-tags: ['keepass', 'password', 'security', '未分類']
+tags: ['keepass', 'password', 'security']
 ---
 
 [KeePass](http://keepass.info/) でブラウザへのID、パスワード入力を管理しましょう。

@@ -2,7 +2,7 @@
 title: 'メインコンテナの起動前に istio-proxy の起動を完了させる'
 date: Tue, 25 Aug 2020 14:24:46 +0000
 draft: false
-tags: ['Istio', 'Istio', 'Kubernetes']
+tags: ['Istio', 'Kubernetes']
 ---
 
 2020年8月21日に Istio 1.7 がリリースされました。その [RELEASE NOTE](https://istio.io/latest/news/releases/1.7.x/announcing-1.7/) の [Production operability improvements](https://istio.io/latest/news/releases/1.7.x/announcing-1.7/#production-operability-improvements) 項に次の節を見つけました。
@@ -17,17 +17,16 @@ tags: ['Istio', 'Istio', 'Kubernetes']
 
 IstioOperator 用の manifest で次の設定を入れるか、`istioctl manifest generate --set values.global.proxy.holdApplicationUntilProxyStarts=true` などとすれば istio-proxy サイドカーが containers の先頭に挿入され、postStart hook が挿入されます。
 
-```
+```yaml
   values:
     global:
       proxy:
         holdApplicationUntilProxyStarts: true
-
 ```
 
 istio-sidecar-injector という ConfigMap に次のような箇所があります。
 
-```
+```go-text-template
       {{- if .Values.global.proxy.lifecycle }}
         lifecycle:
           {{ toYaml .Values.global.proxy.lifecycle | indent 4 }}
@@ -39,14 +38,13 @@ istio-sidecar-injector という ConfigMap に次のような箇所がありま�
               - pilot-agent
               - wait
       {{- end }}
-
 ```
 
 あれ？このコードだと lifecyle を[すでに指定してた](/2020/03/istio-part12/)ら `postStart` も自前で書く必要がありますね。Pod 停止時に先に istio-proxy が停止してしまうと通信できなくなってしまうため、istio-proxy の `preStop` には[すでになんらかの処理を入れてます](/2020/03/istio-part12/)よね？ ということはそこで `postStart` も設定する必要があります。
 
 こういうことですね。
 
-```
+```yaml
   values:
     global:
       proxy:
@@ -57,13 +55,12 @@ istio-sidecar-injector という ConfigMap に次のような箇所がありま�
               command:
                 - "/bin/sh"
                 - "-c"
-                - "while \[ $(netstat -plnt | grep tcp | egrep -v 'envoy|pilot-agent' | wc -l) -ne 0 \]; do sleep 1; done"
+                - "while [ $(netstat -plnt | grep tcp | egrep -v 'envoy|pilot-agent' | wc -l) -ne 0 ]; do sleep 1; done"
           postStart:
             exec:
               command:
                 - pilot-agent
                 - wait
-
 ```
 
 検証してね！

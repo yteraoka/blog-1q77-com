@@ -2,7 +2,7 @@
 title: 'Istio 導入への道 - 外部へのアクセス / ServiceEntry 編'
 date: Tue, 10 Mar 2020 16:22:57 +0000
 draft: false
-tags: ['Istio', 'Istio']
+tags: ['Istio']
 ---
 
 [Istio シリーズ](/category/kubernetes/istio/)です。

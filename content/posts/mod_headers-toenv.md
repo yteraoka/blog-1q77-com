@@ -2,7 +2,7 @@
 title: 'Apache で Response Header を消しつつその値をログに書き出す'
 date: Fri, 01 Feb 2013 15:14:45 +0000
 draft: false
-tags: ['Apache', 'apache']
+tags: ['Apache']
 ---
 
 Apache のログにアプリから返された Response Header の情報を書きたいが、クライアントには送りたくないというものがあった場合、mod\_headers で unset してしまうと %{HeaderName}o では書き出せなくなってしまいます。そこで、Apache 2.4 むけに patch を書きました。 ログにユーザーを特定する内部IDを書き出したいがクライアントには返したくないという場合に便利ではないでしょうか。

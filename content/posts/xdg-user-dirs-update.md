@@ -2,7 +2,7 @@
 title: 'デスクトップディレクトリを英語に変更'
 date: Tue, 25 Jun 2013 16:03:23 +0000
 draft: false
-tags: ['linux']
+tags: ['Linux']
 ---
 
 OS (Linux Mint) を入れ直してまたググったのでメモ。ホームディレクトリにある日本語ディレクトリを英語に変更するには

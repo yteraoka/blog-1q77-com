@@ -2,7 +2,7 @@
 title: 'Istio 導入への道 - インストール編'
 date: Sat, 07 Mar 2020 08:24:45 +0000
 draft: false
-tags: ['Istio', 'Istio']
+tags: ['Istio']
 ---
 
 Istio 導入に向けて一歩一歩やっていき。リリースされたばかりの 1.5 を使ってみようと思います。
@@ -30,7 +30,7 @@ Istio のインストール
 まずはダウンロードです。最新版をダウンロードする場合は ISTIO\_VERSION の指定は不要かと思いますが一応。
 
 ```
-$ curl -L https://istio.io/downloadIstio | ISTIO\_VERSION=1.5.0 sh -
+$ curl -L https://istio.io/downloadIstio | ISTIO_VERSION=1.5.0 sh -
 ```
 
 これでカレントディレクトリに istio-1.5.0 というディレクトリができているはずです。(github の releases から環境に合わせた tar.gz をダウンロードして展開してくれるだけ)

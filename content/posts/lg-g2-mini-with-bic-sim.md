@@ -2,7 +2,7 @@
 title: 'au の iPhone5 から LG G2 mini + BIC SIM に乗り換えた話'
 date: Sat, 18 Oct 2014 03:40:34 +0000
 draft: false
-tags: ['MVNO', 'android', '未分類']
+tags: ['MVNO', 'Android']
 ---
 
 私はスマホで通話をすることが少ないので docomo, au, softbank に毎月高額の支払いをするのがバカバカしくなったので2年縛りが9月末で終わるのに合わせ、MVNO への切り替えを検討していました。 本当は iPhone5 の電池交換を行って使い続けられればそれが一番良かったのですが、au の iPhone5 だったせいで docomo の MVNO サービスでは使えないため、新たにスマホを調達する必要がありました。（KDDI の MVNO 的なサービスもあったようですが、iPhone5 では LTE でしか接続できず、まともに使えない） かつては Android なんて使えねーと思っていましたが、タブレットは Nexus 7 (2013) を使っていてもう Android でも大丈夫そうだし、iPhone へのこだわりもなくなったので安い Android 端末にしようということで [ZTE Blade Vec 4G](http://www.zte.co.jp/products/handsets/sim_free/phone/201408/t20140822_426635.html) や Nexus 5 と悩んだ末に [LG G2 mini (LG-D620J)](http://www.lg.com/jp/mobile-phone/lg-D620J) を購入しました。楽天のモバックスというお店で 29,800円でした。 [ミドルクラスのG2 mini LG-D620J、4.7型ながら比較的コンパクト](http://itpro.nikkeibp.co.jp/atcl/column/14/091800070/091800001/) 選定のポイントは
