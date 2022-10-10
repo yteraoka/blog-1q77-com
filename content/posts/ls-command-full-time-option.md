@@ -13,7 +13,7 @@ Sat Sep  8 08:37:25 JST 2012
 $ touch test
 $ ls -l test
 -rw-r--r-- 1 ytera users 0 Sep  8 08:37 test
-```  
+```
 
 そして、古いファイルだと日までしか表示されません。 2年前に変更して確認します
 
@@ -21,14 +21,14 @@ $ ls -l test
 $ touch -t $(date -d "2 year ago" +%y%m%d%H%M) test
 $ ls -l test
 -rw-r--r-- 1 ytera users 0 Sep  8  2010 test
-```  
+```
 
 そこで `--full-time` オプションです。
 
 ```
 $ ls -l --full-time test
 -rw-r--r-- 1 ytera users 0 2010-09-08 08:39:00.000000000 +0900 test
-```  
+```
 
 `touch -t` で mtime を更新したため秒以下が 0 になっているので 再度更新して確認
 
@@ -36,7 +36,7 @@ $ ls -l --full-time test
 $ touch test
 $ ls -l --full-time test
 -rw-r--r-- 1 ytera users 0 2012-09-08 08:43:01.410675831 +0900 test
-```  
+```
 
 atime も ctime も確認したい場合は `stat` コマンドです
 
@@ -49,6 +49,6 @@ Access: (0644/-rw-r--r--)  Uid: ( 1000/   ytera)   Gid: (  100/   users)
 Access: 2012-09-08 08:43:01.410675831 +0900
 Modify: 2012-09-08 08:43:01.410675831 +0900
 Change: 2012-09-08 08:43:01.410675831 +0900
-```  
+```
 
 ext4 や ZFS などでは秒より細かな制度でタイムスタンプが保存されてます、ext2, ext3, ufs などでは秒までです。

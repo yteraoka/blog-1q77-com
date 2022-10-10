@@ -2,16 +2,18 @@
 title: 'CertM という TLS 証明書作成ツール'
 date: Fri, 10 Jun 2016 15:00:59 +0000
 draft: false
-tags: ['Certificate', 'Docker', 'SSL', 'TLS', 'TLS', 'ssl']
+tags: ['Certificate', 'Docker', 'TLS']
 ---
 
-[https://github.com/ehazlett/certm](https://github.com/ehazlett/certm) という TLS 証明書作成ツールを見つけたのでメモっておく OpenSSL での証明書作成については [https://jamielinux.com/docs/openssl-certificate-authority/index.html](https://jamielinux.com/docs/openssl-certificate-authority/index.html) がとても良く出来ているのであまりこのツールに頼ることはない気もするがテスト用の証明書をさくっと作りたい場合には使うかもしれない （docker を実行可能な環境であれば `docker run ...` と実行するだけで使えるっていうのは配布方法としても悪くないですね） まずはヘルプを見てみる```
+[https://github.com/ehazlett/certm](https://github.com/ehazlett/certm) という TLS 証明書作成ツールを見つけたのでメモっておく OpenSSL での証明書作成については [https://jamielinux.com/docs/openssl-certificate-authority/index.html](https://jamielinux.com/docs/openssl-certificate-authority/index.html) がとても良く出来ているのであまりこのツールに頼ることはない気もするがテスト用の証明書をさくっと作りたい場合には使うかもしれない （docker を実行可能な環境であれば `docker run ...` と実行するだけで使えるっていうのは配布方法としても悪くないですね） まずはヘルプを見てみる
+
+```
 $ docker run --rm ehazlett/certm -h
 NAME:
    /bin/certm - certificate management
 
 USAGE:
-   /bin/certm \[global options\] command \[command options\] \[arguments...\]
+   /bin/certm [global options] command [command options] [arguments...]
 
 VERSION:
    0.1.2 (f7754d5)
@@ -41,8 +43,11 @@ $ docker run --rm -v $(pwd)/certs:/certs ehazlett/certm -d /certs ca generate -o
 generating ca: org=local bits=2048
 $ ls certs
 ca-key.pem  ca.pem
+```
 
-```こんなのが生成されました。```
+こんなのが生成されました。
+
+```
 $ openssl x509 -text -in certs/ca.pem -noout
 Certificate:
     Data:
@@ -72,14 +77,17 @@ Certificate:
          87:bb:4c:4a:d9:0b:a8:5d:88:ac:52:6b:96:b0:38:6c:b3:dc:
          ...
          fc:09:9f:2e
+```
 
-```鍵は RSA の 2048 bit Subject で指定可のなのは `O` の Organization だけ 鍵の bit 数は `-b` で指定可能```
+鍵は RSA の 2048 bit Subject で指定可のなのは `O` の Organization だけ 鍵の bit 数は `-b` で指定可能
+
+```
 $ docker run --rm ehazlett/certm ca -h
 NAME:
    generate - generate new certificate
 
 USAGE:
-   command generate \[command options\] \[arguments...\]
+   command generate [command options] [arguments...]
 
 OPTIONS:
    --org, -o "unknown"	organization
@@ -94,8 +102,11 @@ $ docker run --rm -v $(pwd)/certs:/certs ehazlett/certm -d /certs server generat
 generating server certificate: org=local bits=2048
 $ ls certs/
 ca-key.pem  ca.pem  server-key.pem  server.pem
+```
 
-```次のような証明書が作成されました```
+次のような証明書が作成されました
+
+```
 $ openssl x509 -text -in certs/server.pem -noout
 Certificate:
     Data:
@@ -129,29 +140,44 @@ Certificate:
          27:5e:4e:b9:89:87:93:f7:af:0f:a8:89:fc:87:25:82:2b:81:
          ...
          9f:f2:b8:fa
+```
 
-```こちらも Subject は O=local (Organization) だけ```
+こちらも Subject は O=local (Organization) だけ
+
+```
         Subject: O=local
-```サーバー証明書作成モード (server) だけどクライアント証明書としても使えるようになっている```
+```
+
+サーバー証明書作成モード (server) だけどクライアント証明書としても使えるようになっている
+
+```
             X509v3 Extended Key Usage: 
                 TLS Web Client Authentication, TLS Web Server Authentication
-````--host localhost --host 127.0.0.1` と指定したため subjectAltName に DNS:localhost,IP:127.0.0.1 が指定されている。もっと沢山ならべることも可能。IPアドレスでアクセスする場合は CommonName (CN) が使えないらしいので subjectAltName が使えることを知っておくと便利```
+```
+
+`--host localhost --host 127.0.0.1` と指定したため subjectAltName に DNS:localhost,IP:127.0.0.1 が指定されている。もっと沢山ならべることも可能。IPアドレスでアクセスする場合は CommonName (CN) が使えないらしいので subjectAltName が使えることを知っておくと便利
+
+```
             X509v3 Subject Alternative Name: 
                 DNS:localhost, IP Address:127.0.0.1
-```こちらも指定できる subject は Organization だけですね。sbjectAltName が指定できるから CommonName が指定できなくても大丈夫なのかな。ダメなクライアントもありそうだけど。```
+```
+
+こちらも指定できる subject は Organization だけですね。sbjectAltName が指定できるから CommonName が指定できなくても大丈夫なのかな。ダメなクライアントもありそうだけど。
+
+```
 $ docker run --rm ehazlett/certm server -h
 NAME:
    generate - generate new certificate
 
 USAGE:
-   command generate \[command options\] \[arguments...\]
+   command generate [command options] [arguments...]
 
 OPTIONS:
    --ca-cert 				CA certificate for signing (defaults to ca.pem in output dir)
    --ca-key 				CA key for signing (defaults to ca-key.pem in output dir)
    --cert 				certificate name (default: server.pem)
    --key 				key name (default: server-key.pem)
-   --host \[--host option --host option\]	SAN/IP SAN for certificate
+   --host [--host option --host option]	SAN/IP SAN for certificate
    --org, -o "unknown"			organization
    --bits, -b "2048"			number of bits in the key (default: 2048)
    --overwrite				overwrite existing certificates and keys
@@ -159,13 +185,15 @@ OPTIONS:
 
 ### クライアント署名書を作成する
 
-クライアント証明書では `CommonName` が指定可能になってますね クライアントのアイデンティファイにも使えるようにかな```
+クライアント証明書では `CommonName` が指定可能になってますね クライアントのアイデンティファイにも使えるようにかな
+
+```
 $ docker run --rm ehazlett/certm client -h
 NAME:
    generate - generate new certificate
 
 USAGE:
-   command generate \[command options\] \[arguments...\]
+   command generate [command options] [arguments...]
 
 OPTIONS:
    --ca-cert 		CA certificate for signing (defaults to ca.pem in output dir)
@@ -176,10 +204,14 @@ OPTIONS:
    --org, -o "unknown"	organization
    --bits, -b "2048"	number of bits in the key (default: 2048)
    --overwrite		overwrite existing certificates and keys
-``````
+```
+
+```
 $ docker run --rm -v $(pwd)/certs:/certs ehazlett/certm -d /certs client generate --common-name=ehazlett -o=local
 generating client certificate: cn="ehazlett" org=local bits=2048 cert="/certs/cert.pem" key="/certs/key.pem"
-``````
+```
+
+```
 $ openssl x509 -text -noout -in certs/cert.pem
 Certificate:
     Data:
@@ -211,28 +243,40 @@ Certificate:
          97:02:cc:98:55:21:d5:3a:b5:75:8d:46:37:d7:79:75:a5:bc:
          ...
          dc:37:6f:20
-```CommonName (CN) がセットされてる```
+```
+
+CommonName (CN) がセットされてる
+
+```
         Subject: O=local, CN=ehazlett
-```クライアント認証用のコマンドだけどサーバー証明書としても使える```
+```
+
+クライアント認証用のコマンドだけどサーバー証明書としても使える
+
+```
             X509v3 Extended Key Usage: 
                 TLS Web Client Authentication, TLS Web Server Authentication
 ```
 
 ### bundle モード
 
-CA, Server, Client 証明書を1コマンドで作ってくれる でも CommonName が指定できない```
+CA, Server, Client 証明書を1コマンドで作ってくれる でも CommonName が指定できない
+
+```
 $ docker run --rm ehazlett/certm bundle -hNAME:
    generate - generate new bundle
 
 USAGE:
-   command generate \[command options\] \[arguments...\]
+   command generate [command options] [arguments...]
 
 OPTIONS:
-   --host \[--host option --host option\]	SAN/IP SAN for certificate
+   --host [--host option --host option]	SAN/IP SAN for certificate
    --org, -o "unknown"			organization
    --bits, -b "2048"			number of bits in the key (default: 2048)
    --overwrite				overwrite existing certificates and keys
-``````
+```
+
+```
 $ docker run --rm -v $(pwd)/certs:/certs ehazlett/certm -d /certs bundle generate --host 127.0.0.1 -o=local
 generating ca: org=local bits=2048
 $ ls certs
@@ -241,7 +285,9 @@ ca-key.pem  ca.pem  cert.pem  key.pem  server-key.pem  server.pem
 
 ### PKCS12 形式に変換
 
-クライアント証明書を PKCS12 形式にする```
+クライアント証明書を PKCS12 形式にする
+
+```
 $ openssl pkcs12 -export -in certs/cert.pem -inkey certs/key.pem -out certs/cert.p12 -password pass:""
 ```
 

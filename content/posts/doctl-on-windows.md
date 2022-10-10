@@ -95,7 +95,9 @@ doctl compute droplet create testsv01 \
 
 ### SSH でログイン
 
-Linux であれば `doctl compute ssh testsv01` で普通に使えるのですが、git-bash からは winpty をかます必要がありました。 ががが、ローカルエコーが効かない(?)ので諦めて `doctl compute droplet list --format Name,PublicIPv4` で IP アドレスを確認して普通に ssh します。 DigitalOcean では作成直後は root ユーザーで ssh します。```
+Linux であれば `doctl compute ssh testsv01` で普通に使えるのですが、git-bash からは winpty をかます必要がありました。 ががが、ローカルエコーが効かない(?)ので諦めて `doctl compute droplet list --format Name,PublicIPv4` で IP アドレスを確認して普通に ssh します。 DigitalOcean では作成直後は root ユーザーで ssh します。
+
+```
 ssh root@xxx.xxx.xxx.xxx
 ```
 

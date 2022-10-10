@@ -2,7 +2,7 @@
 title: 'cert-manager で証明書管理'
 date: Sat, 28 Mar 2020 14:02:59 +0000
 draft: false
-tags: ['Kubernetes', 'Kubernetes', 'cert-manager']
+tags: ['Kubernetes', 'cert-manager']
 ---
 
 前回の「[ArgoCD と Istio Ingress Gateway](/2020/03/argocd-istio-ingress/)」と、前々回の「 [Istio 導入への道 – Ingress Gateway で TLS Termination 編](/2020/03/istio-part11/) 」で TLS の証明書を手動で取得して Secret として登録したが、登録もさることながら更新が大変です。これを [cert-manager](https://cert-manager.io/) にやってもらうことにします。
@@ -14,7 +14,6 @@ cert-manager のインストール
 
 ```
 $ kubectl apply -f [https://github.com/jetstack/cert-manager/releases/download/v0.14.1/cert-manager.yaml](https://github.com/jetstack/cert-manager/releases/download/v0.14.1/cert-manager.yaml)
-
 ```
 
 沢山のリソースが作成されます。
@@ -57,7 +56,6 @@ deployment.apps/cert-manager created
 deployment.apps/cert-manager-webhook created
 mutatingwebhookconfiguration.admissionregistration.k8s.io/cert-manager-webhook created
 validatingwebhookconfiguration.admissionregistration.k8s.io/cert-manager-webhook created
-
 ```
 
 **cert-manager** ネームスペースに **cert-manager**, **cert-manager-cainjector** (CA Injector), **cert-manager-webhook** Deployment がデプロイされています。
@@ -68,7 +66,6 @@ NAME                                       READY   STATUS    RESTARTS   AGE
 cert-manager-665f89d4d6-vfpdx              1/1     Running   0          83m
 cert-manager-cainjector-78c8947f5c-r8rsd   1/1     Running   0          83m
 cert-manager-webhook-84f59fdf49-l59ld      1/1     Running   0          83m
-
 ```
 
 リソースの登録
@@ -91,7 +88,6 @@ type: Opeque
 stringData:
   secret-access-key: ai/Vdmhv2qhekGe1nE1u39HC48LIAwtBap+5TP81
 EOF
-
 ```
 
 ### Issuer の登録
@@ -100,15 +96,15 @@ EOF
 
 Let's Encrypt 用に
 
-*   メールアドレス
-*   ACME サーバーの URL
-*   Private Key の保存先としての Secret 名
+* メールアドレス
+* ACME サーバーの URL
+* Private Key の保存先としての Secret 名
 
 Route53 用に
 
-*   Region 名
-*   Access Key ID
-*   Secret Access Key を登録した Secret 名
+* Region 名
+* Access Key ID
+* Secret Access Key を登録した Secret 名
 
 を設定します。
 
@@ -137,7 +133,6 @@ spec:
             name: route53-credentials-secret
             key: secret-access-key
 EOF
-
 ```
 
 **solvers** はリストで複数のプロバイダを登録できます。ドメインによって DNS プロバイダが違う場合や Route53 用の AWS Account が違う場合、または dns01 ではなく web01 を使う場合などの混在が可能です。
@@ -156,13 +151,12 @@ metadata:
 spec:
   secretName: wildcard-local-1q77-com
   dnsNames:
-  - '\*.local.1q77.com'
+  - '*.local.1q77.com'
   - local.1q77.com
   issuerRef:
     name: letsencrypt
     kind: ClusterIssuer
 EOF
-
 ```
 
 これで次のような CommonName, SANs の証明書を取得することができます。
@@ -178,7 +172,7 @@ Certificate:
         Validity
             Not Before: Mar 28 08:21:40 2020 GMT
             Not After : Jun 26 08:21:40 2020 GMT
-        Subject: CN=\*.local.1q77.com
+        Subject: CN=*.local.1q77.com
         Subject Public Key Info:
             Public Key Algorithm: rsaEncryption
                 Public-Key: (2048 bit)
@@ -219,12 +213,11 @@ Certificate:
                 CA Issuers - URI:http://cert.int-x3.letsencrypt.org/
 
             X509v3 Subject Alternative Name: 
-                DNS:\*.local.1q77.com, DNS:local.1q77.com
+                DNS:*.local.1q77.com, DNS:local.1q77.com
             X509v3 Certificate Policies: 
                 Policy: 2.23.140.1.2.1
                 Policy: 1.3.6.1.4.1.44947.1.1.1
                   CPS: http://cps.letsencrypt.org
-
 ```
 
 **Certificate** リソースは次のような状態。
@@ -233,8 +226,9 @@ Certificate:
 $ kubectl get certificate
 NAME                      READY   SECRET                    AGE
 wildcard-local-1q77-com   True    wildcard-local-1q77-com   4h36m
+```
 
-``````
+```
 $ kubectl describe certificate                
 Name:         wildcard-local-1q77-com
 Namespace:    default
@@ -251,7 +245,7 @@ Metadata:
   UID:                 f5e5d067-2fac-4fdd-8a4b-59ba26916137
 Spec:
   Dns Names:
-    \*.local.1q77.com
+    *.local.1q77.com
     local.1q77.com
   Issuer Ref:
     Kind:       ClusterIssuer
@@ -274,8 +268,9 @@ Certificate を作成すると CertificateRequest リソースが作成されま
 $ kubectl get certificaterequest
 NAME                                 READY   AGE
 wildcard-local-1q77-com-4173496889   True    4h17m
+```
 
-``````
+```
 $ kubectl describe certificaterequest     
 Name:         wildcard-local-1q77-com-4173496889
 Namespace:    default
@@ -313,7 +308,6 @@ Status:
     Status:                True
     Type:                  Ready
 Events:                    <none>
-
 ```
 
 **Certificate** リソースで指定した Secret に証明書と秘密鍵が入っています。
@@ -322,15 +316,16 @@ Events:                    <none>
 $ kubectl get secret wildcard-local-1q77-com
 NAME                      TYPE                DATA   AGE
 wildcard-local-1q77-com   kubernetes.io/tls   3      4h37m
+```
 
-``````
+```
 $ kubectl describe secret wildcard-local-1q77-com
 Name:         wildcard-local-1q77-com
 Namespace:    default
 Labels:       <none>
-Annotations:  cert-manager.io/alt-names: \*.local.1q77.com,local.1q77.com
+Annotations:  cert-manager.io/alt-names: *.local.1q77.com,local.1q77.com
               cert-manager.io/certificate-name: wildcard-local-1q77-com
-              cert-manager.io/common-name: \*.local.1q77.com
+              cert-manager.io/common-name: *.local.1q77.com
               cert-manager.io/ip-sans: 
               cert-manager.io/issuer-kind: ClusterIssuer
               cert-manager.io/issuer-name: letsencrypt
@@ -343,7 +338,6 @@ Data
 ca.crt:   0 bytes
 tls.crt:  3582 bytes
 tls.key:  1675 bytes
-
 ```
 
 **Certificate** 設定をミスってた時に **CertificateRequest** で確認されたメッセージです。
@@ -354,12 +348,11 @@ status:
   - lastTransitionTime: "2020-03-28T08:59:27Z"
     message: 'The CSR PEM requests a commonName that is not present in the list of
       dnsNames. If a commonName is set, ACME requires that the value is also present
-      in the list of dnsNames: "local.1q77.com" does not exist in \[\*.local.1q77.com\]'
+      in the list of dnsNames: "local.1q77.com" does not exist in [*.local.1q77.com]'
     reason: Failed
     status: "False"
     type: Ready
   failureTime: "2020-03-28T08:59:27Z"
-
 ```
 
 自動更新

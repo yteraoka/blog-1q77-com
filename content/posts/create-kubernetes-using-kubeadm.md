@@ -2,7 +2,7 @@
 title: 'kubeadm で kubernetes を構築'
 date: Mon, 30 Apr 2018 13:52:13 +0000
 draft: false
-tags: ['DigitalOcean', 'Kubernetes', 'Kubernetes', 'ansible']
+tags: ['DigitalOcean', 'Kubernetes', 'ansible']
 ---
 
 DigitalOcean の Community サイトにある [Tutorials](https://www.digitalocean.com/community/tutorials) に「[How To Create a Kubernetes 1.10 Cluster Using Kubeadm on Ubuntu 16.04](https://www.digitalocean.com/community/tutorials/how-to-create-a-kubernetes-1-10-cluster-using-kubeadm-on-ubuntu-16-04)」というのがあったので試してみる。 Tutorial 書いて提供するとお金がもらえる（[Write for DOnations](https://www.digitalocean.com/write-for-donations/)）ということでなんかすごいペースで増えてる気がする
@@ -25,28 +25,36 @@ DigitalOcean はサーバー作成直後は root でログインする仕様な�
 
 ### Step 3 - Installing Kubernetetes' Dependencies
 
-*   Docker のインストール
-*   Kubernetes の apt リポジトリ登録
-*   kubelet のインストール (apt)
-*   kubeadm のインストール (apt)
-*   kubectl のインストール (apt) (master のみ)
+* Docker のインストール
+* Kubernetes の apt リポジトリ登録
+* kubelet のインストール (apt)
+* kubeadm のインストール (apt)
+* kubectl のインストール (apt) (master のみ)
 
 ### Step 4 - Setting Up the Master Node
 
-*   `kubeadm init --pod-network-cidr=10.244.0.0/16` の実行
-*   `kubeadm init` で作成された `/etc/kubernetes/admin.conf` を `/home/ubuntu/.kube/config` にコピー
-*   `kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/v0.9.1/Documentation/kube-flannel.yml` の実行
+* `kubeadm init --pod-network-cidr=10.244.0.0/16` の実行
+* `kubeadm init` で作成された `/etc/kubernetes/admin.conf` を `/home/ubuntu/.kube/config` にコピー
+* `kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/v0.9.1/Documentation/kube-flannel.yml` の実行
 
-kubeadm init の実行時に crictl が無いよと言われるけど WARNING だからなくても大丈夫なのかな```
-        \[WARNING FileExisting-crictl\]: crictl not found in system path
+kubeadm init の実行時に crictl が無いよと言われるけど WARNING だからなくても大丈夫なのかな
+
+```
+        [WARNING FileExisting-crictl]: crictl not found in system path
 Suggestion: go get github.com/kubernetes-incubator/cri-tools/cmd/crictl
+```
 
-```master 1台だけの kubernetes ができたっぽい```
+master 1台だけの kubernetes ができたっぽい
+
+```
 ubuntu@master1:~$ kubectl get nodes
 NAME      STATUS    ROLES     AGE       VERSION
 master1   Ready     master    24m       v1.10.2
+```
 
-```次のような Pod が起動している```
+次のような Pod が起動している
+
+```
 ubuntu@master1:~$ kubectl get pods --all-namespaces
 NAMESPACE     NAME                              READY     STATUS    RESTARTS   AGE
 kube-system   etcd-master1                      1/1       Running   0          23m
@@ -56,7 +64,6 @@ kube-system   kube-dns-86f4d74b45-g4wvf         3/3       Running   0          2
 kube-system   kube-flannel-ds-rjnww             1/1       Running   0          45s
 kube-system   kube-proxy-p9p7p                  1/1       Running   0          24m
 kube-system   kube-scheduler-master1            1/1       Running   0          24m
-
 ```
 
 ### Step 5 - Setting Up the Worker Nodes
@@ -77,7 +84,11 @@ master1   Ready     master    1h        v1.10.2
 worker1   Ready     40s       v1.10.2
 worker2   Ready     37s       v1.10.2
 ubuntu@master1:~$ 
-```2台の worker サーバーが kubernetes Cluster に追加されました```
+```
+
+2台の worker サーバーが kubernetes Cluster に追加されました
+
+```
 ubuntu@master1:~$ kubectl get pods --all-namespaces
 NAMESPACE     NAME                              READY     STATUS    RESTARTS   AGE
 kube-system   etcd-master1                      1/1       Running   0          1h
@@ -92,12 +103,15 @@ kube-system   kube-proxy-p9p7p                  1/1       Running   0          1
 kube-system   kube-proxy-vwvgk                  1/1       Running   0          3m
 kube-system   kube-scheduler-master1            1/1       Running   0          1h
 ubuntu@master1:~$
+```
 
-```kube-flannel と kube-proxy が worker node 分増えました
+kube-flannel と kube-proxy が worker node 分増えました
 
 ### Step 7 - Running An Application on the Cluster
 
-`kubectl run` で nginx コンテナを実行してみます```
+`kubectl run` で nginx コンテナを実行してみます
+
+```
 ubuntu@master1:~$ kubectl run nginx --image=nginx --port 80
 deployment.apps "nginx" created
 ubuntu@master1:~$ kubectl get pods
@@ -107,8 +121,11 @@ ubuntu@master1:~$ kubectl get pods
 NAME                     READY     STATUS    RESTARTS   AGE
 nginx-768979984b-sb72q   1/1       Running   0          50s
 ubuntu@master1:~$
+```
 
-```Pod の確認```
+Pod の確認
+
+```
 ubuntu@master1:~$ kubectl describe pods
 Name:           nginx-768979984b-sb72q
 Namespace:      default
@@ -155,13 +172,18 @@ Events:
   Normal  Created                2m    kubelet, worker2   Created container
   Normal  Started                2m    kubelet, worker2   Started container
 ubuntu@master1:~$ 
-```Deployment の確認```
+```
+
+Deployment の確認
+
+```
 ubuntu@master1:~$ kubectl get deployments
 NAME      DESIRED   CURRENT   UP-TO-DATE   AVAILABLE   AGE
 nginx     1         1         1            1           5m
 ubuntu@master1:~$
+```
 
-``````
+```
 ubuntu@master1:~$ kubectl describe deployments
 Name:                   nginx
 Namespace:              default
@@ -191,58 +213,91 @@ Events:
   ----    ------             ----  ----                   -------
   Normal  ScalingReplicaSet  6m    deployment-controller  Scaled up replica set nginx-768979984b to 1
 ubuntu@master1:~$ 
-```このままでは外からアクセスできないため service を作成します 作成前```
+```
+
+このままでは外からアクセスできないため service を作成します 作成前
+
+```
 ubuntu@master1:~$ kubectl get services
 NAME         TYPE        CLUSTER-IP   EXTERNAL-IP   PORT(S)   AGE
 kubernetes   ClusterIP   10.96.0.1    443/TCP   2h
 ubuntu@master1:~$ 
-````kubectl expose` で `NodePort` を指定```
+```
+
+`kubectl expose` で `NodePort` を指定
+
+```
 ubuntu@master1:~$ kubectl expose deploy nginx --port 80 --target-port 80 --type NodePort
 service "nginx" exposed
 ubuntu@master1:~$
+```
 
-```nginx サービスが作られました```
+nginx サービスが作られました
+
+```
 ubuntu@master1:~$ kubectl get services
 NAME         TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)        AGE
 kubernetes   ClusterIP   10.96.0.1       443/TCP        2h
 nginx        NodePort    10.108.40.119   80:30622/TCP   2s
 ubuntu@master1:~$ 
-```master1, worker1, worker2 3台にて kube-proxy が 30622 を listen しており、どの node の 30622 ポートにアクセスしても nginx へ proxy されるようになっています```
+```
+
+master1, worker1, worker2 3台にて kube-proxy が 30622 を listen しており、どの node の 30622 ポートにアクセスしても nginx へ proxy されるようになっています
+
+```
 ubuntu@master1:~$ sudo ss -nltp | grep 30622
-LISTEN     0      128         :::30622                   :::\*                   users:(("kube-proxy",pid=7067,fd=8))
+LISTEN     0      128         :::30622                   :::*                   users:(("kube-proxy",pid=7067,fd=8))
 ubuntu@master1:~$
+```
 
-``````
+```
 ubuntu@worker1:~$ sudo ss -nltp | grep 30622
-LISTEN     0      128         :::30622                   :::\*                   users:(("kube-proxy",pid=10000,fd=8))
+LISTEN     0      128         :::30622                   :::*                   users:(("kube-proxy",pid=10000,fd=8))
 ubuntu@worker1:~$
+```
 
-``````
+```
 ubuntu@worker2:~$ sudo ss -nltp | grep 30622
-LISTEN     0      128         :::30622                   :::\*                   users:(("kube-proxy",pid=9769,fd=8))
+LISTEN     0      128         :::30622                   :::*                   users:(("kube-proxy",pid=9769,fd=8))
 ubuntu@worker2:~$
+```
 
-```Service の削除```
+Service の削除
+
+```
 ubuntu@master1:~$ kubectl delete service nginx
 service "nginx" deleted
 ubuntu@master1:~$
+```
 
-```消えました。kube-proxy プロセスはいますが 30622 ポートはもう開かれていません。```
+消えました。kube-proxy プロセスはいますが 30622 ポートはもう開かれていません。
+
+```
 ubuntu@master1:~$ kubectl get services
 NAME         TYPE        CLUSTER-IP   EXTERNAL-IP   PORT(S)   AGE
 kubernetes   ClusterIP   10.96.0.1    443/TCP   3h
 ubuntu@master1:~$ 
-```Deployment の削除```
+```
+
+Deployment の削除
+
+```
 ubuntu@master1:~$ kubectl get deployments
 NAME      DESIRED   CURRENT   UP-TO-DATE   AVAILABLE   AGE
 nginx     1         1         1            1           35m
 ubuntu@master1:~$
+```
 
-```消えました```
+消えました
+
+```
 ubuntu@master1:~$ kubectl delete deployment nginx
 deployment.extensions "nginx" deleted
 ubuntu@master1:~$ kubectl get deployments
 No resources found.
 ubuntu@master1:~$
+```
 
-```Kubernetes も Docker Swarm 並に簡単にセットアップできるようになってきてますね。 [Using kubeadm to Create a Cluster](https://kubernetes.io/docs/setup/independent/create-cluster-kubeadm/) からもっといろいろ調べてみよう。
+Kubernetes も Docker Swarm 並に簡単にセットアップできるようになってきてますね。
+
+[Using kubeadm to Create a Cluster](https://kubernetes.io/docs/setup/independent/create-cluster-kubeadm/) からもっといろいろ調べてみよう。
