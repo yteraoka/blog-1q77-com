@@ -14,13 +14,16 @@ CapsLock と Ctrl キーを入れ替えるのは簡単にできるようにな�
 ```
 $ mkdir -p .xkb/{keymap,symbols}
 $ setxkbmap -print > ~/.xkb/keymap/mykbd
-$ cat > ~/.xkb/symbols/custom <<\_EOF\_
-xkb\_symbols "myright" {
-  replace key <RTSH> { \[ Right \] };
+$ cat > ~/.xkb/symbols/custom <<_EOF_
+xkb_symbols "myright" {
+  replace key <RTSH> { [ Right ] };
 };
-\_EOF\_
+_EOF_
+```
 
-```として、こんな感じのファイルを作ります。```
+として、こんな感じのファイルを作ります。
+
+```
 $ tree .xkb
 .xkb
 ├── keymap
@@ -29,19 +32,21 @@ $ tree .xkb
     └── custom
 
 2 directories, 2 files
+```
 
-```なんだか Qiita の記事のコピーみたいになってきたが将来の私のためにメモっておく```
+なんだか Qiita の記事のコピーみたいになってきたが将来の私のためにメモっておく
+
+```
 $ mkdir ~/bin
-$ cat > ~/bin/load\_xkbmap.sh <<\_EOF\_
+$ cat > ~/bin/load_xkbmap.sh <<_EOF_
 #!/bin/bash
 
-if \[ -s $HOME/.xkb/keymap/mykbd \] ; then
+if [ -s $HOME/.xkb/keymap/mykbd ] ; then
   sleep 1
   xkbcomp -I$HOME/.xkb $HOME/.xkb/keymap/mykbd $DISPLAY 2> /dev/null
 fi
-\_EOF\_
-$ chmod +x ~/bin/load\_xkbmap.sh
-
+_EOF_
+$ chmod +x ~/bin/load_xkbmap.sh
 ```
 
 でもって、`gnome-session-properties` を起動して Startup Programs に登録しておきます。
