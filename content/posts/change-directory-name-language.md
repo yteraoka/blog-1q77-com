@@ -5,7 +5,10 @@ draft: false
 tags: ['Linux']
 ---
 
-[Ubuntuでデスクトップのディレクトリ名を「Desktop」にする - ぬいぐるみライフ(仮)](http://d.hatena.ne.jp/mickey24/20090122/1232583960)```
-LANG=C xdg-user-dirs-gtk-update
+[Ubuntuでデスクトップのディレクトリ名を「Desktop」にする - ぬいぐるみライフ(仮)](http://d.hatena.ne.jp/mickey24/20090122/1232583960)
 
-```これは便利。
+```
+LANG=C xdg-user-dirs-gtk-update
+```
+
+これは便利。
