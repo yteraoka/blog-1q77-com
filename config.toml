@@ -9,6 +9,8 @@ paginate = 20
 # summary の文字数適正化
 hasCJKLanguage = true
 
+googleAnalytics = "G-315277795"
+
 [permalinks]
   posts = '/:year/:month/:filename/'
 
