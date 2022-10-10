@@ -2,7 +2,7 @@
 title: 'Tomcat 9 を HTTP/2 サーバーにする'
 date: Wed, 17 Feb 2016 15:52:26 +0000
 draft: false
-tags: ['Java', 'SSL', 'Tomcat', 'HTTP2']
+tags: ['Java', 'TLS', 'Tomcat', 'HTTP2']
 ---
 
 Tomcat 9 の server.xml を見ていたら次のような記述がありました。HTTP/2 をサポートしているようです。

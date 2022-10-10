@@ -2,7 +2,7 @@
 title: 'Riak Meetup Tokyo 2 に参加してきた #riakjp'
 date: Wed, 10 Jul 2013 16:30:30 +0000
 draft: false
-tags: ['Riak', 'riak']
+tags: ['Riak']
 ---
 
 2013/07/10 Yahoo! JAPAN にて開催された [Riak Meetup Tokyo #2](http://connpass.com/event/2656/) に参加してきたのでメモ

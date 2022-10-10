@@ -2,7 +2,7 @@
 title: 'Nginx + mod_lua で認証フィルタを作ってみる'
 date: Mon, 07 Oct 2013 15:16:43 +0000
 draft: false
-tags: ['Nginx', 'lua', 'nginx']
+tags: ['nginx', 'lua']
 ---
 
 画像サーバーなどでログインチェックを Apache + mod\_perl で実装していましたが、古代のクライアントへの対応はもう不要だろうということで、mod\_perl やめたいし、もっとシンプルな実装にできそうだから nginx + mod\_lua を試してみようとやってみました。

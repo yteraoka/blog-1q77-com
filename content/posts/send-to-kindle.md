@@ -2,7 +2,7 @@
 title: 'Puboo（パブー）からKindleに届かない場合に確認すること'
 date: Thu, 02 May 2013 14:53:32 +0000
 draft: false
-tags: ['kindle', 'puboo', '未分類']
+tags: ['kindle', 'puboo']
 ---
 
 [Puboo](http://p.booklog.jp/) で [入門Puppet - Automate Your Infrastructure](http://p.booklog.jp/book/70667) を買いました。 パブーは PDF、ePub、MOBI のどれでもダウンロードできるんですね。便利！！ そして、サイトから直接 Kindle に送る機能もあります。で、送ってみました。 送信先は Amazon のアカウントサービスから My Kindle の「Send-to-Kindle Eメールアドレス」を確認します。Kindle にはメールで送れるんですね。このブログ書く直前に知りました。（知らずにクラウドストレージ経由でスマホのアプリから送ってた） しかし、届かないのです・・・うむむ。 で、翌日ふとメールをチェックしてたら Amazon から「未承認アドレスからのパーソナル・ドキュメントについて」という件名のメールが届いてました。 メールで Kindle に送る場合は送信元アドレスを登録する必要があったみたいです。（他人から勝手に本を送ってもらうことはできないんですね :)）

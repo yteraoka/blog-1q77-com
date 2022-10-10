@@ -2,7 +2,7 @@
 title: 'Go 言語での TCP keepalive'
 date: Thu, 10 Dec 2020 15:21:48 +0000
 draft: false
-tags: ['Go', 'advent calendar 2020', 'go']
+tags: ['Go', 'advent calendar 2020']
 ---
 
 [Advent Calendar 2020 全部オレシリーズ](https://qiita.com/advent-calendar/2020/yteraoka) 10日目です。もうめんどくせえなあ。

@@ -2,7 +2,7 @@
 title: 'Battey駆動時の無線LANが遅い'
 date: Sun, 09 Dec 2012 12:35:02 +0000
 draft: false
-tags: ['linux']
+tags: ['Linux']
 ---
 
 ※ 2014/03/29 on と off が逆だったので訂正 Linux でバッテリー駆動時の無線LANが異常に遅いなあと思って調べてみた。 省電力のためにバッテリー駆動時には省エネモードに切り替えられていた。 iwconfig で確認すると Bit Rate=65 Mb/s → 1 Mb/s ACアダプターを挿したり抜いたりすると /var/log/pm-powersave.log に何をやってるかが出力される。(Linux Mint 14.1 で確認) あまりに遅いので、バッテリー駆動時に一時的に速度を上げたい場合には

@@ -2,7 +2,7 @@
 title: 'PostgreSQL 9.4 の新機能'
 date: 
 draft: true
-tags: ['PostgreSQL', 'postgresql']
+tags: ['PostgreSQL']
 ---
 
 2014/5/15 に PostgreSQL 9.4 の Beta 1 がリリースされていたので 9.4 の新機能を確認してみます。 [What's new in PostgreSQL 9.4](http://wiki.postgresql.org/wiki/What's_new_in_PostgreSQL_9.4) に書いてあることです。

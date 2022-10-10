@@ -2,7 +2,7 @@
 title: 'Rancher: Migrating from an HA RKE Add-on Install'
 date: Sun, 24 Mar 2019 13:56:39 +0000
 draft: false
-tags: ['Helm', 'Kubernetes', 'Rancher', 'Rancher']
+tags: ['Helm', 'Kubernetes', 'Rancher']
 ---
 
 RKE Add-on での Rancher セットアップはもう古い
@@ -25,9 +25,8 @@ Helm を使ったセットアップへの変更
 
 私のセットアップでは RKE に `rke.yml` というファイルを渡したので `kube_config_rke.yml` が生成されています。環境変数 `KUBECONFIG` でこれを指定します。
 
-```
-export KUBECONFIG=$(pwd)/kube\_config\_rke.yml
-
+```bash
+export KUBECONFIG=$(pwd)/kube_config_rke.yml
 ```
 
 Kubernetes は 1.11.6 だったので同じバージョンの kubectl コマンドを curl で取得します。とりあえずカレントディレクトリに置いておくので以降 `./kubectl` として実行します。(後で出てくる `helm` コマンドも同様)  
@@ -36,8 +35,7 @@ Kubernetes は 1.11.6 だったので同じバージョンの kubectl コマン�
 次のコマンドでここまでの設定が正しく行えているかを確認します。
 
 ```
-./kubectl config view -o=jsonpath='{.clusters\[\*\].cluster.server}'
-
+./kubectl config view -o=jsonpath='{.clusters[*].cluster.server}'
 ```
 
 出力が `https://NODE:6443` の様に1つのノードの 6443 ポートを指していれば正しいです。
@@ -49,25 +47,22 @@ Rancher クラスタの Ingress で TLS Termination を行っている場合は 
 証明書
 
 ```
-./kubectl -n cattle-system get secret cattle-keys-ingress \\
-  -o jsonpath --template='{ .data.tls\\.crt }' | base64 -d > tls.crt
-
+./kubectl -n cattle-system get secret cattle-keys-ingress \
+  -o jsonpath --template='{ .data.tls\.crt }' | base64 -d > tls.crt
 ```
 
 秘密鍵
 
 ```
-./kubectl -n cattle-system get secret cattle-keys-ingress \\
-  -o jsonpath --template='{ .data.tls\\.key }' | base64 -d > tls.key
-
+./kubectl -n cattle-system get secret cattle-keys-ingress \
+  -o jsonpath --template='{ .data.tls\.key }' | base64 -d > tls.key
 ```
 
 プライベート CA を使っている場合は次のコマンドで CA の証明書も取得します。
 
 ```
-./kubectl -n cattle-system get secret cattle-keys-server \\
-  -o jsonpath --template='{ .data.cacerts\\.pem }' | base64 -d > cacerts.pem
-
+./kubectl -n cattle-system get secret cattle-keys-server \
+  -o jsonpath --template='{ .data.cacerts\.pem }' | base64 -d > cacerts.pem
 ```
 
 ### 古い Kubernetes オブジェクトを削除
@@ -80,7 +75,6 @@ RKE でのインストールで作られた Kubernetes オブジェクトを削�
 ./kubectl -n cattle-system delete deployment cattle
 ./kubectl -n cattle-system delete clusterrolebinding cattle-crb
 ./kubectl -n cattle-system delete serviceaccount cattle-admin
-
 ```
 
 これらのコンポーネントを削除しても Rancher の設定やデータベースに影響はありませんが、何かメンテナンスを行う場合にバックアップを取得しておくのは良いことです。バックアップの取得方法は [Creating Backups—High Availability Installs](https://rancher.com/docs/rancher/v2.x/en/backups/backups/ha-backups/) にあります。
@@ -89,7 +83,7 @@ RKE でのインストールで作られた Kubernetes オブジェクトを削�
 
 RKE で使う YAML (ここでは `rke.yml`) には Rancher で必要なリソースが全て入っています。今後の RKE 操作のためにここから `addons` セクションのまるっと削除しておきます。
 
-```
+```yaml
 addons: |-
   ---
   kind: Namespace
@@ -206,32 +200,30 @@ addons: |-
             protocol: TCP
           - containerPort: 443
             protocol: TCP
-
 ```
 
 削ると残るのはこれだけ
 
-```
+```yaml
 nodes:
   - address: 192.168.100.1 # hostname or IP to access nodes
     user: rancher # root user (usually 'root')
-    role: \[controlplane,etcd,worker\] # K8s roles for node
-    ssh\_key\_path: id\_rsa # path to PEM file
+    role: [controlplane,etcd,worker] # K8s roles for node
+    ssh_key_path: id_rsa # path to PEM file
   - address: 192.168.100.2
     user: rancher
-    role: \[controlplane,etcd,worker\]
-    ssh\_key\_path: id\_rsa
+    role: [controlplane,etcd,worker]
+    ssh_key_path: id_rsa
   - address: 192.168.100.3
     user: rancher
-    role: \[controlplane,etcd,worker\]
-    ssh\_key\_path: id\_rsa
+    role: [controlplane,etcd,worker]
+    ssh_key_path: id_rsa
 
 services:
   etcd:
     snapshot: true
     creation: 6h
     retention: 24h
-
 ```
 
 Helm の初期化
@@ -245,23 +237,20 @@ Helm の初期化
 
 ```
 ./kubectl -n kube-system create serviceaccount tiller
-
 ```
 
 次に、作成したサービスアカウントに `cluster-admin` ロールを付与します。
 
-```
-./kubectl create clusterrolebinding tiller \\
-  --clusterrole=cluster-admin \\
+```bash
+./kubectl create clusterrolebinding tiller \
+  --clusterrole=cluster-admin \
   --serviceaccount=kube-system:tiller
-
 ```
 
 ### Helm の初期化
 
 ```
 ./helm init --service-account tiller
-
 ```
 
 `Tiller (the Helm server-side component) has been installed into your Kubernetes Cluster.` と表示されていれば Tiller のインストールが完了しているはず。
@@ -276,7 +265,6 @@ Tiller が正しくインストールされているかどうかを次のコマ�
 
 ```
 ./kubectl -n kube-system  rollout status deploy/tiller-deploy
-
 ```
 
 `deployment "tiller-deploy" successfully rolled out` と表示されれば OK.
@@ -287,7 +275,6 @@ Tiller が正しくインストールされているかどうかを次のコマ�
 $ ./helm version
 Client: &version.Version{SemVer:"v2.13.1", GitCommit:"618447cbf203d147601b4b9bd7f8c37a5d39fbb4", GitTreeState:"clean"}
 Server: &version.Version{SemVer:"v2.13.1", GitCommit:"618447cbf203d147601b4b9bd7f8c37a5d39fbb4", GitTreeState:"clean"}
-
 ```
 
 Rancher のインストール
@@ -305,7 +292,6 @@ Rancher のインストール
 ./helm repo add rancher-stable https://releases.rancher.com/server-charts/stable
 
 ./helm repo add rancher-alpha https://releases.rancher.com/server-charts/alpha
-
 ```
 
 ### SSL/TLS 設定の選択
@@ -328,72 +314,65 @@ Let's Encrypt
 
 Kubernetes Helm chart repository からインストールする。
 
-```
-./helm install stable/cert-manager \\
-  --name cert-manager \\
-  --namespace kube-system \\
+```bash
+./helm install stable/cert-manager \
+  --name cert-manager \
+  --namespace kube-system \
   --version v0.5.2
-
 ```
 
 インストールが完了するまで待つ。次のコマンドで `deployment "cert-manager" successfully rolled out` と表示されるようになれば完了。
 
 ```
 ./kubectl -n kube-system rollout status deploy/cert-manager
-
 ```
 
 ### Rancher のデプロイ (Rancher Generated Certificates)
 
 デフォルトが Rancer Generated なので特に証明書に関するオプションは指定されていない。(この例はリポジトリが `rancher-latest` になっていることに注意)
 
-```
-./helm install rancher-latest/rancher \\
-  --name rancher \\
-  --namespace cattle-system \\
+```bash
+./helm install rancher-latest/rancher \
+  --name rancher \
+  --namespace cattle-system \
   --set hostname=rancher.example.com
-
 ```
 
 デプロイの状況を確認する。
 
 ```
 ./kubectl -n cattle-system rollout status deploy/rancher
-
 ```
 
 ### Rancher のデプロイ (Let’s Encrypt)
 
 Let's Encrypt での証明書発行のためにメールアドレスを指定する必要がある。(この例はリポジトリが `rancher-latest` になっていることに注意)
 
-```
-./helm install rancher-latest/rancher \\
-  --name rancher \\
-  --namespace cattle-system \\
-  --set hostname=rancher.example.com \\
-  --set ingress.tls.source=letsEncrypt \\
+```bash
+./helm install rancher-latest/rancher \
+  --name rancher \
+  --namespace cattle-system \
+  --set hostname=rancher.example.com \
+  --set ingress.tls.source=letsEncrypt \
   --set letsEncrypt.email=me@example.org
-
 ```
 
 デプロイの状況を確認する。
 
 ```
 ./kubectl -n cattle-system rollout status deploy/rancher
-
 ```
 
 ### Rancher のデプロイ (Certificates from Files)
 
 今回は RKE でのセットアップ時に使っていたものを取り出したファイルを使うのでこの手順で進めます。(この例はリポジトリが `rancher-latest` になっていることに注意)
 
-```
-./helm install rancher-latest/rancher \\
-  --name rancher \\
-  --namespace cattle-system \\
-  --set hostname=rancher.example.com \\
+```bash
+./helm install rancher-latest/rancher \
+  --name rancher \
+  --namespace cattle-system \
+  --set hostname=rancher.example.com \
   --set ingress.tls.source=secret
-
 ```
 
 実行すると次のような出力がある。
@@ -446,26 +425,23 @@ Happy Containering!
 
 Kubernetes Secrets に証明書を `tls` という secret タイプで `tls-rancher-ingress` という名前で登録します。
 
-```
-./kubectl -n cattle-system create secret tls tls-rancher-ingress \\
-  --cert=tls.crt \\
+```bash
+./kubectl -n cattle-system create secret tls tls-rancher-ingress \
+  --cert=tls.crt \
   --key=tls.key
-
 ```
 
 プライベート CA の場合はそれも登録する。こちらは generic タイプ。
 
-```
-./kubectl -n cattle-system create secret generic tls-ca \\
+```bash
+./kubectl -n cattle-system create secret generic tls-ca \
   --from-file=cacerts.pem
-
 ```
 
 デプロイの状況を確認する。
 
 ```
 ./kubectl -n cattle-system rollout status deploy/rancher
-
 ```
 
 Rancher 2.1.7 に更新されました。次は [https://github.com/yteraoka/rancher-ha-tf-do](https://github.com/yteraoka/rancher-ha-tf-do) を Helm でのセットアップに変更しようと思います。

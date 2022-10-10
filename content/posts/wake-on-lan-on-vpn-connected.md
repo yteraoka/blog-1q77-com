@@ -2,7 +2,7 @@
 title: 'VPN 接続時に PC を起こしてやる'
 date: Mon, 01 Apr 2019 15:19:13 +0000
 draft: false
-tags: ['OpenVPN', 'OpenVPN']
+tags: ['OpenVPN']
 ---
 
 [前回の設定](/2019/03/pivpn/)で外出先からスマホでおうちに VPN 接続してリモートデスクトップで PC にアクセスできるようになりました。しかし、まだ問題が残っていました。PC は未使用時にはスリープ状態になっているのでした。でもおじさんなので知っています、こんな時のために Wake-on-LAN という機能があるのです。ラズパイサーバーからマジックパケットを送ってあげましょう。（私は root としてログインしてたので以下はその前提になっています。必要であれば sudo とかを足してやってください）
@@ -14,13 +14,12 @@ tags: ['OpenVPN', 'OpenVPN']
 
 ```
 apt install etherwake
-
 ```
 
 etherwake の使い方はこんな感じ
 
 ```
-usage: etherwake \[-i \] \[-p aa:bb:cc:dd\[:ee:ff\]\] 00:11:22:33:44:55
+usage: etherwake [-i ] [-p aa:bb:cc:dd[:ee:ff]] 00:11:22:33:44:55
    Use '-u' to see the complete set of options. 
 ```
 
@@ -35,25 +34,23 @@ OpenVPN 接続時に任意のコマンドをサーバー側で実行させる機
 
 `--client-connect` で接続時のコマンドを `--client-disconnect` で切断時のコマンドを実行できるようです。危険なコマンドを不用意に実行してしまわないようになっており、任意の外部コマンドを実行する場合は `--script-security 2` と指定する必要があるようです。
 
-*   **0** -- Strictly no calling of external programs.
-*   **1** -- (Default) Only call built-in executables such as ifconfig, ip, route, or netsh.
-*   **2** -- Allow calling of built-in executables and user-defined scripts.
-*   **3** -- Allow passwords to be passed to scripts via environmental variables (potentially unsafe).
+* **0** -- Strictly no calling of external programs.
+* **1** -- (Default) Only call built-in executables such as ifconfig, ip, route, or netsh.
+* **2** -- Allow calling of built-in executables and user-defined scripts.
+* **3** -- Allow passwords to be passed to scripts via environmental variables (potentially unsafe).
 
 OpenVPN の起動コマンドの引数を変更する必要があります。私の使っている DietPi は systemd が採用されているためこれのカスタマイズには `systemctl edit` コマンドを使います。Unit は `openvpn@server.service` だったので次のようにします。
 
 ```
 systemctl edit openvpn@server.service
-
 ```
 
 これで、エディタが立ち上がるので次のように入力して保存して終了します。
 
 ```
-\[Service\]
+[Service]
 ExecStart=
 ExecStart=/usr/sbin/openvpn --daemon ovpn-%i --status /run/openvpn/%i.status 10 --cd /etc/openvpn --config /etc/openvpn/%i.conf --writepid /run/openvpn/%i.pid --client-connect /etc/openvpn/on-connect.sh --script-security 2
-
 ```
 
 これで `/etc/systemd/system/openvpn@server.service.d/override.conf` というファイルに保存されます。
@@ -62,7 +59,6 @@ etherwake は root で実行する必要があるため sudo の設定も行い�
 
 ```
 nobody ALL=(root) NOPASSWD: /usr/sbin/etherwake
-
 ```
 
 後は `/etc/openvpn/on-connect.sh` にコマンドを書いて実行権限をつけれやり、OpenVPN を再起動すれば完了！

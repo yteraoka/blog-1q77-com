@@ -2,7 +2,7 @@
 title: 'nginx で OCSP Stapling (RapidSSL)'
 date: Thu, 12 Feb 2015 14:46:08 +0000
 draft: false
-tags: ['nginx', 'SSL', 'ocsp', 'spdy']
+tags: ['nginx', 'TLS', 'OCSP', 'spdy']
 ---
 
 SSL の有効な HTTP サーバーを nginx で構築する機会があったので OCSP Stapling (と SPDY) を有効にしてみた話。(SPDY は listen に spdy って追加するだけなので特に書くことなし) 環境は CentOS 6 で nginx は nginx.org の mainline RPM (1.7.10)

@@ -2,7 +2,7 @@
 title: 'Terraform でカスタム provider を使うための dev_overrides 設定'
 date: Sun, 04 Apr 2021 04:03:47 +0000
 draft: false
-tags: ['Terraform', 'Terraform']
+tags: ['Terraform']
 ---
 
 [healthchecks.io](/2021/03/monitoring-raspberry-pi-with-healthchecks-io/) が大変便利なので Self-hosted なサーバーを用意して、設定を terraform で管理したいなあということがありまして、[terraform-provider-healthchecksio](https://github.com/kristofferahl/terraform-provider-healthchecksio) の接続先サーバーを指定可能にしようと思いました。provider のコードを編集して build するところまではすぐに出来たのですが、このバイナリを terraform からどうやって使うのかな？でハマったのでメモです。

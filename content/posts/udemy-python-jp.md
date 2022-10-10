@@ -2,7 +2,7 @@
 title: '「実践 Python データサイエンス」を受講した'
 date: Fri, 03 Jun 2016 15:50:17 +0000
 draft: false
-tags: ['Jupyter', 'Python', 'python', '機械学習', '統計']
+tags: ['Jupyter', 'Python', '機械学習', '統計']
 ---
 
 [Udemy](https://www.udemy.com/jp/) の [【世界で2万人が受講】実践 Python データサイエンス](https://www.udemy.com/python-jp/)を受講してみました。 104講義、合計17.5時間もの動画で Jupyter を使ったデータ解析の説明が受けられます。 私が申し込んだ時は定価が2万円を超えていて、キャンペーン価格で6,000円でした。でも今は定価が6,000円さらにそこから30% OFF の4,200円なんですね... 内容はまず [anaconda](https://www.anaconda.com/) で環境構築。anaconda だからハマらないし楽ちん。環境構築に時間を割かれなくて良いです。 その後は次のような内容となっていました。

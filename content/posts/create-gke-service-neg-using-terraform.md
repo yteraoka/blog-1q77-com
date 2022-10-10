@@ -2,7 +2,7 @@
 title: 'GKE Service の NEG を Terraform で作成する'
 date: Tue, 09 Aug 2022 11:13:48 +0000
 draft: false
-tags: ['GKE', 'Terraform', 'Terraform']
+tags: ['GKE', 'Terraform']
 ---
 
 GKE の Ingress で Load Balancer を作成すると、同一 namespace 内の Service にしか振り分けられないとか、単一の Cluster でしか使えないとか不都合な場合があります。その場合 Load Balancer 関連のリソースは Terraform で作成したくなりますが、NEG まで作らなければ BackendService を作成できません。 しかし、NEG は GKE のコントローラが作成するため、鶏卵問題で悲しい思いをしたことはないでしょうか。 この NEG は GKE が作るのを待たずに Terraform で作成することも可能だったのでそのメモです。
@@ -25,7 +25,6 @@ resource "google_compute_network_endpoint_group" "igw" {
     google_container_cluster.cluster,
   ]
 }
-
 ```
 
 ポイントは **description** に謎の JSON をセットしている部分です。 GKE のコントローラが作成する場合にこれがセットされるようになっており、それを真似て作ってやると endpoint として GKE の Pod が登録されるようになります。
@@ -37,7 +36,6 @@ resource "google_compute_network_endpoint_group" "igw" {
   "service-name": "istio-ingressgateway",
   "port": "80"
 }
-
 ```
 
 問題はこの **cluster-uid** というものの値はどこから取得できるのかということですが、**kube-system** namespace の **metadata** にある **uid** が使われるようです。（Google に確認しました)

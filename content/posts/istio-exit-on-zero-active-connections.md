@@ -2,7 +2,7 @@
 title: 'istio sidecar の停止を connection がなくなるまで遅らせる'
 date: Sat, 26 Feb 2022 15:52:27 +0000
 draft: false
-tags: ['Envoy', 'Istio', 'Istio', 'Kubernetes']
+tags: ['Envoy', 'Istio', 'Kubernetes']
 ---
 
 新機能 EXIT\_ON\_ZERO\_ACTIVE\_CONNECTIONS

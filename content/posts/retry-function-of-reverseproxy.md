@@ -2,7 +2,7 @@
 title: 'ReverseProxyのretry機能を調査'
 date: Thu, 15 Jun 2017 15:44:44 +0000
 draft: false
-tags: ['Apache', 'HAProxy', 'Nginx']
+tags: ['Apache', 'HAProxy', 'nginx']
 ---
 
 Apache, nginx, HAProxy の ReverseProxy において、proxy 先の障害をどう回避するかを調べてみます。

@@ -2,7 +2,7 @@
 title: 'Nginx Ingress Controller と oauth2-proxy で SSO'
 date: Tue, 08 Dec 2020 15:21:27 +0000
 draft: false
-tags: ['Kubernetes', 'Kubernetes', 'advent calendar 2020', 'nginx']
+tags: ['Kubernetes', 'advent calendar 2020', 'nginx']
 ---
 
 [Advent Calendar 2020 全部オレシリーズ](https://qiita.com/advent-calendar/2020/yteraoka) 8日目です。もう完走は諦めました。(再掲)
@@ -50,7 +50,6 @@ ingress:
     - prometheus.example.com
   annotations:
     kubernetes.io/ingress.class: nginx
-
 ```
 
 ```bash

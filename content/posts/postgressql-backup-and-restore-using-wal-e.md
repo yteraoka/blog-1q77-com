@@ -2,7 +2,7 @@
 title: 'WAL-E で PostgreSQL の Backup / Restore'
 date: Thu, 01 Sep 2016 15:41:07 +0000
 draft: false
-tags: ['AWS', 'Linux', 'PostgreSQL', 'S3', 'Ubuntu', 'postgresql']
+tags: ['AWS', 'Linux', 'PostgreSQL', 'S3', 'Ubuntu']
 ---
 
 PostgreSQL の Backup / Restore ツールとして heroku で開発されたとされる [WAL-E](https://github.com/wal-e/wal-e) がある。 フィジカル（物理）バックアップと WAL のアーカイブを S3 互換のオブジェクトストレージや Azure BLOB Storage や Google Cloud Storage へ保存でき、そこからのリストアもできる便利ツールです。 AWS で EC2 上の PostgreSQL のバックアップ/リストアを WAL-E で行ってみます。OS は Ubuntu 14.04 (Trusty) を使います。

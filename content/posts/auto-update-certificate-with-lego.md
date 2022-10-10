@@ -2,7 +2,7 @@
 title: 'lego で Let''s Encrypt の証明書を自動更新'
 date: Wed, 13 Jul 2016 15:53:37 +0000
 draft: false
-tags: ['Linux', 'Nginx', 'SSL', 'TLS', 'nginx', 'ssl']
+tags: ['Linux', 'nginx', 'TLS']
 ---
 
 後でやろうと思ってたら忘れてこのサイトの証明書の期限が切れてしまってました...😢 ということで自動更新の方法をメモ。公式ツールの [certbot](https://github.com/certbot/certbot) はまだ名前変わる前のベータの時に試してみたけど個人的にはちょと大げさすぎて too much だなと思っていたので golang で書かれたシングルバイナリの [lego](https://github.com/xenolf/lego) を使うことにしました。（おもちゃの LEGO ではありませんが、nodejs のやつみたいに商標問題に発展してしまわないかすこし心配です） 以前[試した](/2016/02/acmesmith-1/) [Acmesmith](https://github.com/sorah/acmesmith) も悪くないのですがこのサイトは AWS じゃないので外しました。 lego の使い方は簡単です まずはダウンロード、GitHub のリリースページから最新版をダウンロードし展開すれば準備完了

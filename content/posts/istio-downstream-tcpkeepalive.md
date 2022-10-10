@@ -2,7 +2,7 @@
 title: 'Istio で Downstream への TCP keepalive を送る方法'
 date: Mon, 14 Dec 2020 11:48:15 +0000
 draft: false
-tags: ['Istio', 'Istio', 'advent calendar 2020']
+tags: ['Istio', 'advent calendar 2020']
 ---
 
 [Advent Calendar 2020 全部オレシリーズ](https://qiita.com/advent-calendar/2020/yteraoka) 14日目です。誕生日記念号です。おめでとうございます。ありがとうございます。

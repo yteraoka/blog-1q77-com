@@ -2,7 +2,7 @@
 title: 'Istio 導入への道 - サービス間通信編'
 date: Sat, 07 Mar 2020 12:34:16 +0000
 draft: false
-tags: ['Istio', 'Istio']
+tags: ['Istio']
 ---
 
 [前回](/2020/03/istio-part1/)の続きです。

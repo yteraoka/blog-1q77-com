@@ -2,7 +2,7 @@
 title: 'Istio 導入への道 - 外部へのアクセスでも Fault Injection 編'
 date: Wed, 11 Mar 2020 16:37:14 +0000
 draft: false
-tags: ['Istio', 'Istio']
+tags: ['Istio']
 ---
 
 [Istio シリーズ](/category/kubernetes/istio/)です。

@@ -2,7 +2,7 @@
 title: 'mac で podman'
 date: Thu, 23 Sep 2021 14:20:51 +0000
 draft: false
-tags: ['Docker', 'Docker', 'Podman']
+tags: ['Docker', 'Podman']
 ---
 
 Docker Desktop 代替シリーズ第三部、Podman です。([第一部 minkikube 編](/2021/09/replace-docker-desktop-with-minikube/)、[第二部 Lima + nerdctl 編](/2021/09/lima/))

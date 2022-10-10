@@ -2,7 +2,7 @@
 title: 'Ansible AWX を試す その1 #ansible'
 date: Fri, 09 Aug 2013 16:09:43 +0000
 draft: false
-tags: ['Ansible', 'ansible', 'awx', 'python']
+tags: ['Ansible', 'AWS', 'Python']
 ---
 
 このところ [Ansible Tutorial](http://yteraoka.github.io/ansible-tutorial/) を書いたりして Ansible ブームなので一昨日見つけた Ansible の WebUI ツール AWX を試してみました。www.ansibleworks.com/ansibleworks-awx/ （もう存在しない）から awx-setup-1.2.2.tar.gz をダウンロードします。 まずは中身の確認。
