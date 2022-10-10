@@ -24,7 +24,7 @@
 <meta name=twitter:card content="summary">
 <meta name=twitter:title content="send-ssh-public-key と ssm start-session の合わせ技">
 <meta name=twitter:description content="以前、「SSM Session Manager 経由での SSH」で、Public IP address を持たない EC2 Instance に対して SSH 接続する方法を確認したが、SSM の Session Manager だけでは事前に EC2 Instance 側に Public">
-<script type=application/ld+json>[{"@context":"https://schema.org","@type":"Article","articleSection":"Posts","name":"send-ssh-public-key と ssm start-session の合わせ技","headline":"send-ssh-public-key と ssm start-session の合わせ技","abstract":"以前、「SSM Session Manager 経由での SSH」で、Public IP address を持たない EC2 Instance に対して SSH 接続する方法を確認したが、SSM の Session Manager だけでは事前に EC2 Instance 側に Public","inLanguage":"ja","url":"https:\/\/preview-blog.1q77.com\/2020\/11\/send-ssh-public-key-and-ssm-start-session\/","author":{"@type":"Person","name":"Yoshinori Teraoka"},"copyrightYear":"2020","dateCreated":"2020-11-23T11:35:01\u002b00:00","datePublished":"2020-11-23T11:35:01\u002b00:00","dateModified":"2020-11-23T11:35:01\u002b00:00","keywords":["AWS","aws"],"mainEntityOfPage":"true","wordCount":"495"}]</script>
+<script type=application/ld+json>[{"@context":"https://schema.org","@type":"Article","articleSection":"Posts","name":"send-ssh-public-key と ssm start-session の合わせ技","headline":"send-ssh-public-key と ssm start-session の合わせ技","abstract":"以前、「SSM Session Manager 経由での SSH」で、Public IP address を持たない EC2 Instance に対して SSH 接続する方法を確認したが、SSM の Session Manager だけでは事前に EC2 Instance 側に Public","inLanguage":"ja","url":"https:\/\/preview-blog.1q77.com\/2020\/11\/send-ssh-public-key-and-ssm-start-session\/","author":{"@type":"Person","name":"Yoshinori Teraoka"},"copyrightYear":"2020","dateCreated":"2020-11-23T11:35:01\u002b00:00","datePublished":"2020-11-23T11:35:01\u002b00:00","dateModified":"2020-11-23T11:35:01\u002b00:00","keywords":["AWS"],"mainEntityOfPage":"true","wordCount":"495"}]</script>
 <meta name=author content="Yoshinori Teraoka">
 <link href=https://twitter.com/yteraoka rel=me>
 <link href=https://github.com/yteraoka rel=me>
@@ -218,63 +218,59 @@ aws
 <p>しかし、今回 Public Key の登録されていない Instance に SSH したくなった。確か、一時的な Public Key を登録する機能があったよな、ということでメモっておく。</p>
 <p>一時的な Public Key を送った後に Session Manger を使って接続すれば今回やりたいことができる。</p>
 <p>Public Key の登録は <code>aws ec2-instance-connect send-ssh-public-key</code> コマンドで行う。</p>
-<pre tabindex=0><code>aws ec2-instance-connect send-ssh-public-key \\
-  --instance-id i-xxxxxxxxxxxxxxxxx \\
-  --instance-os-user ec2-user \\
-  --availability-zone ap-northeast-1c \\
-  --ssh-public-key file://$HOME/.ssh/id\_rsa.pub
-
+<pre tabindex=0><code>aws ec2-instance-connect send-ssh-public-key \
+  --instance-id i-xxxxxxxxxxxxxxxxx \
+  --instance-os-user ec2-user \
+  --availability-zone ap-northeast-1c \
+  --ssh-public-key file://$HOME/.ssh/id_rsa.pub
 </code></pre><p>わざわざ <code>--availability-zone</code> を指定しなくてはならないというのが面倒だが Instance Id から取ってくる wrapper を書く。</p>
-<pre tabindex=0><code>aws ec2 describe-instances \\
-  --instance-ids i-xxxxxxxxxxxxxxxxx \\
-  --query 'Reservations\[0\].Instances\[0\].Placement.AvailabilityZone' \\
+<pre tabindex=0><code>aws ec2 describe-instances \
+  --instance-ids i-xxxxxxxxxxxxxxxxx \
+  --query 'Reservations[0].Instances[0].Placement.AvailabilityZone' \
   --output text
-
 </code></pre><p><code>send-ssh-public-key</code> で登録した Public Key は 60 秒間だけ有効なのでその間に SSM の Session Manager で接続します。これは「<a href=/2020/04/ssh-connection-through-session-manager/>SSM Session Manager 経由での SSH</a>」で書いた通りで <code>~/.ssh/config</code> に次の様に書いておけば <code>ssh ec2-user@i-xxxxxxxxxxxxxxxxx</code> で接続できます。</p>
-<pre tabindex=0><code>host i-\* mi-\*
+<pre tabindex=0><code>host i-* mi-*
   ProxyCommand sh -c &quot;aws ssm start-session --target %h --document-name AWS-StartSSHSession --parameters 'portNumber=%p'&quot;
-
 </code></pre><p>とりあえずこんな wrapper で</p>
-<pre tabindex=0><code>#!/bin/bash
+<div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=cp>#!/bin/bash
+</span><span class=cp></span>
+<span class=nv>instance_id</span><span class=o>=</span><span class=nv>$1</span>
+<span class=nv>user</span><span class=o>=</span>ec2-user
 
-instance\_id=$1
-user=ec2-user
+<span class=k>if</span> <span class=o>[</span> -z <span class=s2>&#34;</span><span class=nv>$instance_id</span><span class=s2>&#34;</span> <span class=o>]</span> <span class=p>;</span> <span class=k>then</span>
+  <span class=nb>echo</span> <span class=s2>&#34;Usage: ssmssh [username@]instance_id&#34;</span> 1&gt;<span class=p>&amp;</span><span class=m>2</span>
+  <span class=nb>exit</span> <span class=m>1</span>
+<span class=k>fi</span>
 
-if \[ -z &quot;$instance\_id&quot; \] ; then
-  echo &quot;Usage: ssmssh \[username@\]instance\_id&quot; 1&gt;&amp;2
-  exit 1
-fi
+<span class=nb>echo</span> <span class=nv>$instance_id</span> <span class=p>|</span> grep -q @
+<span class=k>if</span> <span class=o>[</span> <span class=nv>$?</span> -eq <span class=m>0</span> <span class=o>]</span> <span class=p>;</span> <span class=k>then</span>
+  <span class=nv>user</span><span class=o>=</span><span class=k>$(</span><span class=nb>echo</span> <span class=nv>$instance_id</span> <span class=p>|</span> cut -d @ -f 1<span class=k>)</span>
+  <span class=nv>instance_id</span><span class=o>=</span><span class=k>$(</span><span class=nb>echo</span> <span class=nv>$instance_id</span> <span class=p>|</span> cut -d @ -f 2<span class=k>)</span>
+<span class=k>fi</span>
 
-echo $instance\_id | grep -q @
-if \[ $? -eq 0 \] ; then
-  user=$(echo $instance\_id | cut -d @ -f 1)
-  instance\_id=$(echo $instance\_id | cut -d @ -f 2)
-fi
+<span class=nb>echo</span> <span class=nv>$instance_id</span> <span class=p>|</span> grep -q ^i-
+<span class=k>if</span> <span class=o>[</span> <span class=nv>$?</span> -ne <span class=m>0</span> <span class=o>]</span> <span class=p>;</span> <span class=k>then</span>
+  <span class=nb>echo</span> <span class=s2>&#34;invalid instance id: </span><span class=nv>$instance_id</span><span class=s2>&#34;</span> 1&gt;<span class=p>&amp;</span><span class=m>2</span>
+  <span class=nb>exit</span> <span class=m>2</span>
+<span class=k>fi</span>
 
-echo $instance\_id | grep -q ^i-
-if \[ $? -ne 0 \] ; then
-  echo &quot;invalid instance id: $instance\_id&quot; 1&gt;&amp;2
-  exit 2
-fi
+<span class=nb>echo</span> <span class=s2>&#34;Getting availability zone of instance&#34;</span> 1&gt;<span class=p>&amp;</span><span class=m>2</span>
+<span class=nv>az</span><span class=o>=</span><span class=k>$(</span>aws ec2 describe-instances <span class=se>\
+</span><span class=se></span>  --instance-ids <span class=nv>$instance_id</span> <span class=se>\
+</span><span class=se></span>  --query <span class=s1>&#39;Reservations[0].Instances[0].Placement.AvailabilityZone&#39;</span> <span class=se>\
+</span><span class=se></span>  --output text
+<span class=k>)</span>
 
-echo &quot;Getting availability zone of instance&quot; 1&gt;&amp;2
-az=$(aws ec2 describe-instances \\
-  --instance-ids $instance\_id \\
-  --query 'Reservations\[0\].Instances\[0\].Placement.AvailabilityZone' \\
-  --output text
-)
+<span class=nb>echo</span> <span class=s2>&#34;Sending ssh public key&#34;</span> 1&gt;<span class=p>&amp;</span><span class=m>2</span>
+aws ec2-instance-connect send-ssh-public-key <span class=se>\
+</span><span class=se></span>  --instance-id <span class=nv>$instance_id</span> <span class=se>\
+</span><span class=se></span>  --instance-os-user <span class=nv>$user</span> <span class=se>\
+</span><span class=se></span>  --availability-zone <span class=nv>$az</span> <span class=se>\
+</span><span class=se></span>  --ssh-public-key file://<span class=nv>$HOME</span>/.ssh/id_rsa.pub
 
-echo &quot;Sending ssh public key&quot; 1&gt;&amp;2
-aws ec2-instance-connect send-ssh-public-key \\
-  --instance-id $instance\_id \\
-  --instance-os-user $user \\
-  --availability-zone $az \\
-  --ssh-public-key file://$HOME/.ssh/id\_rsa.pub
-
-echo &quot;exec ssh $user@$instance\_id&quot; 1&gt;&amp;2
-exec ssh $user@$instance\_id
-
-</code></pre>
+<span class=nb>echo</span> <span class=s2>&#34;exec ssh </span><span class=nv>$user</span><span class=s2>@</span><span class=nv>$instance_id</span><span class=s2>&#34;</span> 1&gt;<span class=p>&amp;</span><span class=m>2</span>
+<span class=nb>exec</span> ssh <span class=nv>$user</span>@<span class=nv>$instance_id</span>
+</code></pre></div>
 </div>
 <script>var liked_article=!1,oid,id,viewed,oid_likes,id_likes,liked;typeof auth!='undefined'&&(oid="views_posts/send-ssh-public-key-and-ssm-start-session.md",id=oid&&oid.replaceAll("/","-"),viewed=localStorage.getItem(id),viewed||auth.signInAnonymously().then(()=>{var a=db.collection('views').doc(id);localStorage.setItem(id,!0),a.get().then(a=>{a.exists?db.collection('views').doc(id).update({views:firebase.firestore.FieldValue.increment(1)}):db.collection('views').doc(id).set({views:1})}).catch(a=>{console.log("Error getting document:",a)})}).catch(a=>{var b=a.code,c=a.message;console.error(b,c)}),oid_likes="likes_posts/send-ssh-public-key-and-ssm-start-session.md",id_likes=oid_likes&&oid_likes.replaceAll("/","-"),liked=localStorage.getItem(id_likes),liked&&(liked_article=!0,document.querySelectorAll("button[id='likes_button']")[0].innerText="Remove Like"));function like_article(a){console.log("add"),liked_article=!0,localStorage.setItem(a,!0),document.querySelectorAll("button[id='likes_button']")[0].innerText="Remove Like",auth.signInAnonymously().then(()=>{var b=db.collection('likes').doc(a);b.get().then(b=>{b.exists?db.collection('likes').doc(a).update({likes:firebase.firestore.FieldValue.increment(1)}):db.collection('likes').doc(a).set({likes:1})}).catch(a=>{console.log("Error getting document:",a)})}).catch(a=>{var b=a.code,c=a.message;console.error(b,c)})}function remove_like_article(a){console.log("remove"),liked_article=!1,localStorage.setItem(a,!1),document.querySelectorAll("button[id='likes_button']")[0].innerText="Like",auth.signInAnonymously().then(()=>{var b=db.collection('likes').doc(a);b.get().then(b=>{b.exists?db.collection('likes').doc(a).update({likes:firebase.firestore.FieldValue.increment(-1)}):db.collection('likes').doc(a).set({likes:0})}).catch(a=>{console.log("Error getting document:",a)})}).catch(a=>{var b=a.code,c=a.message;console.error(b,c)})}function process_article(){var a="likes_posts/send-ssh-public-key-and-ssm-start-session.md",b=a&&a.replaceAll("/","-");liked_article?remove_like_article(b):like_article(b)}</script>
 </section>
