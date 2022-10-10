@@ -9,7 +9,7 @@ kind のインストール
 ------------
 
 ```
-$ curl -Lo ~/bin/kind ¥
+$ curl -Lo ~/bin/kind \
     https://github.com/kubernetes-sigs/kind/releases/download/v0.6.1/kind-$(uname)-amd64
 $ chmod +x ~/bin/kind
 $ kind version
@@ -41,7 +41,7 @@ kubectl コマンドのインストール
 
 ```
 $ k8sversion=v1.16.3
-$ curl -Lo ~/bin/kubectl ¥
+$ curl -Lo ~/bin/kubectl \
     https://storage.googleapis.com/kubernetes-release/release/$k8sversion/bin/$(uname | tr A-Z a-z)/amd64/kubectl
 $ chmod +x ~/bin/kubectl
 ```
@@ -189,7 +189,7 @@ kube-scheduler-kind-control-plane3            1/1     Running   0          6m57s
 
 ### Pod Subnet
 
-```
+```yaml
 kind: Cluster
 apiVersion: kind.x-k8s.io/v1alpha4
 networking:
@@ -200,7 +200,7 @@ networking:
 
 ### Service Subnet
 
-```
+```yaml
 kind: Cluster
 apiVersion: kind.x-k8s.io/v1alpha4
 networking:
@@ -213,7 +213,7 @@ networking:
 
 デフォルトでは kindnetd という CNI がセットアップされるが、Calico など別の CNI を使いたい場合はこれを無効にしておく。
 
-```
+```yaml
 kind: Cluster
 apiVersion: kind.x-k8s.io/v1alpha4
 networking:
@@ -319,7 +319,7 @@ Krew
 
 kubectl plugin の Package manager [krew.dev](https://krew.dev). kubectx や kubens をインストールするのに使う。
 
-```
+```bash
 (
   set -x; cd "$(mktemp -d)" &&
   curl -fsSLO "https://github.com/kubernetes-sigs/krew/releases/download/v0.3.3/krew.{tar.gz,yaml}" &&
@@ -365,7 +365,7 @@ WARNING: You installed a plugin from the krew-index plugin repository.
 Updated the local copy of plugin index.
 ```
 
-```
+```bash
 PATH="${KREW_ROOT:-$HOME/.krew}/bin:$PATH"
 ```
 
@@ -463,11 +463,5 @@ Twitter で [kubectl tree](https://github.com/ahmetb/kubectl-tree) という便�
 kubectl krew install tree
 ```
 
-> I'm announcing a new fun kubectl subcommand:  
-> 🌲 kubectl tree  
->   
-> It lets you explore Kubernetes object ownerships in a visual tree view.  
->   
-> Get it today: [https://t.co/mhVfAH1ila](https://t.co/mhVfAH1ila) [pic.twitter.com/gqPaYb4HeQ](https://t.co/gqPaYb4HeQ)
-> 
-> — ahmet alp balkan (@ahmetb) [January 2, 2020](https://twitter.com/ahmetb/status/1212792452064501760?ref_src=twsrc%5Etfw)
+{{< twitter user="ahmetb" id="1212792452064501760" >}}
+
