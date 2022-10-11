@@ -136,6 +136,7 @@
   <footer class="pt-8 max-w-prose print:hidden">
     {{ partial "author.html" . }}
     {{ partial "sharing-links.html" . }}
+    {{ partial "related.html" . }}
     {{ partial "article-pagination.html" . }}
     {{ if .Params.showComments | default (.Site.Params.article.showComments | default false) }}
     {{ if templates.Exists "partials/comments.html" }}

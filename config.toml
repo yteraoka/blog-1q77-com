@@ -30,6 +30,19 @@ googleAnalytics = "G-315277795"
     { medium = "https://medium.com/@yteraoka" },
   ]
 
+[related]
+  includeNewer = true
+  threshold = 80
+  toLower = true
+[[related.indices]]
+  name = 'keywords'
+  weight = 100
+[[related.indices]]
+  name = 'tags'
+  weight = 80
+[[related.indices]]
+  name = 'date'
+  weight = 10
 
 [markup.goldmark.renderer]
   unsafe = true
