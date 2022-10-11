@@ -11,9 +11,13 @@ tags: ['Apache', 'monitoring', '勉強会']
 
 でも、@kazeburo さんから次のようなツッコミがっ！！
 
+{{< twitter user="kazeburo" id="310012048379621376" >}}
+
 > それ mod\_copy\_headers [#monitoringcasual](https://twitter.com/search/%23monitoringcasual)
 > 
 > — masahiro naganoさん (@kazeburo) [2013年3月8日](https://twitter.com/kazeburo/status/310012048379621376)
+
+{{< twitter user="kazeburo" id="310012240814284800" >}}
 
 > s/headers/header/
 > 
