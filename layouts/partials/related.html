@@ -1,0 +1,12 @@
+{{ $related := .Site.RegularPages.Related . | first 5 }}
+{{ with $related }}
+  <hr class="border-dotted border-neutral-300 dark:border-newtral-600">
+  <div class="m-0 p-0">
+  <div class="py-2 font-semibold text-center">関連記事</div>
+  <ul>
+    {{ range . }}
+      <li class="py-1"><a href="{{ .RelPermalink }}" class="no-underline hover:underline hover:text-primary-500">{{ .Title | emojify }}</a></li>
+    {{ end }}
+  </ul>
+  </div>
+{{ end }}
