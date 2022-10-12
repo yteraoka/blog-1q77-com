@@ -28,7 +28,7 @@ kubectl run java --image openjdk:16-slim -it --rm --limits=cpu=100m --command --
 lscpu では CPU は 4 つに見えますね。
 
 ```
-root@java:/# **lscpu**
+root@java:/# lscpu
 Architecture:        x86_64
 CPU op-mode(s):      32-bit, 64-bit
 Byte Order:          Little Endian
@@ -57,13 +57,13 @@ Flags:               fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cm
 Jshell で Java プロセスから CPU の数がいくつに見えるか確認してみます。
 
 ```
-root@java:/# **jshell --execution local**
+root@java:/# jshell --execution local
 Dec 01, 2020 3:41:53 PM java.util.prefs.FileSystemPreferences$1 run
 INFO: Created user preferences directory.
 |  Welcome to JShell -- Version 16-ea
 |  For an introduction type: /help intro
 
-jshell> **Runtime.getRuntime().availableProcessors()**
+jshell> Runtime.getRuntime().availableProcessors()
 $1 ==> 1
 ```
 
@@ -72,11 +72,11 @@ $1 ==> 1
 次に `-J-XX:ActiveProcessorCount=2` をつけて試します。
 
 ```
-root@java:/# **jshell --execution local -J-XX:ActiveProcessorCount=2**
+root@java:/# jshell --execution local -J-XX:ActiveProcessorCount=2
 |  Welcome to JShell -- Version 16-ea
 |  For an introduction type: /help intro
 
-jshell> **Runtime.getRuntime().availableProcessors()**
+jshell> Runtime.getRuntime().availableProcessors()
 $1 ==> 2
 ```
 
@@ -85,11 +85,11 @@ $1 ==> 2
 ホストが持っている以上の値を指定するとどうなるでしょう？
 
 ```
-root@java:/# **jshell --execution local -J-XX:ActiveProcessorCount=8**
+root@java:/# jshell --execution local -J-XX:ActiveProcessorCount=8
 |  Welcome to JShell -- Version 16-ea
 |  For an introduction type: /help intro
 
-jshell> **Runtime.getRuntime().availableProcessors()**
+jshell> Runtime.getRuntime().availableProcessors()
 $1 ==> 8
 ```
 
@@ -102,13 +102,13 @@ kubectl run java --image openjdk:16-slim -it --rm --limits=cpu=3 --command -- ba
 ```
 
 ```
-root@java:/# **jshell --execution local**
+root@java:/# jshell --execution local
 Dec 01, 2020 3:58:52 PM java.util.prefs.FileSystemPreferences$1 run
 INFO: Created user preferences directory.
 |  Welcome to JShell -- Version 16-ea
 |  For an introduction type: /help intro
 
-jshell> **Runtime.getRuntime().availableProcessors()**
+jshell> Runtime.getRuntime().availableProcessors()
 $1 ==> 3
 ```
 
@@ -117,7 +117,7 @@ $1 ==> 3
 デフォルトの GC も変わります。 CPU が 1 個の時は SerialGC
 
 ```
-root@java:/# **java -XX:+PrintCommandLineFlags -version**
+root@java:/# java -XX:+PrintCommandLineFlags -version
 -XX:InitialHeapSize=97560512 -XX:MaxHeapSize=1560968192 -XX:MinHeapSize=6815736 -XX:+PrintCommandLineFlags -XX:ReservedCodeCacheSize=251658240 -XX:+SegmentedCodeCache -XX:+UseCompressedClassPointers -XX:+UseCompressedOops -XX:+UseSerialGC 
 openjdk version "16-ea" 2021-03-16
 OpenJDK Runtime Environment (build 16-ea+25-1633)
@@ -127,7 +127,7 @@ OpenJDK 64-Bit Server VM (build 16-ea+25-1633, mixed mode, sharing)
 2 個以上で G1GC になります。GC の Thread も増えるので、見せかけの CPU の数を増やすのは得策ではなさそうです、どうしても大きくしたい場合は GC 関連 Thread の数を直接指定するのかな。
 
 ```
-root@java:/# **java -XX:+PrintCommandLineFlags -XX:ActiveProcessorCount=2 -version**
+root@java:/# java -XX:+PrintCommandLineFlags -XX:ActiveProcessorCount=2 -version
 -XX:ActiveProcessorCount=2 -XX:ConcGCThreads=1 -XX:G1ConcRefinementThreads=2 -XX:GCDrainStackTargetSize=64 -XX:InitialHeapSize=97560512 -XX:MarkStackSize=4194304 -XX:MaxHeapSize=1560968192 -XX:MinHeapSize=6815736 -XX:+PrintCommandLineFlags -XX:ReservedCodeCacheSize=251658240 -XX:+SegmentedCodeCache -XX:+UseCompressedClassPointers -XX:+UseCompressedOops -XX:+UseG1GC 
 openjdk version "16-ea" 2021-03-16
 OpenJDK Runtime Environment (build 16-ea+25-1633)
@@ -135,7 +135,7 @@ OpenJDK 64-Bit Server VM (build 16-ea+25-1633, mixed mode, sharing)
 ```
 
 ```
-root@java:/# **java -XX:+PrintCommandLineFlags -XX:ActiveProcessorCount=8 -version** 
+root@java:/# java -XX:+PrintCommandLineFlags -XX:ActiveProcessorCount=8 -version
 -XX:ActiveProcessorCount=8 -XX:ConcGCThreads=2 -XX:G1ConcRefinementThreads=8 -XX:GCDrainStackTargetSize=64 -XX:InitialHeapSize=97560512 -XX:MarkStackSize=4194304 -XX:MaxHeapSize=1560968192 -XX:MinHeapSize=6815736 -XX:+PrintCommandLineFlags -XX:ReservedCodeCacheSize=251658240 -XX:+SegmentedCodeCache -XX:+UseCompressedClassPointers -XX:+UseCompressedOops -XX:+UseG1GC 
 openjdk version "16-ea" 2021-03-16
 OpenJDK Runtime Environment (build 16-ea+25-1633)
