@@ -12,8 +12,7 @@ tags: ['AWS']
 ```
 git clone https://github.com/amazon-archives/lightsail-auto-snapshots.git
 cd lightsail-auto-snapshots
-AWS\_PROFILE=default REGION=ap-northeast-1 DAYS=15 SCHEDULE="cron(0 19 \* \* ? \*)" bin/deploy
-
+AWS_PROFILE=default REGION=ap-northeast-1 DAYS=15 SCHEDULE="cron(0 19 * * ? *)" bin/deploy
 ```
 
 `SCHEDULE` は UTC なので、上記の例では日本時間の早朝4時となる。`DAYS=15` で取得後15日を過ぎると削除される。
