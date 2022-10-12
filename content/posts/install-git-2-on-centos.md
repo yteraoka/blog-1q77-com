@@ -17,7 +17,7 @@ IUS の git をインストールするには先に標準 repository から入�
 
 ```
 sudo yum -y install https://centos7.iuscommunity.org/ius-release.rpm
-sudo yum -y remove git git-\*
+sudo yum -y remove git git-*
 sudo yum -y install git2u
 ```
 
@@ -25,7 +25,7 @@ sudo yum -y install git2u
 
 ```
 sudo yum -y install https://centos6.iuscommunity.org/ius-release.rpm
-sudo yum -y remove git git-\*
+sudo yum -y remove git git-*
 sudo yum -y install git2u
 ```
 
