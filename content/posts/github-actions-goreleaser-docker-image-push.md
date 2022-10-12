@@ -14,8 +14,8 @@ goreleaser は **.goreleaser.yml** ファイル (-f, --config= で指定も可�
 
 init で作られるファイルは次の通り。(goreleaser のバージョンは 0.131.1)
 
-```
-\# This is an example goreleaser.yaml file with some sane defaults.
+```yaml
+# This is an example goreleaser.yaml file with some sane defaults.
 # Make sure to check the documentation at http://goreleaser.com
 before:
   hooks:
@@ -25,32 +25,31 @@ before:
     - go generate ./...
 builds:
 - env:
-  - CGO\_ENABLED=0
+  - CGO_ENABLED=0
 archives:
 - replacements:
     darwin: Darwin
     linux: Linux
     windows: Windows
     386: i386
-    amd64: x86\_64
+    amd64: x86_64
 checksum:
-  name\_template: 'checksums.txt'
+  name_template: 'checksums.txt'
 snapshot:
-  name\_template: "{{ .Tag }}-next"
+  name_template: "{{ .Tag }}-next"
 changelog:
   sort: asc
   filters:
     exclude:
     - '^docs:'
     - '^test:'
-
 ```
 
 「[Customization · GoReleaser](https://goreleaser.com/customization/)」に各項目の説明があります。**archives.replacements** は必須ではないけれども `uname` コマンドの出力に合わせる感じですかね。GitHub Actions で使う方法も [ドキュメント](https://goreleaser.com/actions/) にあります。Action は [Marcketplace](https://github.com/marketplace/actions/goreleaser-action) にあります。([source](https://github.com/goreleaser/goreleaser-action))
 
 結果、次のような **.goreleaser.yml** になりました。
 
-```
+```yaml
 before:
   hooks:
     - go mod download
@@ -67,7 +66,7 @@ builds:
       - -X main.commit={{.ShortCommit}}
       - -X main.date={{.Date}}
     env:
-      - CGO\_ENABLED=0
+      - CGO_ENABLED=0
 archives:
   - format: binary # 複数ファイルの zip とかじゃなくて単一のバイナリファイル配布にする (展開が面倒)
     replacements:
@@ -75,27 +74,26 @@ archives:
       linux: Linux
       windows: Windows
       386: i386
-      amd64: x86\_64
-    format\_overrides: # Windows だけは zip にする (exe をダウンロードさせるのは都合が悪い)
+      amd64: x86_64
+    format_overrides: # Windows だけは zip にする (exe をダウンロードさせるのは都合が悪い)
       - goos: windows
         format: zip
 checksum:
-  name\_template: checksums.txt
+  name_template: checksums.txt
 snapshot:
-  name\_template: "{{ .Tag }}-next"
+  name_template: "{{ .Tag }}-next"
 changelog:
   skip: true
-
 ```
 
 GitHub Actions の workflow の方は次のようになりました。ほぼ、ドキュメントのままです。違いは go-version くらいかな。これを **.github/workflows** ディレクトリ内の任意の .yaml (.yml) ファイルとして保存します。
 
-```
+```yaml
 name: release
 on:
   push:
     tags:
-      - "\*"
+      - "*"
 jobs:
   goreleaser:
     runs-on: ubuntu-latest
@@ -114,8 +112,7 @@ jobs:
           version: latest
           args: release --rm-dist
         env:
-          GITHUB\_TOKEN: ${{ secrets.GITHUB\_TOKEN }}
-
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 ```
 
 今回は使いませんでしたが [homebrew-tap](https://goreleaser.com/homebrew/) にも対応してるんですね。
@@ -127,13 +124,13 @@ Docker Image の Push
 
 GitHub Actions のドキュメント「[Publishing Docker images - GitHub Help](https://help.github.com/en/actions/language-and-framework-guides/publishing-docker-images)」にはサンプルとして次のような設定が掲載されています。
 
-```
+```yaml
 name: Publish Docker image
 on:
   release:
-    types: \[published\]
+    types: [published]
 jobs:
-  push\_to\_registry:
+  push_to_registry:
     name: Push Docker image to Docker Hub
     runs-on: ubuntu-latest
     steps:
@@ -142,25 +139,23 @@ jobs:
       - name: Push to Docker Hub
         uses: docker/build-push-action@v1
         with:
-          username: ${{ secrets.DOCKER\_USERNAME }}
-          password: ${{ secrets.DOCKER\_PASSWORD }}
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
           repository: my-docker-hub-namespace/my-docker-hub-repository
-          tag\_with\_ref: true
-
+          tag_with_ref: true
 ```
 
 `on` の trigger で release が published になったら、となっています。上の設定で goreleaser が publish してくれているという理解でしたが、なぜかこちらの workflow が実行されませんでした。詳しく調べたわけではないですが、どうやら [goreleaser の action](https://github.com/goreleaser/goreleaser-action) ではこれが使えないようです。[create-a-release action](https://github.com/marketplace/actions/create-a-release) ([source](https://github.com/actions/create-release)) だったら使えるのかな。
 
 ということで GitHub への code の push を trigger に実行するようにしました。master branch の場合は image の tag が latest になるようです。
 
-```
+```yaml
 on:
   push:
     branches:
-      - '\*'
+      - '*'
     tags:
-      - '\*'
-
+      - '*'
 ```
 
 後は repository を自分のものにして、docker のログイン情報を secrets として登録すれば終わりです。Docker Hub の場合は自分のログインパスワードとは別に token を発行してパスワードとして設定します。
