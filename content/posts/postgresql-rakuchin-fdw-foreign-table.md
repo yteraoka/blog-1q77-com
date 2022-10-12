@@ -187,37 +187,14 @@ psql -At -c "SELECT script_foreign_tables('apple', 'public', '%',
 'public.ft_')" > create_foreign_table.sql
 ```
 
-script\_foreign\_tables の引数は SELECT script\_foreign\_tables('apple', 'public', '%', 'public.ft\_');
+`script_foreign_tables` の引数は `SELECT script_foreign_tables('apple', 'public', '%', 'public.ft_');`
 
-#
-
-実行例の値
-
-説明
-
-1
-
-apple
-
-CREATE FOREIGN TABLE で指定する SERVER
-
-2
-
-public
-
-apple DB での対象テーブルの schema
-
-3
-
-%
-
-apple DB での対象テーブルを絞るための LIKE 条件 (% の場合は全てとなる)
-
-4
-
-public.ft\_
-
-CREATE TABLE 時の prefix (public.ft\_ であれば public schema に ft\_{original\_table\_name} という TABLE が作成される)。 public. であれば同じ名前の TABLE が作成される
+| # | 実行例の値  | 説明                                                                   |
+|---|-------------|------------------------------------------------------------------------|
+| 1 | apple       | CREATE FOREIGN TABLE で指定する SERVER                                 |
+| 2 | public      | apple DB での対象テーブルの schema                                     |
+| 3 | %           | apple DB での対象テーブルを絞るための LIKE 条件 (% の場合は全てとなる) |
+| 4 | public.ft\_ | CREATE TABLE 時の prefix (public.ft\_ であれば public schema に ft\_{original\_table\_name} という TABLE が作成される)。 public. であれば同じ名前の TABLE が作成される |
 
 ### CREATE FOREIGN TABLE
 
@@ -252,7 +229,9 @@ SELECT 'GRANT SELECT ON ' || relname || ' TO orange;'
 
 ### PostgreSQL 9.5 から FDW がもっと便利に
 
-IMPORT FOREIGN SCHEMA を使えば簡単に source database の schema をコピーして foreign table が作れるようになるみたいです。 [http://www.postgresql.org/docs/9.5/static/sql-importforeignschema.html](http://www.postgresql.org/docs/9.5/static/sql-importforeignschema.html)
+IMPORT FOREIGN SCHEMA を使えば簡単に source database の schema をコピーして foreign table が作れるようになるみたいです。
+
+[http://www.postgresql.org/docs/9.5/static/sql-importforeignschema.html](http://www.postgresql.org/docs/9.5/static/sql-importforeignschema.html)
 
 **[PostgreSQL 9.5 新機能紹介](//www.slideshare.net/hadoopxnttdata/postgresql-95-new-features-nttdata "PostgreSQL 9.5 新機能紹介")** from **[NTT DATA OSS Professional Services](//www.slideshare.net/hadoopxnttdata)**
 
