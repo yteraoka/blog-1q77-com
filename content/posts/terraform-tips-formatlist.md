@@ -11,17 +11,16 @@ Terraform の小ネタです。どうせまた自分でググることになる�
 
 次の例では [concat](https://www.terraform.io/docs/configuration/functions/concat.html) と組み合わせていますが、これもメモです。ここで注目すべきは formatlist の部分。sprintf のように `"%s/32"` でフォーマットしていていて、これが後ろの `module.vpc.nat_public_ips` というリストの各要素に適用されて、その結果がリストで返されます。
 
-```
-resource "aws\_security\_group\_rule" "some\_ingress" {
+```tf
+resource "aws_security_group_rule" "some_ingress" {
   type              = "ingress"
-  from\_port         = var.some\_port\_number
-  to\_port           = var.some\_port\_number
+  from_port         = var.some_port_number
+  to_port           = var.some_port_number
   protocol          = "TCP"
-  security\_group\_id = aws\_security\_group.some\_sg.id
-  cidr\_blocks       = concat(concat(var.some\_cidrs, var.additional\_cidrs), formatlist("%s/32", module.vpc.nat\_public\_ips))
+  security_group_id = aws_security_group.some_sg.id
+  cidr_blocks       = concat(concat(var.some_cidrs, var.additional_cidrs), formatlist("%s/32", module.vpc.nat_public_ips))
   description       = "example"
 }
-
 ```
 
 もう見つけたと思いますが [format](https://www.terraform.io/docs/configuration/functions/format.html) は sprintf のように使えます。
