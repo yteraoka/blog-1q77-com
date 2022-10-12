@@ -11,7 +11,7 @@ tags: ['Linux', 'vagrant']
 yum -y update
 yum -y groupinstall "Development Tools"
 yum -y install curl
-sed -i 's/^SELINUX=.\*/SELINUX=disabled/' /etc/selinux/config
+sed -i 's/^SELINUX=.*/SELINUX=disabled/' /etc/selinux/config
 systemctl stop firewalld
 systemctl disable firewalld
 rm /etc/udev/rules.d/70-persistent-ipoib.rules
@@ -39,37 +39,37 @@ umount したらデバイスからCDを削除しておく(eject)
 ```bash
 mkdir ~vagrant/.ssh
 chmod 755 ~vagrant/.ssh
-curl -o ~vagrant/.ssh/authorized\_keys https://raw.githubusercontent.com/mitchellh/vagrant/master/keys/vagrant.pub
-chmod 644 ~vagrant/.ssh/authorized\_keys
+curl -o ~vagrant/.ssh/authorized_keys https://raw.githubusercontent.com/mitchellh/vagrant/master/keys/vagrant.pub
+chmod 644 ~vagrant/.ssh/authorized_keys
 chown -R vagrant:vagrant ~vagrant
 ```
 
 後は sshd\_config いじって公開鍵認証だけにするとか、root での ssh ログインを許可しないとか不要なログを削除しておくとか。
 
-```
+```bash
 shutdown -h now
 ```
 
-```
+```bash
 vagrant package --base centos7 package.box
 vagrant box add --name centos7 package.box
 ```
 
 box ファイルとして追加されていることを確認
 
-```
+```bash
 vagrant box list
 ```
 
 package.box はもう不要なので削除
 
-```
+```bash
 rm package.box
 ```
 
 vagrant で起動してみる
 
-```
+```bash
 vagrant init centos7
 vagrant up
 ```
