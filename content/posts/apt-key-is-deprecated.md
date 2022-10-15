@@ -1,6 +1,6 @@
 ---
 title: 'apt-key is deprecated への対応'
-date: 2022-10-15T12:06:00+09:00
+date: 2022-10-15T13:06:00+00:00
 draft: false
 tags: ['Debian', 'Linux']
 ---
