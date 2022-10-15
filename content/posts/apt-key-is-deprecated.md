@@ -60,6 +60,31 @@ echo \
   $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
 ```
 
+ちなみに OpenPGP のバイナリを ASCII Armor に変換するには `gpg --enarmor` コマンドを使う。
+
+```bash
+gpg --enarmor < test.gpg > test.asc
+```
+
+```
+$ file test.gpg
+test.gpg: OpenPGP Public Key Version 4, Created Wed Feb 22 18:36:26 2017, RSA (Encrypt or Sign, 4096 bits); User ID; Signature; OpenPGP Certificate
+
+$ gpg --enarmor < test.gpg
+-----BEGIN PGP ARMORED FILE-----
+Comment: Use "gpg --dearmor" for unpacking
+
+mQINBFit2ioBEADhWpZ8/wvZ6hUTiXOwQHXMAlaFHcPH9hAtr4F1y2+OYdbtMuth
+lqqwp028AqyY+PRfVMtSYMbjuQuu5byyKR01BbqYhuS3jtqQmljZ/bJvXqnmiVXh
+
+... (snip) ...
+
+jCxcpDzNmXpWQHEtHU7649OXHP7UeNST1mCUCH5qdank0V1iejF6/CfTFU4MfcrG
+YT90qFF93M3v01BbxP+EIY2/9tiIPbrd
+=0YYh
+-----END PGP ARMORED FILE-----
+```
+
 
 ## 参考資料
 
