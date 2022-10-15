@@ -6,6 +6,8 @@ theme = 'blowfish'
 paginate = 20
 #disableKinds = ['taxonomy', 'term']
 
+rssLimit = 30
+
 # summary の文字数適正化
 hasCJKLanguage = true
 
