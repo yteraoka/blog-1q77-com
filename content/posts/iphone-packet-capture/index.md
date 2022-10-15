@@ -6,7 +6,7 @@ tags: ['tcpdump', 'iPhone']
 ---
 
 先日 iPhone のアプリが https で通信している内容を覗いてみようと HTTP プロキシに [OWSAP ZAP](https://www.zaproxy.org/) を指定して覗いてみました。
-OWASP ZAP が動的に証明書を発行してくれるので、その発行元となる CA を iPhone に登録しておけば HTTP 通信も中身を覗くことができます。(アプリで Certificate Pinning とかされていなければ)
+OWASP ZAP が動的に証明書を発行してくれるので、その発行元となる CA を iPhone に登録しておけば HTTPS 通信も中身を覗くことができます。(アプリで Certificate Pinning とかされていなければ)
 
 Pinning といえば [CAA (Certificate Authority Authorization)](https://www.rfc-editor.org/rfc/rfc8659) っていう DNS レコードもありますね。(余談)
 
