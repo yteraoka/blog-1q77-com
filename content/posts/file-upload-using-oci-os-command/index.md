@@ -1,6 +1,6 @@
 ---
 title: 'oci コマンドでのファイルアップロードと権限の最小化'
-date: Fri, 04 Dec 2020 16:18:51 +0000
+date: Sat, 05 Dec 2020 01:18:51 +0900
 draft: false
 tags: ['OracleCloud', 'advent calendar 2020']
 ---

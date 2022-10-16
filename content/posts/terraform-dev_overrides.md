@@ -1,6 +1,6 @@
 ---
 title: 'Terraform でカスタム provider を使うための dev_overrides 設定'
-date: Sun, 04 Apr 2021 04:03:47 +0000
+date: Sun, 04 Apr 2021 13:03:47 +0900
 draft: false
 tags: ['Terraform']
 ---

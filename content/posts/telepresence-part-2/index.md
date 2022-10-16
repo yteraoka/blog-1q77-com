@@ -1,6 +1,6 @@
 ---
 title: 'telepresence 入門 (2)'
-date: Sat, 08 Jan 2022 05:27:39 +0000
+date: Sat, 08 Jan 2022 14:27:39 +0900
 draft: false
 tags: ['Kubernetes', 'Kubernetes', 'telepresence']
 ---

@@ -1,6 +1,6 @@
 ---
 title: 'Oracle Cloud の oci コマンドセットアップ'
-date: Thu, 03 Dec 2020 15:37:57 +0000
+date: Fri, 04 Dec 2020 00:37:57 +0900
 draft: false
 tags: ['OracleCloud', 'advent calendar 2020']
 ---

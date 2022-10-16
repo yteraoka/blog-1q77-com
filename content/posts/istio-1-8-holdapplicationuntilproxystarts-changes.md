@@ -1,6 +1,6 @@
 ---
 title: 'Istio 1.8 で holdApplicationUntilProxyStarts 設定に変更がありました'
-date: Mon, 07 Dec 2020 13:45:16 +0000
+date: Mon, 07 Dec 2020 22:45:16 +0900
 draft: false
 tags: ['Istio', 'advent calendar 2020']
 ---

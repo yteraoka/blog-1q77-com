@@ -1,6 +1,6 @@
 ---
 title: 'envoy-sidecar-helper で Job の終了後に istio-proxy を停止させる'
-date: Fri, 12 Aug 2022 11:51:14 +0000
+date: Fri, 12 Aug 2022 20:51:14 +0900
 draft: false
 tags: ['Istio', 'Kubernetes']
 ---

@@ -1,6 +1,6 @@
 ---
 title: 'Go 言語での TCP keepalive'
-date: Thu, 10 Dec 2020 15:21:48 +0000
+date: Fri, 11 Dec 2020 00:21:48 +0900
 draft: false
 tags: ['Go', 'advent calendar 2020']
 ---

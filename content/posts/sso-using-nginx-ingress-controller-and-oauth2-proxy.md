@@ -1,6 +1,6 @@
 ---
 title: 'Nginx Ingress Controller と oauth2-proxy で SSO'
-date: Tue, 08 Dec 2020 15:21:27 +0000
+date: Wed, 09 Dec 2020 00:21:27 +0900
 draft: false
 tags: ['Kubernetes', 'advent calendar 2020', 'nginx']
 ---

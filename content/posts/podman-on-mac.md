@@ -1,6 +1,6 @@
 ---
 title: 'mac で podman'
-date: Thu, 23 Sep 2021 14:20:51 +0000
+date: Thu, 23 Sep 2021 23:20:51 +0900
 draft: false
 tags: ['Docker', 'Podman']
 ---

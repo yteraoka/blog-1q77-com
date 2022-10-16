@@ -1,6 +1,6 @@
 ---
 title: 'istio-proxy の log level を変更する'
-date: Tue, 07 Jun 2022 07:34:29 +0000
+date: Tue, 07 Jun 2022 16:34:29 +0900
 draft: false
 tags: ['Istio', 'Kubernetes']
 ---

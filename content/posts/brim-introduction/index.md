@@ -1,6 +1,6 @@
 ---
 title: 'tcpdump のお供に Brim を使いましょう'
-date: Wed, 09 Dec 2020 15:10:37 +0000
+date: Thu, 10 Dec 2020 00:10:37 +0900
 draft: false
 tags: ['Brim', 'Network', 'advent calendar 2020']
 ---
