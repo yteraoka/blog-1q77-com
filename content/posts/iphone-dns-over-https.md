@@ -1,6 +1,6 @@
 ---
 title: "DNS over HTTPS 通信の中身を確認する"
-date: 2022-10-15T15:11:55+00:00
+date: 2022-10-16T00:11:55+09:00
 draft: false
 tags: ['DNS', 'DOH', 'Python']
 ---

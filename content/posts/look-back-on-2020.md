@@ -1,6 +1,6 @@
 ---
 title: '2020年のOSS活動ふり返り'
-date: Thu, 24 Dec 2020 15:46:56 +0000
+date: Fri, 25 Dec 2020 00:46:56 +0900
 draft: false
 tags: ['Uncategorized', 'advent calendar 2020']
 ---

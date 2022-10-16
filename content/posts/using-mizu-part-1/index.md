@@ -1,6 +1,6 @@
 ---
 title: 'Mizu で kubernetes 内の通信を覗く (part 1)'
-date: Sat, 04 Jun 2022 16:04:52 +0000
+date: Sun, 05 Jun 2022 01:04:52 +0900
 draft: false
 tags: ['Kubernetes']
 ---

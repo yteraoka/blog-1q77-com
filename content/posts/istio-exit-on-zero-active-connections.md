@@ -1,6 +1,6 @@
 ---
 title: 'istio sidecar の停止を connection がなくなるまで遅らせる'
-date: Sat, 26 Feb 2022 15:52:27 +0000
+date: Sun, 27 Feb 2022 00:52:27 +0900
 draft: false
 tags: ['Envoy', 'Istio', 'Kubernetes']
 ---

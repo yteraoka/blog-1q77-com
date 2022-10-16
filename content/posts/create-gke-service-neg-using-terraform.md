@@ -1,6 +1,6 @@
 ---
 title: 'GKE Service の NEG を Terraform で作成する'
-date: Tue, 09 Aug 2022 11:13:48 +0000
+date: Tue, 09 Aug 2022 20:13:48 +0900
 draft: false
 tags: ['GKE', 'Terraform']
 ---

@@ -1,6 +1,6 @@
 ---
 title: 'Graceful Node Shutdown で Terminated 状態で残る Pod を削除する cronjob'
-date: Fri, 12 Aug 2022 12:19:57 +0000
+date: Fri, 12 Aug 2022 21:19:57 +0900
 draft: false
 tags: ['Kubernetes', 'Kubernetes']
 ---

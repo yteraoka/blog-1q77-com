@@ -1,6 +1,6 @@
 ---
 title: 'Terraform の便利な null value'
-date: Wed, 02 Dec 2020 16:27:02 +0000
+date: Thu, 03 Dec 2020 01:27:02 +0900
 draft: false
 tags: ['Terraform', 'advent calendar 2020']
 ---

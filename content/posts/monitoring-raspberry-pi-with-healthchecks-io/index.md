@@ -1,6 +1,6 @@
 ---
 title: 'healthchecks.io でラズパイの生死監視'
-date: Tue, 02 Mar 2021 15:03:45 +0000
+date: Wed, 03 Mar 2021 00:03:45 +0900
 draft: false
 tags: ['monitoring']
 ---

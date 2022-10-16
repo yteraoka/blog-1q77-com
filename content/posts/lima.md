@@ -1,6 +1,6 @@
 ---
 title: 'Lima で nerdctl'
-date: Sun, 19 Sep 2021 16:58:10 +0000
+date: Mon, 20 Sep 2021 01:58:10 +0900
 draft: false
 tags: ['Docker', 'Docker']
 ---

@@ -1,6 +1,6 @@
 ---
 title: 'Istio で Downstream への TCP keepalive を送る方法'
-date: Mon, 14 Dec 2020 11:48:15 +0000
+date: Mon, 14 Dec 2020 20:48:15 +0900
 draft: false
 tags: ['Istio', 'advent calendar 2020']
 ---

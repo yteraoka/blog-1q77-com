@@ -1,6 +1,6 @@
 ---
 title: 'Oracle Cloud の Object Storage での Lifecycle Policy 設定'
-date: Sun, 06 Dec 2020 04:09:31 +0000
+date: Sun, 06 Dec 2020 13:09:31 +0900
 draft: false
 tags: ['OracleCloud', 'advent calendar 2020']
 ---

@@ -1,6 +1,6 @@
 ---
 title: 'コンテナ内での Java の CPU Cores'
-date: Tue, 01 Dec 2020 16:23:38 +0000
+date: Wed, 02 Dec 2020 01:23:38 +0900
 draft: false
 tags: ['Java', 'advent calendar 2020']
 ---
