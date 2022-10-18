@@ -5,7 +5,7 @@ draft: false
 tags: ['Chaos Engineering', 'Kubernetes', 'Litmus']
 ---
 
-[Chaos Mesh](https://github.com/chaos-mesh/chaos-mesh) を[少しかじっていました](https://medium.com/sreake-jp/chaos-mesh-%E3%81%AB%E3%82%88%E3%82%8B%E3%82%AB%E3%82%AA%E3%82%B9%E3%82%A8%E3%83%B3%E3%82%B8%E3%83%8B%E3%82%A2%E3%83%AA%E3%83%B3%E3%82%B0-46fa2897c742)が、最近話題の [Litmus](https://litmuschaos.io/) に入門してみます。Litmus には Chaos Mesh にはなかった [EC2 Instance の停止](https://docs.litmuschaos.io/docs/Kubernetes-Chaostoolkit-AWS/)や [Docker Daemon の停止](https://docs.litmuschaos.io/docs/docker-service-kill/)や [kubelet の停止](https://docs.litmuschaos.io/docs/kubelet-service-kill/)などができるのが魅力ですね。
+[Chaos Mesh](https://github.com/chaos-mesh/chaos-mesh) を[少しかじっていました](https://medium.com/sreake-jp/chaos-mesh-%E3%81%AB%E3%82%88%E3%82%8B%E3%82%AB%E3%82%AA%E3%82%B9%E3%82%A8%E3%83%B3%E3%82%B8%E3%83%8B%E3%82%A2%E3%83%AA%E3%83%B3%E3%82%B0-46fa2897c742)が、最近話題の [Litmus](https://litmuschaos.io/) に入門してみます。Litmus には Chaos Mesh にはなかった [EC2 Instance の停止](https://docs.litmuschaos.io/docs/Kubernetes-Chaostoolkit-AWS/)や [Docker Daemon の停止](https://docs.litmuschaos.io/docs/docker-service-kill/)や [kubelet の停止](https://docs.litmuschaos.io/docs/kubelet-service-kill/)などができるのが魅力ですね。 (その後 Chaos Mesh でも EC2 や GCE のインスタンス停止などもできるようになっています)
 
 商用 Chaos Engineering ツールを提供している Gremlin が [Chaos Engineering tools comparison](https://www.gremlin.com/community/tutorials/chaos-engineering-tools-comparison/) というドキュメントを公開してくれていて、触ったことがあるものは納得感のある説明でした。Litmus は確かに面倒、Chaos Mesh がセキュリティ的に良くないというのもわかるが、そもそも Production で使おうなどとは思っていなかった。
 
