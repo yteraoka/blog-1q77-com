@@ -7,8 +7,8 @@ tags: ['fluentd', 'Ruby']
 
 Ruby 素人が作ってみました。 [https://github.com/yteraoka/fluent-plugin-tail-asis](https://github.com/yteraoka/fluent-plugin-tail-asis) rubygems にも UP したった。
 
-* [fluent-agent-lite と in\_tail](/2013/01/fluent-agent-lite-%E3%81%A8-in_tail/)
-* [in\_tail\_asis というのを書いた](/2013/02/in_tail_asis-%E3%81%A8%E3%81%84%E3%81%86%E3%81%AE%E3%82%92%E6%9B%B8%E3%81%84%E3%81%9F/)
+* [fluent-agent-lite と in\_tail](/2013/01/fluent-agent-lite-and-in_tail/)
+* [in\_tail\_asis というのを書いた](/2013/02/in_tail_asis/)
 
 あたりでやってたやつ。 ネーミングルールとか良くわからないけどまぁとりあえず動きましたよと。
 
