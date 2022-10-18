@@ -2,7 +2,7 @@
 title: 'Graceful Node Shutdown で Terminated 状態で残る Pod を削除する cronjob'
 date: Fri, 12 Aug 2022 21:19:57 +0900
 draft: false
-tags: ['Kubernetes', 'Kubernetes']
+tags: ['Kubernetes']
 ---
 
 GKE (GKE 限定な話ではないけれども) で Preemptible な node を使用していると Graceful Node Shutdown により停止させられた Pod が Failed 状態でどんどん溜まっていって結構邪魔です。
