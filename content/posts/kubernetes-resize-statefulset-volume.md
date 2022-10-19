@@ -90,3 +90,5 @@ kubectl delete sts STATEFULSET_NAME --cascade=orphan
 ```
 
 この後に再度 StatefulSet の manifest を apply してやれば Pod や volume を削除せずに StatefulSet を更新することができます。
+
+[Persistent Volumes | Kubernetes](https://kubernetes.io/docs/concepts/storage/persistent-volumes/) をちゃんと読んでおこう。
