@@ -11,7 +11,7 @@ rssLimit = 30
 # summary の文字数適正化
 hasCJKLanguage = true
 
-googleAnalytics = "G-315277795"
+googleAnalytics = "G-07K1ZG1PVD"
 
 [permalinks]
   posts = '/:year/:month/:filename/'
