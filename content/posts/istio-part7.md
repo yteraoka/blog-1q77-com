@@ -5,7 +5,7 @@ draft: false
 tags: ['Istio']
 ---
 
-[Istio シリーズ](/category/kubernetes/istio/)です。
+[Istio シリーズ](/tags/istio/)です。
 
 今回はクラスタ内から外部のサービスへのアクセスについてです。[ServiceEntry](https://istio.io/docs/reference/config/networking/service-entry/) ってやつが登場です。（これを書く中でだいぶ自分の理解の誤りが訂正されました、良かった良かった）
 

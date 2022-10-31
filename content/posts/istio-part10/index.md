@@ -5,7 +5,7 @@ draft: false
 tags: ['Istio', 'Kubernetes']
 ---
 
-[Istio シリーズ](/category/kubernetes/istio/) 第10回です。
+[Istio シリーズ](/tags/istio/) 第10回です。
 
 そろそろ図解してみようと思ったのだが...  
 正確に描くのは非常に難しい、そのうち Argo CD + Argo rollouts についても書くので Argo CD が描画する図を見る方が良いかもしれない。

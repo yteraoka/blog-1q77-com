@@ -5,7 +5,7 @@ draft: false
 tags: ['Istio']
 ---
 
-[Istio シリーズ](/category/kubernetes/istio/)です。
+[Istio シリーズ](/tags/istio/)です。
 
 今回は [VirtualService](https://istio.io/docs/reference/config/networking/virtual-service/) です。これを利用することで、コネクションプーリングの設定をしたり、レートリミットを入れたり、振り分け方法を指定したり、同じホスト名でアクセスしても条件によって振り分けを行えたり、指定の HTTP レスポンス (400 とか 500 Internal Server Error とか) を返したり、delay を入れたりすることができるようになります。また、後でやる Ingress Gateway からアクセスできるようになったりします。
 

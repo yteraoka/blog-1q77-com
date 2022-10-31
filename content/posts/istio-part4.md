@@ -5,7 +5,7 @@ draft: false
 tags: ['Istio']
 ---
 
-[Istio シリーズ](/category/kubernetes/istio/)です。
+[Istio シリーズ](/tags/istio/)です。
 
 今回は [Fault Injection](https://istio.io/docs/reference/config/networking/virtual-service/#HTTPFaultInjection) です。前回の VirtualService に設定を入れることでわざと 503 とか 500 エラーを返したり、delay を入れたりすることができます。
 

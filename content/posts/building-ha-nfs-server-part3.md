@@ -5,7 +5,7 @@ draft: false
 tags: ['CentOS', 'GlusterFS']
 ---
 
-[前回](/2017/05/building-ha-nfs-server-part2/)からの続き、[GlusterFS シリーズ](/category/glusterfs/)です。
+[前回](/2017/05/building-ha-nfs-server-part2/)からの続き、[GlusterFS シリーズ](/tags/glusterfs/)です。
 
 今回は snapshot 機能を試します。これのために初回に Thin Provisioned Volume で構築しています。
 

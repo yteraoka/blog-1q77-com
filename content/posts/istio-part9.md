@@ -5,7 +5,7 @@ draft: false
 tags: ['Istio']
 ---
 
-[Istio シリーズ](/category/kubernetes/istio/) 第9回です。
+[Istio シリーズ](/tags/istio/) 第9回です。
 
 [Istio by Example](https://istiobyexample.dev/) に [gRPC](https://istiobyexample.dev/grpc/) というのがあった。 gRPC に delay が挿入されている。できるんだねそれも。
 
