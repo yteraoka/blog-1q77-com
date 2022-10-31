@@ -5,7 +5,7 @@ draft: false
 tags: ['Istio', 'Kubernetes']
 ---
 
-[Istio シリーズ](/category/kubernetes/istio/) 第12回です。
+[Istio シリーズ](/tags/istio/) 第12回です。
 
 Istio は各 Pod に sidecar として Envoy コンテナを差し込み、通信の受信も送信も Envoy を経由します。アプリの更新時などに旧バージョンの Pod の停止する時、先に Envoy コンテナが停止してしまうとアプリのコンテナが通信できなくなり処理が完了できなくなったりします。開始時にもコンテナの起動順序は不定であるため起動スクリプトの調整や LivnessProbe, ReadinessProbe は重要です。
 

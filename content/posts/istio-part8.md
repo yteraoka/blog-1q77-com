@@ -5,7 +5,7 @@ draft: false
 tags: ['Istio']
 ---
 
-[Istio シリーズ](/category/kubernetes/istio/)です。
+[Istio シリーズ](/tags/istio/)です。
 
 [前回](/2020/03/istio-part7/)の予告通り今回は「**外部サービスでも Fault Injection したいぞ**」編です。
 

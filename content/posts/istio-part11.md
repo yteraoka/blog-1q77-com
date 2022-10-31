@@ -5,7 +5,7 @@ draft: false
 tags: ['Istio', 'Kubernetes']
 ---
 
-[Istio シリーズ](/category/kubernetes/istio/) 第11回です。
+[Istio シリーズ](/tags/istio/) 第11回です。
 
 TLS Termination
 ---------------

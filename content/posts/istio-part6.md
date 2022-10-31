@@ -5,7 +5,7 @@ draft: false
 tags: ['Istio']
 ---
 
-[Istio シリーズ](/category/kubernetes/istio/)です。
+[Istio シリーズ](/tags/istio/)です。
 
 いよいよ Ingress Gateway を試します。Istio でクラスタ外からのリクエストをサービスに流すためにはこれが必要です。
 

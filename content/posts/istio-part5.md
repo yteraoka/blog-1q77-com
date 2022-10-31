@@ -5,7 +5,7 @@ draft: false
 tags: ['Istio']
 ---
 
-[Istio シリーズ](/category/kubernetes/istio/)です。
+[Istio シリーズ](/tags/istio/)です。
 
 そういえば Ingress Gateway になかなか辿りつかないな。
 
