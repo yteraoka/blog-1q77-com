@@ -18,7 +18,7 @@ tags: ['Istio']
 
 Deployment と Service を作る Manifest です。サーバーに `-tls` オプションをつけずに実行して、Service の port name は **grpc** にしてあります。
 
-```
+```yaml
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -65,15 +65,14 @@ spec:
     app: grpc-helloworld
   type: ClusterIP
   ports:
-  - name: **grpc**
+  - name: grpc
     protocol: TCP
     port: 10000
-
 ```
 
-クライアントに使う Pod 用の Deployment はこちら。ここから作られる Pod 内から **/client** コマンドを実行します。
+クライアントに使う Pod 用の Deployment はこちら。ここから作られる Pod 内から `/client` コマンドを実行します。
 
-```
+```yaml
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -97,47 +96,44 @@ spec:
         command:
         - sleep
         - infinity
-
 ```
 
 クライアントからの接続テストは次のようにします。grpc-go って接続に成功するまでずっとリトライするんですね。間隔が開いていくんで Retry with Exponential Backoff and jitter ってやつかな。
 
-```
-$ /client -server\_addr grpc-helloworld-service.default.svc.cluster.local:10000 -timeout 10 
-
+```bash
+$ /client -server_addr grpc-helloworld-service.default.svc.cluster.local:10000 -timeout 10 
 ```
 
 ### VirtualService 無しの状態でのアクセス
 
 Envoy は protocol を理解していますね。
 
-```
+```yaml
 {
   "authority": "grpc-helloworld-service.default.svc.cluster.local:10000",
-  "bytes\_received": "12",
-  "bytes\_sent": "18",
-  "downstream\_local\_address": "10.98.145.150:10000",
-  "downstream\_remote\_address": "172.17.0.16:38298",
+  "bytes_received": "12",
+  "bytes_sent": "18",
+  "downstream_local_address": "10.98.145.150:10000",
+  "downstream_remote_address": "172.17.0.16:38298",
   "duration": "1",
-  "istio\_policy\_status": "-",
-  **"method": "POST"**,
-  **"path": "/helloworld.Greeter/SayHello"**,
-  **"protocol": "HTTP/2"**,
-  "request\_id": "132f13ce-9503-4b4e-aaa9-ea9caf34d9a0",
-  "requested\_server\_name": "-",
-  "response\_code": "200",
-  "response\_flags": "-",
-  "route\_name": "default",
-  "start\_time": "2020-03-14T15:36:25.619Z",
-  "upstream\_cluster": "outbound|10000||grpc-helloworld-service.default.svc.cluster.local",
-  "upstream\_host": "172.17.0.17:10000",
-  "upstream\_local\_address": "172.17.0.16:56496",
-  "upstream\_service\_time": "1",
-  "upstream\_transport\_failure\_reason": "-",
-  "user\_agent": "grpc-go/1.28.0",
-  "x\_forwarded\_for": "-"
+  "istio_policy_status": "-",
+  "method": "POST",
+  "path": "/helloworld.Greeter/SayHello",
+  "protocol": "HTTP/2",
+  "request_id": "132f13ce-9503-4b4e-aaa9-ea9caf34d9a0",
+  "requested_server_name": "-",
+  "response_code": "200",
+  "response_flags": "-",
+  "route_name": "default",
+  "start_time": "2020-03-14T15:36:25.619Z",
+  "upstream_cluster": "outbound|10000||grpc-helloworld-service.default.svc.cluster.local",
+  "upstream_host": "172.17.0.17:10000",
+  "upstream_local_address": "172.17.0.16:56496",
+  "upstream_service_time": "1",
+  "upstream_transport_failure_reason": "-",
+  "user_agent": "grpc-go/1.28.0",
+  "x_forwarded_for": "-"
 }
-
 ```
 
 ### VirtualService で Delay を挿入する
@@ -146,7 +142,7 @@ Fault Injection のために VirtualService を作成します。
 
 VirtualService の Manifest。常に 3 秒の delay を入れます。
 
-```
+```yaml
 apiVersion: networking.istio.io/v1beta1
 kind: VirtualService
 metadata:
@@ -155,54 +151,52 @@ spec:
   hosts:
   - grpc-helloworld-service
   http:
-  - **fault:**
-      **delay:**
-        **percentage:**
-          **value: 100.0**
-        **fixedDelay: 3s**
+  - fault:
+      delay:
+        percentage:
+          value: 100.0
+        fixedDelay: 3s
     route:
     - destination:
         host: grpc-helloworld-service
-
 ```
 
 delay を挿入した場合のログです。
 
-```
+```json
 {
   "authority": "grpc-helloworld-service.default.svc.cluster.local:10000",
-  "bytes\_received": "12",
-  "bytes\_sent": "18",
-  "downstream\_local\_address": "10.98.145.150:10000",
-  "downstream\_remote\_address": "172.17.0.16:51828",
-  **"duration": "3004"**,
-  "istio\_policy\_status": "-",
+  "bytes_received": "12",
+  "bytes_sent": "18",
+  "downstream_local_address": "10.98.145.150:10000",
+  "downstream_remote_address": "172.17.0.16:51828",
+  "duration": "3004",
+  "istio_policy_status": "-",
   "method": "POST",
   "path": "/helloworld.Greeter/SayHello",
   "protocol": "HTTP/2",
-  "request\_id": "5340f5d7-f6a8-45e5-897f-ceeb3526dfd5",
-  "requested\_server\_name": "-",
-  "response\_code": "200",
-  **"response\_flags": "DI"**,
-  "route\_name": "-",
-  "start\_time": "2020-03-14T12:31:59.995Z",
-  "upstream\_cluster": "outbound|10000||grpc-helloworld-service.default.svc.cluster.local",
-  "upstream\_host": "172.17.0.17:10000",
-  "upstream\_local\_address": "172.17.0.16:41198",
-  "upstream\_service\_time": "2",
-  "upstream\_transport\_failure\_reason": "-",
-  "user\_agent": "grpc-go/1.28.0",
-  "x\_forwarded\_for": "-"
+  "request_id": "5340f5d7-f6a8-45e5-897f-ceeb3526dfd5",
+  "requested_server_name": "-",
+  "response_code": "200",
+  "response_flags": "DI",
+  "route_name": "-",
+  "start_time": "2020-03-14T12:31:59.995Z",
+  "upstream_cluster": "outbound|10000||grpc-helloworld-service.default.svc.cluster.local",
+  "upstream_host": "172.17.0.17:10000",
+  "upstream_local_address": "172.17.0.16:41198",
+  "upstream_service_time": "2",
+  "upstream_transport_failure_reason": "-",
+  "user_agent": "grpc-go/1.28.0",
+  "x_forwarded_for": "-"
 }
-
 ```
 
 TLS 有効な場合
 ---------
 
-次に TLS を有効にした gRPC サーバーとの通信で試します。サーバーとヘルスチェック用のコマンドに **\-tls** オプションをつけます。Service は port name を **tls** にします。TLS を有効にしているのに port name を grpc にしてしまうと通信できません。
+次に TLS を有効にした gRPC サーバーとの通信で試します。サーバーとヘルスチェック用のコマンドに `-tls` オプションをつけます。Service は port name を **tls** にします。TLS を有効にしているのに port name を grpc にしてしまうと通信できません。
 
-```
+```yaml
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -225,21 +219,21 @@ spec:
         imagePullPolicy: IfNotPresent
         command:
         - "/server"
-        - "**\-tls**"
+        - "-tls"
         ports:
         - containerPort: 10000
         readinessProbe:
           exec:
             command:
             - "/client"
-            - "**\-tls**"
+            - "-tls"
           initialDelaySeconds: 10
           periodSeconds: 5
         livenessProbe:
           exec:
             command:
             - "/client"
-            - "**\-tls**"
+            - "-tls"
           initialDelaySeconds: 15
           periodSeconds: 5
 ---
@@ -252,41 +246,39 @@ spec:
     app: grpc-helloworld
   type: ClusterIP
   ports:
-  - name: **tls**
+  - name: tls
     protocol: TCP
     port: 10000
-
 ```
 
 アクセスした場合のログ。TLS の中は見れません。よって delay を入れることもできません。
 
-```
+```json
 {
   "authority": "-",
-  "bytes\_received": "688",
-  "bytes\_sent": "1359",
-  "downstream\_local\_address": "10.98.145.150:10000",
-  "downstream\_remote\_address": "172.17.0.16:46948",
+  "bytes_received": "688",
+  "bytes_sent": "1359",
+  "downstream_local_address": "10.98.145.150:10000",
+  "downstream_remote_address": "172.17.0.16:46948",
   "duration": "11",
-  "istio\_policy\_status": "-",
+  "istio_policy_status": "-",
   "method": "-",
   "path": "-",
   "protocol": "-",
-  "request\_id": "-",
-  "requested\_server\_name": "-",
-  "response\_code": "0",
-  "response\_flags": "-",
-  "route\_name": "-",
-  "start\_time": "2020-03-14T15:43:52.547Z",
-  "upstream\_cluster": "outbound|10000||grpc-helloworld-service.default.svc.cluster.local",
-  "upstream\_host": "172.17.0.7:10000",
-  "upstream\_local\_address": "172.17.0.16:55454",
-  "upstream\_service\_time": "-",
-  "upstream\_transport\_failure\_reason": "-",
-  "user\_agent": "-",
-  "x\_forwarded\_for": "-"
+  "request_id": "-",
+  "requested_server_name": "-",
+  "response_code": "0",
+  "response_flags": "-",
+  "route_name": "-",
+  "start_time": "2020-03-14T15:43:52.547Z",
+  "upstream_cluster": "outbound|10000||grpc-helloworld-service.default.svc.cluster.local",
+  "upstream_host": "172.17.0.7:10000",
+  "upstream_local_address": "172.17.0.16:55454",
+  "upstream_service_time": "-",
+  "upstream_transport_failure_reason": "-",
+  "user_agent": "-",
+  "x_forwarded_for": "-"
 }
-
 ```
 
 まとめ
