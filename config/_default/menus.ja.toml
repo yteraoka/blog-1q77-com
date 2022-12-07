@@ -1,0 +1,26 @@
+[[main]]
+  name = "Blog"
+  pageRef = "posts"
+  weight = 10
+
+[[main]]
+  name = "Tags"
+  pageRef = "tags"
+  weight = 20
+
+[[main]]
+  pre = "github"
+  name = "GitHub"
+  url = "https://github.com/yteraoka"
+  weight = 30
+
+[[main]]
+  pre = "twitter"
+  name = "Twitter"
+  url = "https://twitter.com/yteraoka"
+  weight = 40
+
+[[main]]
+  name = "Qiita"
+  url = "https://qiita.com/yteraoka"
+  weight = 50
