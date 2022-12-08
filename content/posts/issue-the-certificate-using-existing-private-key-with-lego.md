@@ -89,7 +89,7 @@ EOF
 ```
 
 ```bash
-/Users/teraoka/.homebrew/opt/openssl@3/bin/openssl req -new -key key.pem \
+openssl req -new -key key.pem \
   -out www.example.com.csr \
   -subj "/CN=www.example.com" \
   -config san.conf
