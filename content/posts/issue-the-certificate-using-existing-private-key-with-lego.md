@@ -117,26 +117,31 @@ Requested Extensions:
 ```
 
 
-macOS の `/usr/bin/openssl` は LibreSSL ですが、Homebrew でインストールした openssl 3.0.7 では conf の中身をもうちょい省略しても大丈夫でした。
+### ファイルを作らない方法
+
+[Simple, Rolling-Update Production Setup With Docker & Traefik](https://blog.sebastian-daschner.com/entries/rolling-updates-production-traefik) という記事を見ていたら `<()` を使う方法がありました。
+shell のこの記法は知っていて diff なんかでは使ってましたが、たまに使えないことがある (file の permission をチェックしてる場合など) ので試してませんでした。
+また、`-extensions` で指定すれば `req_extensions` をファイル内での指定を省略できるようです。
+記事内では printf が使われていましたが複数行でも見やすい方が良いかと `<<` にしてみた。
+あ、あとこれは CSR 作成までじゃなくて自己署名するところまでになってる。
 
 ```
-cat > san.conf <<'EOF'
+openssl req -x509 -out example.com.crt -keyout example.com.key \
+  -newkey rsa:2048 -nodes -sha256 \
+  -subj '/CN=example.com' -extensions ext -config <( <<EOF
+[dn]
+CN=example.com
 [req]
-req_extensions       = server_reqext
-
-[server_reqext]
-basicConstraints     = CA:FALSE
-keyUsage             = critical,digitalSignature,keyEncipherment
-extendedKeyUsage     = serverAuth
-subjectKeyIdentifier = hash
-subjectAltName       = @alt_names
-
-[alt_names]
-DNS.1                = www.example.com
-DNS.2                = example.com
+distinguished_name = dn
+[ext]
+subjectAltName=DNS:example.com,DNS:*.example.com
+keyUsage=digitalSignature
+extendedKeyUsage=serverAuth
 EOF
+)
 ```
 
 ## 参考資料
 
 - [IBM Documentation | マルチドメイン (SAN) SSL 証明書署名要求の作成](https://www.ibm.com/docs/ja/qsip/7.4?topic=sc-creating-multi-domain-san-ssl-certificate-signing-request)
+- [Simple, Rolling-Update Production Setup With Docker & Traefik - Sebastian Daschner](https://blog.sebastian-daschner.com/entries/rolling-updates-production-traefik)
