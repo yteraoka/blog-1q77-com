@@ -26,7 +26,7 @@ WAL-E と同様に多くのオブジェクトストレージに対応してい�
 
 ### 帯域制限
 
-Backup 時のDBファイルの読み出しレート、オブジェクトストレージへの転送レート、ダウンロードの並列度などを制御することが可能です。
+Backup 時のDBファイルの読み出しレート、オブジェクトストレージへの転送レート、ダウンロードの並列度などの制御が可能です。
 
 ### Delta Backup
 
@@ -36,7 +36,7 @@ WAL-delta backups (a.k.a. fast block-level incremental backup). This feature ena
 
 ### 暗号化
 
-S3 の SSE (KMS 対応) も使えるが、GPG で暗号化して保存することも可能で、外部の gpg コマンドも必要ない。
+S3 の SSE (KMS 対応) も使えるが、GPG で暗号化しての保存も可能で、外部の gpg コマンドも必要ない。
 
 試してみる
 -----
@@ -146,7 +146,7 @@ $ sudo -iu postgres WALE_FILE_PREFIX=/backup /usr/local/bin/wal-g backup-list
 ERROR: 2019/06/22 07:08:35.529498 No backups found
 ```
 
-`wal-g backup-push` でフルバックアップを取得。ここでは Unix Domain Socket で通信するために PGHOST に socket ファイルのパスを指定している
+`wal-g backup-push` でフルバックアップを取得。ここでは Unix Domain Socket で通信するため PGHOST に socket ファイルのパスを指定している
 
 ```
 $ sudo -iu postgres PGHOST=/tmp/.s.PGSQL.5432 WALE_FILE_PREFIX=/backup /usr/local/bin/wal-g backup-push /var/lib/pgsql/11/data
@@ -163,7 +163,7 @@ INFO: 2019/06/22 07:14:47.221920 tablespace_map
 INFO: 2019/06/22 07:14:47.222044 Finished writing part 3.
 ```
 
-PostgreSQL のログから次のクエリが実行されたことがわかります。`pg_start_backup()` や `pg_stop_backup()` が実行されています。
+PostgreSQL のログから次のクエリが実行されたとわかります。`pg_start_backup()` や `pg_stop_backup()` が実行されています。
 
 ```
 2019-06-22 07:14:45.772 UTC [12227] LOG:  execute <unnamed>: select t.oid,
@@ -266,7 +266,7 @@ $ mc ls local/wal-g/wal_005/
 [2019-06-22 07:46:02 UTC]   65KiB 000000010000000000000009.lz4
 ```
 
-次に、この状態で replica を作ります。近くにあるサーバー同士であれば pg\_basebackup でデータをコピーすれば良いのですがここではあえて WAL-G の `backup-push` と `backup-fetch` を使っている。オンプレにある DB のレプリカをクラウドに作るのに使えるのではないかと
+次に、この状態で replica を作ります。近くにあるサーバー同士であれば pg\_basebackup でデータをコピーすれば良いのですがここではあえて WAL-G の `backup-push` と `backup-fetch` を使っている。オンプレにある DB のレプリカをクラウドに作る用途で使えるのではないかと
 
 1.  (master) replication のための設定 streaming replication しない場合は不要だった
 2.  (master) WAL-G の `backup-push` で minio に backup を保存
@@ -401,7 +401,7 @@ ERROR: 2019/06/22 08:21:19.043264 Archive '00000001000000000000000E' does not ex
 
 ### 掃除
 
-wal-push で WAL を送り続けるとひたすらたまり続けてしまうので掃除してやる必要がある。`wal-g delete` コマンドで指定の basebackup より前のものを削除することができる、残す世代数を指定しいて削除することも可能
+wal-push で WAL を送り続けるとひたすらたまり続けてしまうので掃除する必要がある。`wal-g delete` コマンドで指定の basebackup より前のものの削除が可能、残す世代数を指定しての削除も可能
 
 ```
 Usage:

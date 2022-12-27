@@ -5,7 +5,7 @@ draft: false
 tags: ['PostgreSQL', 'slony']
 ---
 
-[Slony-I 2.2.7 のドキュメント](http://www.slony.info/documentation/2.2/index.html)からの情報です
+[Slony-I 2.2.7 のドキュメント](http://www.slony.info/documentation/2.2/index.html)からの情報です。
 
 概要の確認とチュートリアルを試してみます。
 
@@ -39,7 +39,7 @@ System Requirements
 Slony-I Concepts
 ----------------
 
-セットアップするためには次の概念を理解する必要がある
+セットアップするためには次の概念を理解する必要がある。
 
 * Cluster
 * Node
@@ -48,7 +48,7 @@ Slony-I Concepts
 * slon daemons
 * slonik configuration processor
 
-ロシア語の意味も理解しておくと良い
+ロシア語の意味も理解しておくと良い。
 
 * **slon** は象 🐘
 * **slony** は象の複数形 🐘🐘🐘
@@ -56,17 +56,17 @@ Slony-I Concepts
 
 ### Cluster
 
-**Cluster** はレプリケーションを組む PostgreSQL インスタンスの集合で、各 Slonik スクリプトで次のように定義する
+**Cluster** はレプリケーションを組む PostgreSQL インスタンスの集合で、各 Slonik スクリプトで次のように定義する。
 
 ```
 cluster name = something;
 ```
 
-**Cluster** 名が `something` だった場合、それぞれのデータベースに `_something` という schema が作成される
+**Cluster** 名が `something` だった場合、それぞれのデータベースに `_something` という schema が作成される。
 
 ### Node
 
-レプリケーションを構成するうちのひとつひとつのデータベースを **Node** と呼び、各 Slonik スクリプトの冒頭で次のように定義される
+レプリケーションを構成するうちのひとつひとつのデータベースを **Node** と呼び、各 Slonik スクリプトの冒頭で次のように定義される。
 
 ```
 NODE 1 ADMIN CONNINFO = 'dbname=testdb host=server1 user=slony';
@@ -76,15 +76,15 @@ NODE 1 ADMIN CONNINFO = 'dbname=testdb host=server1 user=slony';
 
 ### Replication Set
 
-**Node** 間でレプリケーションされるテーブルとシーケンスのセット
+**Node** 間でレプリケーションされるテーブルとシーケンスのセット。
 
 ### Origin, Providers and Subscribers
 
-各 **Replication Set** には **Origin** node があり、それはアプリケーションによるレコードの変更が唯一許されている場所であり、Master **provider** とも呼ばれる。**Replication Set** の他の node は **Subscriber** となります。ただし、Slony-I はカスケードレプリケーションをサポートしているため、Subscriber が別の **Replication set** の **Origin** である可能性もあります
+各 **Replication Set** には **Origin** node があり、それはアプリケーションによるレコードの変更が唯一許されている場所であり、Master **provider** とも呼ばれる。**Replication Set** の他の node は **Subscriber** となります。ただし、Slony-I はカスケードレプリケーションをサポートしているため、Subscriber が別の **Replication set** の **Origin** である可能性もあります。
 
 ### slon daemons
 
-**Cluster** 内の各 **Node** ではレプリケーションイベントを処理する [slon](http://www.slony.info/documentation/2.2/slon.html) プロセスが稼働している。C 言語で書かれており、処理する主な2つのイベントは次の通り
+**Cluster** 内の各 **Node** ではレプリケーションイベントを処理する [slon](http://www.slony.info/documentation/2.2/slon.html) プロセスが稼働している。C 言語で書かれており、処理する主な2つのイベントは次の通り。
 
 * **Configuration events**  
   Slonik スクリプトが実行された場合に発生し、クラスタ構成の変更が送られる
@@ -93,18 +93,18 @@ NODE 1 ADMIN CONNINFO = 'dbname=testdb host=server1 user=slony';
 
 ### slonik configuration processor
 
-[Slonik](http://www.slony.info/documentation/2.2/slonik.html) コマンドは小さな言語となっているスクリプトを実行してクラスタの設定変更イベントを送る。このイベントには Node の追加や削除、通信 path の変更、Subscriber の追加、削除が含まれる
+[Slonik](http://www.slony.info/documentation/2.2/slonik.html) コマンドは小さな言語となっているスクリプトを実行してクラスタの設定変更イベントを送る。このイベントには Node の追加や削除、通信 path の変更、Subscriber の追加、削除が含まれる。
 
 Current Limitations
 -------------------
 
-Slony-I は次の変更を自動でレプリケートしない
+Slony-I は次の変更を自動でレプリケートしない。
 
 * Large objects (BLOBS)
 * DDL
 * Uses and Roles
 
-Slony-I は trigger によって変更を捉えているため、これらの変更を捉えることができませんが、[SLONIK EXECUTE SCRIPT](http://www.slony.info/documentation/2.2/stmtddlscript.html) を使うことで DDL を各 Node で実行することができます
+Slony-I は trigger によって変更を捉えているため、これらの変更は捉えることができませんが、[SLONIK EXECUTE SCRIPT](http://www.slony.info/documentation/2.2/stmtddlscript.html) を使うことで DDL を各 Node で実行可能です。
 
 Tutorial
 --------
@@ -138,7 +138,7 @@ sudo systemctl enable postgresql-9.6
 sudo systemctl start postgresql-9.6
 ```
 
-今後の手順で使う環境変数を次のように設定します
+今後の手順で使う環境変数を次のように設定します。
 
 ```bash
 export CLUSTERNAME=slony_example
@@ -152,7 +152,7 @@ export PGBENCHUSER=pgbench
 
 ### Creating the pgbench User
 
-pgbench 用ユーザーの作成
+pgbench 用ユーザーの作成。
 
 ```bash
 sudo -iu postgres createuser -SRD $PGBENCHUSER
@@ -160,7 +160,7 @@ sudo -iu postgres createuser -SRD $PGBENCHUSER
 
 ### Preparing the Databases
 
-pgbench 用のデータベースを作成し、1度 pgbench を実行してテーブルを作成します
+pgbench 用のデータベースを作成し、1度 pgbench を実行してテーブルを作成します。
 
 ```bash
 sudo -iu postgres createdb -O $PGBENCHUSER $MASTERDBNAME
@@ -237,19 +237,19 @@ psql -U $PGBENCHUSER -d $MASTERDBNAME -c "ALTER TABLE pgbench_history ADD COLUMN
 psql -U $PGBENCHUSER -d $MASTERDBNAME -c "ALTER TABLE pgbench_history ADD PRIMARY KEY(id)"
 ```
 
-Slony は PL/PGSQL を使うので createlang で作成する
+Slony は PL/PGSQL を使うので createlang で作成する。
 
 ```bash
 sudo -iu postgres createlang plpgsql $MASTERDBNAME
 ```
 
-pg2 に DB を作成する
+pg2 に DB を作成する。
 
 ```bash
 sudo -iu postgres createdb -O $PGBENCHUSER $SLAVEDBNAME
 ```
 
-pg1 から pg2 へスキーマをコピーする
+pg1 から pg2 へスキーマをコピーする。
 
 ```bash
 pg_dump -s -U $REPLICATIONUSER -h $MASTERHOST $MASTERDBNAME \
@@ -258,11 +258,11 @@ pg_dump -s -U $REPLICATIONUSER -h $MASTERHOST $MASTERDBNAME \
 
 ### Configuring the Database For Replication
 
-設定テーブル、ストアド・プロシージャ、トリガーの作成と設定はすべて [slonik](http://www.slony.info/documentation/2.2/slonik.html) コマンドをを使って行います
+設定テーブル、ストアド・プロシージャ、トリガーの作成と設定はすべて [slonik](http://www.slony.info/documentation/2.2/slonik.html) コマンドを使って行います。
 
 #### Using slonik Command Directly
 
-slonik コマンドへの入力を自分で用意する方法です。簡略化およびミスを減らすために後述の別のツールを使う方法もあります
+slonik コマンドへの入力を自分で用意する方法です。簡略化およびミスを減らすために後述の別のツールを使う方法もあります。
 
 ```bash
 sudo /usr/pgsql-9.3/bin/slonik <<_EOF_
@@ -425,19 +425,19 @@ Disabled triggers:
 pgbench=#
 ```
 
-pg1 (origin) で slon を起動
+pg1 (origin) で slon を起動。
 
 ```bash
 /usr/pgsql-9.3/bin/slon $CLUSTERNAME "dbname=$MASTERDBNAME user=$REPLICATIONUSER host=$MASTERHOST"
 ```
 
-pg2 (subscriber) で slon を起動
+pg2 (subscriber) で slon を起動。
 
 ```bash
 /usr/pgsql-9.6/bin/slon $CLUSTERNAME "dbname=$SLAVEDBNAME user=$REPLICATIONUSER host=$SLAVEHOST"
 ```
 
-pg2 で `pg_stat_activity` を見ると次のようなプロセスからの接続がありました
+pg2 で `pg_stat_activity` を見ると次のようなプロセスからの接続がありました。
 
 ```
 slon.local_cleanup
@@ -449,15 +449,15 @@ slon.origin_2_provider_2
 slon.remoteWorkerThread_1
 ```
 
-slon プロセスがなにやら SYNC してそうな出力をしますが、ここまでではまだ同期が始まっていません
+slon プロセスがなにやら SYNC してそうな出力をしますが、ここまでではまだ同期が始まっていません。
 
-ここで再度 pgbench を実行してみます。今度は `-T 300` で5分間実行されるようにしています。これの実行中に次の subscribe 設定を行うことで、更新中の同期開始を試みます
+ここで再度 pgbench を実行してみます。今度は `-T 300` で5分間実行されるようにしています。これの実行中に次の subscribe 設定をすることで、更新中の同期開始を試みます。
 
 ```bash
 /usr/pgsql-9.3/bin/pgbench -s 1 -c 5 -T 300 -U $PGBENCHUSER -h $MASTERHOST $MASTERDBNAME
 ```
 
-次のようにして slonik で [subscribe](http://www.slony.info/documentation/2.2/stmtsubscribeset.html) 指示を出します
+次のようにして slonik で [subscribe](http://www.slony.info/documentation/2.2/stmtsubscribeset.html) 指示を出します。
 
 ```bash
 sudo /usr/pgsql-9.3/bin/slonik <<_EOF_
@@ -480,7 +480,7 @@ sudo /usr/pgsql-9.3/bin/slonik <<_EOF_
 _EOF_
 ```
 
-これによって origin テーブルのレコードをコピーし、完了後、コピー開始時からの変更を反映していきます
+これによって origin テーブルのレコードをコピーし、完了後、コピー開始時からの変更を反映していきます。
 
 #### Using the altperl Scripts
 
@@ -503,7 +503,7 @@ $ slonik_subscribe_set 1 2 | slonik
 
 ### テーブル / レコードの比較
 
-正しく同期できているかどうか、次のスクリプトで確認することができます。`order by` つきでそれぞれのデータベースからレコードを取得して diff で比較しています
+正しく同期できているか、次のスクリプトで確認できます。`order by` つきでそれぞれのデータベースからレコードを取得して diff で比較しています。
 
 ```bash
 #!/bin/sh
@@ -541,4 +541,4 @@ fi
 Conclusion
 ----------
 
-リアルワールドでは pgbench の用な単純な構成ではないため、実際にこれを使ってデータベースのアップグレードを行うにはより詳しく調査する必要がありますが、なんとなく概要がわかりました
+リアルワールドでは pgbench の用な単純な構成ではないため、実際にこれを使ってデータベースのアップグレードを行うにはより詳しく調査する必要がありますが、なんとなく概要がわかりました。

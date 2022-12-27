@@ -59,7 +59,13 @@ brew cask install visual-studio-code
 brew cask install google-cloud-sdk
 ```
 
-`bq`, `docker-credential-gcloud`, `gcloud`, `git-credential-gcloud.sh`, `gsutil` が homebrew の bin/ に symlink される
+- `bq`
+- `docker-credential-gcloud`
+- `gcloud`
+- `git-credential-gcloud.sh`
+- `gsutil`
+
+が homebrew の bin/ に symlink される
 
 #### jq
 
@@ -96,7 +102,7 @@ Client Version: v1.14.8
 
 #### GNU tools
 
-Linux のつもりで使ってるとハマるので Gnu のツールを入れる。通常の path には `gsed` などと `g` prefix がついたものが置かれる。`$(brew --prefix)/opt/gnu-sed/libexec/gnubin` を `PATH` の手前の方に入れておけば `g` 無しで使える。
+Linux のつもりで使ってるとハマるので Gnu のツールを入れる。通常の path には `gsed` などと `g` prefix のついたものが置かれる。`$(brew --prefix)/opt/gnu-sed/libexec/gnubin` を `PATH` の手前の方に入れておけば `g` 無しで使える。
 
 ```
 brew install coreutils
@@ -233,7 +239,7 @@ Git
 git config --global core.excludesfile ~/.gitignore_global
 ```
 
-[グローバルで.gitignoreを適応する](https://qiita.com/katsew/items/5cade12fa743a2f31f25)  
+[グローバルで.gitignoreを適用する](https://qiita.com/katsew/items/5cade12fa743a2f31f25)  
 [github.com/github/gitignore](https://github.com/github/gitignore)
 
 ### git-secrets
