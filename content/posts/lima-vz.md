@@ -1,5 +1,5 @@
 ---
-title: "Lima の vmType VZ を試す"
+title: "Lima の vmType VZ と virtiofs を試す"
 date: 2022-12-30T00:49:47+09:00
 tags: ["Docker", "macOS", "lima"]
 draft: false
@@ -11,7 +11,7 @@ draft: false
 
 この新しい Framework では Host のディレクトリをマウントするのに virtiofs が使えるようになっており、QEMU での `reverse-sshfs` や `9p` よりもパフォーマンスが良いらしいので試してみます。
 
-とりあえず fio を使ってみますが、Host (mac) でのキャッシュの状況の影響を受けるだろうし、ディレクトリのリストやファイルの open、close が遅い場合は測れないけどとりあえず参考までにということで。
+とりあえず fio を使ってみますが、Host (mac) でのキャッシュの状況の影響を受けるだろうし、ディレクトリのリストやファイルの open、close が遅い場合は測れないけどとりあえず参考までにということで。fio だけではイマイチだったので tarball の展開にかかる時間も比較してみた。
 
 lima は普段 [docker 用の VM](https://blog.1q77.com/2022/01/docker-on-lima/) として使っているので docker の volume としてマウントして docker コンテナ内で fio コマンドを実行しています。
 
@@ -87,7 +87,7 @@ rancher-desktop           Rancher Desktop moby context              unix:///User
 ```
 
 
-## fio
+## fio で IOPS を比較
 
 次のコマンドを使って fio を実行しました。
 
@@ -133,7 +133,7 @@ rwmixwrite=30
 
 ## IOPS 結果
 
-うーん、IOPS だけだと 9p と virtiofs との差はなんとも言えない感じ。
+各環境で5回実行。うーん、IOPS だけだと 9p と virtiofs との差はなんとも言えない感じ。
 
 | vmType | mountType     | Random Read IOPS | Random Write IOPS | Random Read/Write IOPS |
 |--------|---------------|-----------------:|------------------:|-----------------------:|
@@ -553,3 +553,28 @@ Run status group 0 (all jobs):
 
 </details>
 
+
+## tarball 展開にかかる時間の比較
+
+IOPS だけではちょっと実際の利用での差が分かりづらいのでそこそこのファイル含む tarball を展開するのにかかる時間を計測してみる。
+
+[linux-6.1.1.tar.xz](https://cdn.kernel.org/pub/linux/kernel/v6.x/linux-6.1.1.tar.xz) を xz だけ展開した tar ファイルを展開する時間を計測してみる。
+と思ったけど virtiofs 以外では時間がかかりすぎるので git の [v2.39.0.tar.gz](https://github.com/git/git/archive/refs/tags/v2.39.0.tar.gz) を使うことにした。gunzip 済みの tar ファイルを展開する時間を計測。(git の v2.39.0.tar はディレクトリを 213 個、ファイルを 4294 個含む 43MB のファイル)
+
+ssh と 9p では owner の変更でたくさんエラー (`Cannot change ownership to uid 0, gid 0: Permission denied`) が出るので `time tar -x --no-same-owner -f ../v2.39.0.tar` と実行して計測。各環境で3回実行。
+
+vz の virtiofs が圧倒的に速いですね。そして 9p は sshfs より速いとは言えない感じですね。vz が使えない環境では sshfs のままで良いのかな。
+
+| vmType | mountType     | time      |
+|--------|---------------|----------:|
+| QEMU   | reverse-sshfs | 0m15.758s |
+| QEMU   | reverse-sshfs | 0m15.996s |
+| QEMU   | reverse-sshfs | 0m15.586s |
+| QEMU   | 9p            | 0m34.567s |
+| QEMU   | 9p            | 0m29.186s |
+| QEMU   | 9p            | 0m32.770s |
+| VZ     | virtiofs      |  0m6.130s |
+| VZ     | virtiofs      |  0m5.259s |
+| VZ     | virtiofs      |  0m5.370s |
+
+ちなみに macOS 上で直接同じコマンドで展開したところ約2秒でした。
