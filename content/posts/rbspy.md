@@ -95,3 +95,6 @@ rbspy ドキュメントの「[Using flamegraphs](https://rbspy.github.io/profil
 
 再起呼び出しの多いコードには flamegraph は向かないとも書かれている。
 
+## おまけ
+
+Python 版の [py-spy](https://github.com/benfred/py-spy) というものもある
