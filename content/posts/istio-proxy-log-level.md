@@ -18,7 +18,7 @@ metadata:
 選択肢は次の通り  
 trace, debug, info, warning, error, critical, off
 
-Probe のアクセスが多くてノイズになる場合は `readiness.status.sidecar.istio.io/periodSeconds` という annotation で感覚を伸ばすこともできます。
+Probe のアクセスが多くてノイズになる場合は `readiness.status.sidecar.istio.io/periodSeconds` という annotation で間隔を延ばすこともできます。
 
 ```yaml
 metadata:
