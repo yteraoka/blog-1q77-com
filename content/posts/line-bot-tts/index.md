@@ -54,3 +54,5 @@ go-chromecast は mp3 を渡した場合、ffmpeg を必要とするのだが Di
 ## つぶやき
 
 Raspberry Pi 4 が欲しいのに売ってない、早く供給改善してくれ。[Orange Pi](http://www.orangepi.org/) もうちょい安くなってくれないかな
+
+今のラズパイはたまに固まっちゃうから [healthchecks.io で監視してスマートプラグで電源 Off/On](2021/03/monitoring-raspberry-pi-with-healthchecks-io/) できるようにしてるんだけど、稀にスマートプラグにもアクセスできなくなる問題が...
