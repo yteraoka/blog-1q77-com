@@ -149,7 +149,7 @@ Datadog Agent v6 で試しても series API は v2 でした...  撃沈
 
 https://docs.datadoghq.com/ja/api/latest/metrics/#submit-metrics
 
-### リベンジ
+### `use_v2_api.series` 設定の発見
 
 諦めてインスタンスを削除した後に Datadog Agent は GitHub で公開されているのだから一応確認してみるかと思って
 [Datadog Agent](https://github.com/DataDog/datadog-agent) のリポジトリ内を検索してみたら
