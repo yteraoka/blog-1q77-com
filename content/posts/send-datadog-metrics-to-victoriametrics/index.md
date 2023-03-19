@@ -1,5 +1,5 @@
 ---
-title: "Datadog Agent からの Metrics を Victoria Metrics で受けようとして撃沈した"
+title: "Datadog Agent からの Metrics を Victoria Metrics で受ける"
 date: 2023-03-19T21:38:04+09:00
 draft: false
 tags: ["VictoriaMetrics", "Datadog"]
@@ -89,6 +89,8 @@ sudo DD_API_KEY=dummy \
  bash -c "$(curl -L https://s3.amazonaws.com/dd-agent/scripts/install_script_agent7.sh)"
 ```
 
+### 動作確認
+
 tcpdump でやり取りを覗いてみる。
 
 ```
@@ -141,7 +143,62 @@ remoteAddr: "172.31.0.183:53542"; requestURI: /datadog/api/v2/series; unsupporte
 
 ぐぬぬ、Victoria Metrics がサポートしているのは `/datadog/api/v1/series` だけれども Datadog Agent v7 が使うのは v2 でした...
 
+### 撃沈
+
 Datadog Agent v6 で試しても series API は v2 でした...  撃沈
 
-
 https://docs.datadoghq.com/ja/api/latest/metrics/#submit-metrics
+
+### リベンジ
+
+諦めてインスタンスを削除した後に Datadog Agent は GitHub で公開されているのだから一応確認してみるかと思って
+[Datadog Agent](https://github.com/DataDog/datadog-agent) のリポジトリ内を検索してみたら
+[CHANGELOG の 7.41.0 / 6.41.0](https://github.com/DataDog/datadog-agent/blob/main/CHANGELOG.rst#7410--6410) で 
+
+> The Agent now uses the V2 API to submit series data to the Datadog intake by default. This can be reverted by setting `use_v2_api.series` to false.
+
+という記述を見つけた。
+
+早速再度サーバーをセットアップして試す。
+
+`/etc/datadog-agent/datadog.yaml` に `use_v2_api` 設定はなかったので追記して datadog-agent を restart します。
+
+```bash
+sudo tee -a /etc/datadog-agent/datadog.yaml > /dev/null <<'EOF'
+use_v2_api:
+  series: false
+EOF
+```
+
+```
+POST /datadog/api/v1/series HTTP/1.1
+Host: victoriametrics:8428
+User-Agent: datadog-agent/7.43.1
+Content-Length: 3797
+Content-Encoding: deflate
+Content-Type: application/json
+Dd-Agent-Version: 7.43.1
+Dd-Api-Key: dummy
+Accept-Encoding: gzip
+
+HTTP/1.1 202 Accepted
+Content-Type: application/json
+Vary: Accept-Encoding
+X-Server-Hostname: ip-172-31-0-54.ap-northeast-1.compute.internal
+Date: Sun, 19 Mar 2023 13:14:56 GMT
+Content-Length: 15
+
+{"status":"ok"}
+```
+
+成功してる！！
+
+Victoria Metrics の Web UI (`/vmui`) の Query ページで `{__name__=~"datadog.*"}` とクエリしてみました。
+
+{{< figure src="vmui-datadog-metrics.png" alt="datadog.* metrics" >}}
+
+`system.cpu.user` と `system.cpu.system` をグラフ表示してみた。
+
+{{< figure src="vmui-system-cpu.png" alt="sysem.cpu.user, system.cpu.system" >}}
+
+後は Grafana Dashboard を頑張れば...
