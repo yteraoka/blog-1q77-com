@@ -1,5 +1,5 @@
 ---
-title: "Laptop に Ubuntu 22.04 LTS をセットアップしたメモ"
+title: "DELL Inspiron 14 で Ubuntu 22.04 LTS をセットアップしたメモ"
 date: 2023-03-21T23:44:44+09:00
 draft: true
 tags: ["Ubuntu"]
@@ -27,6 +27,8 @@ Windows 11 がプリインストールされていましたが、捨て去りま
 
 ## キーボードカスタマイズ
 
+### Console
+
 `A` の左の Caps Lock は Ctrl として使いたいので調整
 
 コンソールアクセスすることがあるかどうかはわからないけど `/etc/default/keyboard` を編集。
@@ -45,9 +47,22 @@ XKBOPTIONS="ctrl:nocaps"
 BACKSPACE="guess"
 ```
 
-参考
+### Gnome の設定
 
+gnome-tweaks をインストール
+
+```
+sudo apt-get install gnome-tweaks
+```
+
+Tweaks を起動し、`Keyboard & Mouse` の `Additional Layout Options` を開き、 `Ctrl position` の `Caps Losk as Ctrl` にチェックを入れる。
+
+{{< figure src="additional-layout-options.png" alt="Gnome Tweaks / Additional Layout Options" >}}
+
+参考
+S
 - [Caps-LockキーをCtrlキーにする方法](https://linux.just4fun.biz/?Ubuntu/Caps-Lock%E3%82%AD%E3%83%BC%E3%82%92Ctrl%E3%82%AD%E3%83%BC%E3%81%AB%E3%81%99%E3%82%8B%E6%96%B9%E6%B3%95)
+
 
 ## 日本語入力
 
@@ -74,6 +89,7 @@ run_im fcitx5
 参考
 
 - [Ubuntu 21.10でFcitx 5を使用する](https://gihyo.jp/admin/serial/01/ubuntu-recipe/0689)
+
 
 ## Homebrew のインストール
 
@@ -105,7 +121,71 @@ PC には Print Screen ボタンがあるのを忘れてました。
 - [【Ubuntu】スクリーンショットとスクリーンキャスト（動画）の撮り方](https://www.server-memo.net/ubuntu/ubuntu_screenshot.html)
 
 
+## 給電中は蓋を閉じても suspend しないようにする
+
+`/etc/systemd/logind.conf` を編集して systemd-logind を restart する。
+
+```
+HandleLidSwitchExternalPower=ignore
+```
+
+`ExternalPower` のつかない `HandleLidSwitch` はバッテリー駆動時の設定なのでその場合は `suspend` される方が良いので `suspend` のままにしておく。
+
+```
+sudo systemctl restart systemd-logind.service
+```
+
+これを実行するとログオフされちゃうので reboot で良かったかも。
+
+
+## Docker Engine のインストール
+
+[Install Docker Engine on Ubuntu](https://docs.docker.com/engine/install/ubuntu/)
+
+```sh
+sudo apt-get update
+sudo apt-get install ca-certificates curl gnupg
+sudo mkdir -m 0755 -p /etc/apt/keyrings
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+echo \
+  "deb [arch="$(dpkg --print-architecture)" signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu \
+  "$(. /etc/os-release && echo "$VERSION_CODENAME")" stable" | \
+  sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+sudo apt-get update
+sudo apt-get install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+```
+
+
 ## USB-A の右側がおかしい
+
+最初、Linux をインストールする前に Windows 11 で動作確認したときから向かって右側の USB-A ポートに Buffalo の 1TB USB SSD (SSD-PUT/N) を挿した場合にうまく認識されず、そのおかしくなってしまった状態では shutdown 時にブルースクリーンになってしまう事象が発生し、左側では問題なく使用できたので初期不良かなと思ってサポートに連絡し、返品して再度購入することにしたのですが、2台目でも同じ問題が発生しました。他の USB メモリでは問題ないし、左側なら使えるから仕様ということで諦めることにしました。
+Linux だったら問題なかったりしないかなとちょっとだけ期待しましたがダメでした。
+
+この Bus 04.Port 1 の USB 3.0 Hub に挿すとダメです。左側は Bus 02.Port 1 でした。
+
+```
+$ lsusb -tv
+/:  Bus 04.Port 1: Dev 1, Class=root_hub, Driver=xhci_hcd/2p, 10000M
+    ID 1d6b:0003 Linux Foundation 3.0 root hub
+/:  Bus 03.Port 1: Dev 1, Class=root_hub, Driver=xhci_hcd/4p, 480M
+    ID 1d6b:0002 Linux Foundation 2.0 root hub
+    |__ Port 3: Dev 2, If 0, Class=Wireless, Driver=btusb, 480M
+        ID 0489:e0c8 Foxconn / Hon Hai 
+    |__ Port 3: Dev 2, If 1, Class=Wireless, Driver=btusb, 480M
+        ID 0489:e0c8 Foxconn / Hon Hai 
+    |__ Port 3: Dev 2, If 2, Class=Wireless, Driver=, 480M
+        ID 0489:e0c8 Foxconn / Hon Hai 
+    |__ Port 4: Dev 3, If 0, Class=Vendor Specific Class, Driver=, 12M
+        ID 27c6:639c Shenzhen Goodix Technology Co.,Ltd. 
+/:  Bus 02.Port 1: Dev 1, Class=root_hub, Driver=xhci_hcd/2p, 10000M
+    ID 1d6b:0003 Linux Foundation 3.0 root hub
+/:  Bus 01.Port 1: Dev 1, Class=root_hub, Driver=xhci_hcd/4p, 480M
+    ID 1d6b:0002 Linux Foundation 2.0 root hub
+    |__ Port 4: Dev 2, If 0, Class=Video, Driver=uvcvideo, 480M
+        ID 0c45:6739 Microdia 
+    |__ Port 4: Dev 2, If 1, Class=Video, Driver=uvcvideo, 480M
+        ID 0c45:6739 Microdia
+```
 
 この Bus 03 側がおかしくて
 
@@ -417,3 +497,33 @@ $ lsusb -tv
 ```
 
 
+
+hidari no usb-a ni SSD-PUT/N
+
+
+```
+[ 7521.096650] usb 3-4: reset full-speed USB device number 4 using xhci_hcd
+[ 7805.307730] usb 2-2: new SuperSpeed Plus Gen 2x1 USB device number 2 using xhci_hcd
+[ 7805.327982] usb 2-2: New USB device found, idVendor=0411, idProduct=031c, bcdDevice= 1.10
+[ 7805.327992] usb 2-2: New USB device strings: Mfr=1, Product=2, SerialNumber=3
+[ 7805.327996] usb 2-2: Product: SSD-PUT/N
+[ 7805.327998] usb 2-2: Manufacturer: BUFFALO
+[ 7805.328001] usb 2-2: SerialNumber: 0040578530142678
+[ 7805.340814] usbcore: registered new interface driver usb-storage
+[ 7805.343203] scsi host2: uas
+[ 7805.343294] usbcore: registered new interface driver uas
+[ 7805.343524] scsi 2:0:0:0: Direct-Access     BUFFALO  SSD-PUT/N        PMAP PQ: 0 ANSI: 6
+[ 7805.344915] sd 2:0:0:0: Attached scsi generic sg0 type 0
+[ 7805.345083] sd 2:0:0:0: [sda] 1953525168 512-byte logical blocks: (1.00 TB/932 GiB)
+[ 7805.345159] sd 2:0:0:0: [sda] Write Protect is off
+[ 7805.345161] sd 2:0:0:0: [sda] Mode Sense: 5f 00 00 08
+[ 7805.345317] sd 2:0:0:0: [sda] Write cache: enabled, read cache: enabled, doesn't support DPO or FUA
+[ 7805.345440] sd 2:0:0:0: [sda] Preferred minimum I/O size 4096 bytes
+[ 7805.345441] sd 2:0:0:0: [sda] Optimal transfer size 33553920 bytes not a multiple of preferred minimum block size (4096 bytes)
+[ 7805.368010]  sda: sda1
+[ 7805.368099] sd 2:0:0:0: [sda] Attached SCSI disk
+[ 7805.589836] ntfs3: Max link count 4000
+[ 7805.589840] ntfs3: Enabled Linux POSIX ACLs support
+[ 7805.589841] ntfs3: Read-only LZX/Xpress compression included
+[ 7805.590166] ntfs3: Unknown parameter 'windows_names'
+```
