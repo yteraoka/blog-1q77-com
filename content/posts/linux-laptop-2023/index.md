@@ -98,6 +98,23 @@ sudo apt-get install build-essential procps curl file git
 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 ```
 
+### Homebrew でインストールするもの
+
+- awscli
+- aws-vault
+- direnv
+- fzf
+- glow
+- hugo
+- imagemagick
+- ghq
+- unar (ubuntu の package で入ってるものだと展開時にファイルが壊れる場合がある)
+- rtx
+- stern
+- xsel ([pbcopy の代わり](https://qiita.com/yoshikyoto/items/1676b925580717c0a443))
+- [knqyf263/pet/pet](https://github.com/knqyf263/pet)
+- tfsec
+
 
 ## devbox のインストール
 
@@ -155,6 +172,17 @@ sudo apt-get update
 sudo apt-get install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
 ```
 
+## 画面キャプチャ
+
+どうするんだっけなと思ったのでメモ。mac じゃなくて PC には Print Screen キーがあるのでした。
+
+Print Screen キーを単独で押すと「範囲指定(Selection)」、「全体(Screen)」、「ウィンドウ(Window)」を選択できます。
+動画としてキャプチャすることも可能。
+
+`Shift` + `Print Screen` で画面全体が `~/Pictures/Screenshots` ディレクトリに保存されます。
+`Alt` + `Print Screen` で現在のアクティブウィンドウが保存されます。
+
+- [スクリーンショットとスクリーンキャスト (help.ubuntu.com)](https://help.ubuntu.com/stable/ubuntu-help/screen-shot-record.html)
 
 ## USB-A の右側がおかしい
 
@@ -170,19 +198,19 @@ $ lsusb -tv
 /:  Bus 03.Port 1: Dev 1, Class=root_hub, Driver=xhci_hcd/4p, 480M
     ID 1d6b:0002 Linux Foundation 2.0 root hub
     |__ Port 3: Dev 2, If 0, Class=Wireless, Driver=btusb, 480M
-        ID 0489:e0c8 Foxconn / Hon Hai 
+        ID 0489:e0c8 Foxconn / Hon Hai
     |__ Port 3: Dev 2, If 1, Class=Wireless, Driver=btusb, 480M
-        ID 0489:e0c8 Foxconn / Hon Hai 
+        ID 0489:e0c8 Foxconn / Hon Hai
     |__ Port 3: Dev 2, If 2, Class=Wireless, Driver=, 480M
-        ID 0489:e0c8 Foxconn / Hon Hai 
+        ID 0489:e0c8 Foxconn / Hon Hai
     |__ Port 4: Dev 3, If 0, Class=Vendor Specific Class, Driver=, 12M
-        ID 27c6:639c Shenzhen Goodix Technology Co.,Ltd. 
+        ID 27c6:639c Shenzhen Goodix Technology Co.,Ltd.
 /:  Bus 02.Port 1: Dev 1, Class=root_hub, Driver=xhci_hcd/2p, 10000M
     ID 1d6b:0003 Linux Foundation 3.0 root hub
 /:  Bus 01.Port 1: Dev 1, Class=root_hub, Driver=xhci_hcd/4p, 480M
     ID 1d6b:0002 Linux Foundation 2.0 root hub
     |__ Port 4: Dev 2, If 0, Class=Video, Driver=uvcvideo, 480M
-        ID 0c45:6739 Microdia 
+        ID 0c45:6739 Microdia
     |__ Port 4: Dev 2, If 1, Class=Video, Driver=uvcvideo, 480M
         ID 0c45:6739 Microdia
 ```
@@ -230,8 +258,8 @@ KIOXIA の TransMemory を左側に挿入したときのログ
 [ 4109.209280] usb 1-2: new high-speed USB device number 6 using xhci_hcd
 [ 4109.362840] usb 1-2: New USB device found, idVendor=30de, idProduct=6544, bcdDevice= 1.00
 [ 4109.362852] usb 1-2: New USB device strings: Mfr=1, Product=2, SerialNumber=3
-[ 4109.362855] usb 1-2: Product: TransMemory     
-[ 4109.362857] usb 1-2: Manufacturer: KIOXIA  
+[ 4109.362855] usb 1-2: Product: TransMemory
+[ 4109.362857] usb 1-2: Manufacturer: KIOXIA
 [ 4109.362860] usb 1-2: SerialNumber: 0022CFF6BD70C6902321DDC7
 [ 4109.364017] usb-storage 1-2:1.0: USB Mass Storage device detected
 [ 4109.365108] scsi host2: usb-storage 1-2:1.0
@@ -299,19 +327,19 @@ $ lsusb -tv
 /:  Bus 03.Port 1: Dev 1, Class=root_hub, Driver=xhci_hcd/4p, 480M
     ID 1d6b:0002 Linux Foundation 2.0 root hub
     |__ Port 3: Dev 2, If 0, Class=Wireless, Driver=btusb, 480M
-        ID 0489:e0c8 Foxconn / Hon Hai 
+        ID 0489:e0c8 Foxconn / Hon Hai
     |__ Port 3: Dev 2, If 1, Class=Wireless, Driver=btusb, 480M
-        ID 0489:e0c8 Foxconn / Hon Hai 
+        ID 0489:e0c8 Foxconn / Hon Hai
     |__ Port 3: Dev 2, If 2, Class=Wireless, Driver=, 480M
-        ID 0489:e0c8 Foxconn / Hon Hai 
+        ID 0489:e0c8 Foxconn / Hon Hai
     |__ Port 4: Dev 3, If 0, Class=Vendor Specific Class, Driver=, 12M
-        ID 27c6:639c Shenzhen Goodix Technology Co.,Ltd. 
+        ID 27c6:639c Shenzhen Goodix Technology Co.,Ltd.
 /:  Bus 02.Port 1: Dev 1, Class=root_hub, Driver=xhci_hcd/2p, 10000M
     ID 1d6b:0003 Linux Foundation 3.0 root hub
 /:  Bus 01.Port 1: Dev 1, Class=root_hub, Driver=xhci_hcd/4p, 480M
     ID 1d6b:0002 Linux Foundation 2.0 root hub
     |__ Port 4: Dev 2, If 0, Class=Video, Driver=uvcvideo, 480M
-        ID 0c45:6739 Microdia 
+        ID 0c45:6739 Microdia
     |__ Port 4: Dev 2, If 1, Class=Video, Driver=uvcvideo, 480M
         ID 0c45:6739 Microdia
 ```
@@ -324,23 +352,23 @@ $ lsusb -tv
 /:  Bus 04.Port 1: Dev 1, Class=root_hub, Driver=xhci_hcd/2p, 10000M
     ID 1d6b:0003 Linux Foundation 3.0 root hub
     |__ Port 2: Dev 76, If 0, Class=Mass Storage, Driver=usb-storage, 5000M (*)
-        ID 04bb:102e I-O Data Device, Inc. 
+        ID 04bb:102e I-O Data Device, Inc.
 /:  Bus 03.Port 1: Dev 1, Class=root_hub, Driver=xhci_hcd/4p, 480M
     ID 1d6b:0002 Linux Foundation 2.0 root hub
     |__ Port 3: Dev 2, If 0, Class=Wireless, Driver=btusb, 480M
-        ID 0489:e0c8 Foxconn / Hon Hai 
+        ID 0489:e0c8 Foxconn / Hon Hai
     |__ Port 3: Dev 2, If 1, Class=Wireless, Driver=btusb, 480M
-        ID 0489:e0c8 Foxconn / Hon Hai 
+        ID 0489:e0c8 Foxconn / Hon Hai
     |__ Port 3: Dev 2, If 2, Class=Wireless, Driver=, 480M
-        ID 0489:e0c8 Foxconn / Hon Hai 
+        ID 0489:e0c8 Foxconn / Hon Hai
     |__ Port 4: Dev 3, If 0, Class=Vendor Specific Class, Driver=, 12M
-        ID 27c6:639c Shenzhen Goodix Technology Co.,Ltd. 
+        ID 27c6:639c Shenzhen Goodix Technology Co.,Ltd.
 /:  Bus 02.Port 1: Dev 1, Class=root_hub, Driver=xhci_hcd/2p, 10000M
     ID 1d6b:0003 Linux Foundation 3.0 root hub
 /:  Bus 01.Port 1: Dev 1, Class=root_hub, Driver=xhci_hcd/4p, 480M
     ID 1d6b:0002 Linux Foundation 2.0 root hub
     |__ Port 4: Dev 2, If 0, Class=Video, Driver=uvcvideo, 480M
-        ID 0c45:6739 Microdia 
+        ID 0c45:6739 Microdia
     |__ Port 4: Dev 2, If 1, Class=Video, Driver=uvcvideo, 480M
         ID 0c45:6739 Microdia
 ```
@@ -355,21 +383,21 @@ $ lsusb -tv
 /:  Bus 03.Port 1: Dev 1, Class=root_hub, Driver=xhci_hcd/4p, 480M
     ID 1d6b:0002 Linux Foundation 2.0 root hub
     |__ Port 3: Dev 2, If 0, Class=Wireless, Driver=btusb, 480M
-        ID 0489:e0c8 Foxconn / Hon Hai 
+        ID 0489:e0c8 Foxconn / Hon Hai
     |__ Port 3: Dev 2, If 1, Class=Wireless, Driver=btusb, 480M
-        ID 0489:e0c8 Foxconn / Hon Hai 
+        ID 0489:e0c8 Foxconn / Hon Hai
     |__ Port 3: Dev 2, If 2, Class=Wireless, Driver=, 480M
-        ID 0489:e0c8 Foxconn / Hon Hai 
+        ID 0489:e0c8 Foxconn / Hon Hai
     |__ Port 4: Dev 3, If 0, Class=Vendor Specific Class, Driver=, 12M
-        ID 27c6:639c Shenzhen Goodix Technology Co.,Ltd. 
+        ID 27c6:639c Shenzhen Goodix Technology Co.,Ltd.
 /:  Bus 02.Port 1: Dev 1, Class=root_hub, Driver=xhci_hcd/2p, 10000M
     ID 1d6b:0003 Linux Foundation 3.0 root hub
     |__ Port 2: Dev 6, If 0, Class=Mass Storage, Driver=usb-storage, 5000M (*)
-        ID 04bb:102e I-O Data Device, Inc. 
+        ID 04bb:102e I-O Data Device, Inc.
 /:  Bus 01.Port 1: Dev 1, Class=root_hub, Driver=xhci_hcd/4p, 480M
     ID 1d6b:0002 Linux Foundation 2.0 root hub
     |__ Port 4: Dev 2, If 0, Class=Video, Driver=uvcvideo, 480M
-        ID 0c45:6739 Microdia 
+        ID 0c45:6739 Microdia
     |__ Port 4: Dev 2, If 1, Class=Video, Driver=uvcvideo, 480M
         ID 0c45:6739 Microdia
 ```
@@ -384,21 +412,21 @@ $ lsusb -tv
 /:  Bus 03.Port 1: Dev 1, Class=root_hub, Driver=xhci_hcd/4p, 480M
     ID 1d6b:0002 Linux Foundation 2.0 root hub
     |__ Port 3: Dev 2, If 0, Class=Wireless, Driver=btusb, 480M
-        ID 0489:e0c8 Foxconn / Hon Hai 
+        ID 0489:e0c8 Foxconn / Hon Hai
     |__ Port 3: Dev 2, If 1, Class=Wireless, Driver=btusb, 480M
-        ID 0489:e0c8 Foxconn / Hon Hai 
+        ID 0489:e0c8 Foxconn / Hon Hai
     |__ Port 3: Dev 2, If 2, Class=Wireless, Driver=, 480M
-        ID 0489:e0c8 Foxconn / Hon Hai 
+        ID 0489:e0c8 Foxconn / Hon Hai
     |__ Port 4: Dev 3, If 0, Class=Vendor Specific Class, Driver=, 12M
-        ID 27c6:639c Shenzhen Goodix Technology Co.,Ltd. 
+        ID 27c6:639c Shenzhen Goodix Technology Co.,Ltd.
 /:  Bus 02.Port 1: Dev 1, Class=root_hub, Driver=xhci_hcd/2p, 10000M
     ID 1d6b:0003 Linux Foundation 3.0 root hub
     |__ Port 1: Dev 7, If 0, Class=Mass Storage, Driver=usb-storage, 5000M (*)
-        ID 04bb:102e I-O Data Device, Inc. 
+        ID 04bb:102e I-O Data Device, Inc.
 /:  Bus 01.Port 1: Dev 1, Class=root_hub, Driver=xhci_hcd/4p, 480M
     ID 1d6b:0002 Linux Foundation 2.0 root hub
     |__ Port 4: Dev 2, If 0, Class=Video, Driver=uvcvideo, 480M
-        ID 0c45:6739 Microdia 
+        ID 0c45:6739 Microdia
     |__ Port 4: Dev 2, If 1, Class=Video, Driver=uvcvideo, 480M
         ID 0c45:6739 Microdia
 ```
@@ -413,21 +441,21 @@ $ lsusb -tv
 /:  Bus 03.Port 1: Dev 1, Class=root_hub, Driver=xhci_hcd/4p, 480M
     ID 1d6b:0002 Linux Foundation 2.0 root hub
     |__ Port 3: Dev 2, If 0, Class=Wireless, Driver=btusb, 480M
-        ID 0489:e0c8 Foxconn / Hon Hai 
+        ID 0489:e0c8 Foxconn / Hon Hai
     |__ Port 3: Dev 2, If 1, Class=Wireless, Driver=btusb, 480M
-        ID 0489:e0c8 Foxconn / Hon Hai 
+        ID 0489:e0c8 Foxconn / Hon Hai
     |__ Port 3: Dev 2, If 2, Class=Wireless, Driver=, 480M
-        ID 0489:e0c8 Foxconn / Hon Hai 
+        ID 0489:e0c8 Foxconn / Hon Hai
     |__ Port 4: Dev 3, If 0, Class=Vendor Specific Class, Driver=, 12M
-        ID 27c6:639c Shenzhen Goodix Technology Co.,Ltd. 
+        ID 27c6:639c Shenzhen Goodix Technology Co.,Ltd.
 /:  Bus 02.Port 1: Dev 1, Class=root_hub, Driver=xhci_hcd/2p, 10000M
     ID 1d6b:0003 Linux Foundation 3.0 root hub
     |__ Port 2: Dev 8, If 0, Class=Mass Storage, Driver=uas, 10000M (*)
-        ID 0411:031c BUFFALO INC. (formerly MelCo., Inc.) 
+        ID 0411:031c BUFFALO INC. (formerly MelCo., Inc.)
 /:  Bus 01.Port 1: Dev 1, Class=root_hub, Driver=xhci_hcd/4p, 480M
     ID 1d6b:0002 Linux Foundation 2.0 root hub
     |__ Port 4: Dev 2, If 0, Class=Video, Driver=uvcvideo, 480M
-        ID 0c45:6739 Microdia 
+        ID 0c45:6739 Microdia
     |__ Port 4: Dev 2, If 1, Class=Video, Driver=uvcvideo, 480M
         ID 0c45:6739 Microdia
 ```
@@ -442,21 +470,21 @@ $ lsusb -tv
 /:  Bus 03.Port 1: Dev 1, Class=root_hub, Driver=xhci_hcd/4p, 480M
     ID 1d6b:0002 Linux Foundation 2.0 root hub
     |__ Port 3: Dev 2, If 0, Class=Wireless, Driver=btusb, 480M
-        ID 0489:e0c8 Foxconn / Hon Hai 
+        ID 0489:e0c8 Foxconn / Hon Hai
     |__ Port 3: Dev 2, If 1, Class=Wireless, Driver=btusb, 480M
-        ID 0489:e0c8 Foxconn / Hon Hai 
+        ID 0489:e0c8 Foxconn / Hon Hai
     |__ Port 3: Dev 2, If 2, Class=Wireless, Driver=, 480M
-        ID 0489:e0c8 Foxconn / Hon Hai 
+        ID 0489:e0c8 Foxconn / Hon Hai
     |__ Port 4: Dev 3, If 0, Class=Vendor Specific Class, Driver=, 12M
-        ID 27c6:639c Shenzhen Goodix Technology Co.,Ltd. 
+        ID 27c6:639c Shenzhen Goodix Technology Co.,Ltd.
 /:  Bus 02.Port 1: Dev 1, Class=root_hub, Driver=xhci_hcd/2p, 10000M
     ID 1d6b:0003 Linux Foundation 3.0 root hub
     |__ Port 1: Dev 9, If 0, Class=Mass Storage, Driver=uas, 10000M (*)
-        ID 0411:031c BUFFALO INC. (formerly MelCo., Inc.) 
+        ID 0411:031c BUFFALO INC. (formerly MelCo., Inc.)
 /:  Bus 01.Port 1: Dev 1, Class=root_hub, Driver=xhci_hcd/4p, 480M
     ID 1d6b:0002 Linux Foundation 2.0 root hub
     |__ Port 4: Dev 2, If 0, Class=Video, Driver=uvcvideo, 480M
-        ID 0c45:6739 Microdia 
+        ID 0c45:6739 Microdia
     |__ Port 4: Dev 2, If 1, Class=Video, Driver=uvcvideo, 480M
         ID 0c45:6739 Microdia
 ```
@@ -473,17 +501,17 @@ $ lsusb -tv
 /:  Bus 03.Port 1: Dev 1, Class=root_hub, Driver=xhci_hcd/4p, 480M
     ID 1d6b:0002 Linux Foundation 2.0 root hub
     |__ Port 3: Dev 2, If 0, Class=Wireless, Driver=btusb, 480M
-        ID 0489:e0c8 Foxconn / Hon Hai 
+        ID 0489:e0c8 Foxconn / Hon Hai
     |__ Port 3: Dev 2, If 1, Class=Wireless, Driver=btusb, 480M
-        ID 0489:e0c8 Foxconn / Hon Hai 
+        ID 0489:e0c8 Foxconn / Hon Hai
     |__ Port 3: Dev 2, If 2, Class=Wireless, Driver=, 480M
-        ID 0489:e0c8 Foxconn / Hon Hai 
+        ID 0489:e0c8 Foxconn / Hon Hai
     |__ Port 4: Dev 3, If 0, Class=Vendor Specific Class, Driver=, 12M
-        ID 27c6:639c Shenzhen Goodix Technology Co.,Ltd. 
+        ID 27c6:639c Shenzhen Goodix Technology Co.,Ltd.
 /:  Bus 02.Port 1: Dev 1, Class=root_hub, Driver=xhci_hcd/2p, 10000M
     ID 1d6b:0003 Linux Foundation 3.0 root hub
     |__ Port 1: Dev 9, If 0, Class=Mass Storage, Driver=uas, 10000M (*)
-        ID 0411:031c BUFFALO INC. (formerly MelCo., Inc.) 
+        ID 0411:031c BUFFALO INC. (formerly MelCo., Inc.)
 /:  Bus 01.Port 1: Dev 1, Class=root_hub, Driver=xhci_hcd/4p, 480M
     ID 1d6b:0002 Linux Foundation 2.0 root hub
     |__ Port 2: Dev 7, If 0, Class=Human Interface Device, Driver=usbhid, 12M (*)
@@ -491,7 +519,7 @@ $ lsusb -tv
     |__ Port 2: Dev 7, If 1, Class=Human Interface Device, Driver=usbhid, 12M (*)
         ID 046d:c534 Logitech, Inc. Unifying Receiver
     |__ Port 4: Dev 2, If 0, Class=Video, Driver=uvcvideo, 480M
-        ID 0c45:6739 Microdia 
+        ID 0c45:6739 Microdia
     |__ Port 4: Dev 2, If 1, Class=Video, Driver=uvcvideo, 480M
         ID 0c45:6739 Microdia
 ```
@@ -526,4 +554,97 @@ hidari no usb-a ni SSD-PUT/N
 [ 7805.589840] ntfs3: Enabled Linux POSIX ACLs support
 [ 7805.589841] ntfs3: Read-only LZX/Xpress compression included
 [ 7805.590166] ntfs3: Unknown parameter 'windows_names'
+```
+
+## gsettings
+
+```
+$ gsettings list-schemas | grep power
+org.gnome.power-manager
+org.gnome.settings-daemon.plugins.power
+```
+
+```
+$ gsettings list-keys org.gnome.settings-daemon.plugins.power
+ambient-enabled
+idle-brightness
+idle-dim
+lid-close-ac-action
+lid-close-battery-action
+lid-close-suspend-with-external-monitor
+power-button-action
+power-saver-profile-on-low-battery
+sleep-inactive-ac-timeout
+sleep-inactive-ac-type
+sleep-inactive-battery-timeout
+sleep-inactive-battery-type
+```
+
+/etc/gdm3/greeter.dconf-defaults
+
+```
+# These are the options for the greeter session that can be set
+# through GSettings. Any GSettings setting that is used by the
+# greeter session can be set here.
+
+# Note that you must configure the path used by dconf to store the
+# configuration, not the GSettings path.
+
+
+# Theming options
+# ===============
+#  - Change the GTK+ theme
+[org/gnome/desktop/interface]
+# gtk-theme='Adwaita'
+#  - Use another background
+[org/gnome/desktop/background]
+# picture-uri='file:///usr/share/themes/Adwaita/backgrounds/stripes.jpg'
+# picture-options='zoom'
+#  - Or no background at all
+[org/gnome/desktop/background]
+# picture-options='none'
+# primary-color='#000000'
+
+# Login manager options
+# =====================
+[org/gnome/login-screen]
+#logo='/usr/share/images/vendor-logos/logo-text-version-64.png'
+
+# - Disable user list
+# disable-user-list=true
+# - Disable restart buttons
+# disable-restart-buttons=true
+# - Show a login welcome message
+# banner-message-enable=true
+# banner-message-text='Welcome'
+
+# Automatic suspend
+# =================
+[org/gnome/settings-daemon/plugins/power]
+# - Time inactive in seconds before suspending with AC power
+#   1200=20 minutes, 0=never
+# sleep-inactive-ac-timeout=1200
+# - What to do after sleep-inactive-ac-timeout
+#   'blank', 'suspend', 'shutdown', 'hibernate', 'interactive' or 'nothing'
+# sleep-inactive-ac-type='suspend'
+# - As above but when on battery
+# sleep-inactive-battery-timeout=1200
+# sleep-inactive-battery-type='suspend'
+```
+
+デフォルトでは20分で suspend になる
+
+```
+$ gsettings get org.gnome.settings-daemon.plugins.power sleep-inactive-battery-timeout
+1200
+
+$ gsettings get org.gnome.settings-daemon.plugins.power sleep-inactive-battery-type
+'suspend'
+```
+
+1時間で hibernate に変更する
+
+```
+gsettings set org.gnome.settings-daemon.plugins.power sleep-inactive-battery-timeout 3600
+gsettings set org.gnome.settings-daemon.plugins.power sleep-inactive-battery-type hibernate
 ```
