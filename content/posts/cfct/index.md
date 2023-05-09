@@ -502,6 +502,38 @@ IAM Role とか Policy とか Event Rule とかは省略
   - CustomControlTowerLEFIFOQueue.fifo
 
 
+## CfCT を用いた Control Tower の Customize
+
+https://github.com/aws-solutions/aws-control-tower-customizations/tree/main/deployment/custom_control_tower_configuration から生成されたファイルが CodeCommit Repository に登録されているので clone して編集し、main branch に push すると Custom-Control-Tower-CodePipeline が実行される (中で上記の3つの CodeBuild が実行される)
+
+```
+$ tree .
+.
+├── example-configuration
+│   ├── manifest.yaml
+│   ├── parameters
+│   │   ├── create-ssm-parameter-keys-1.json
+│   │   └── create-ssm-parameter-keys-2.json
+│   ├── policies
+│   │   └── preventive-guardrails.json
+│   └── templates
+│       ├── create-ssm-parameter-keys-1.template
+│       └── create-ssm-parameter-keys-2.template
+└── manifest.yaml
+```
+
+`manifest.yaml` は初期状態では resources が空っぽなので何も起こらない。
+
+```yaml
+#Default region for deploying Custom Control Tower: Code Pipeline, Step functions, Lambda, SSM parameters, and StackSets
+region: ap-northeast-1
+version: 2021-03-15
+
+# Control Tower Custom Resources (Service Control Policies or CloudFormation)
+resources: []
+```
+
+
 ## 参考
 
 
