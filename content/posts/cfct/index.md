@@ -462,6 +462,13 @@ SRA STAGING S3 BUCKET NAME: sra-staging-614212495865-ap-northeast-1
 
 ## CfCT 用 CloudFormation の deploy
 
+次のコマンドで CloudFormation の `sra-common-cfct-setup-main` Stack を deploy すると、子 Stack が作成されて [github.com/aws-solutions/aws-control-tower-customizations](https://github.com/aws-solutions/aws-control-tower-customizations) が deploy される。
+
+次の2つのデフォルト値が変更されている
+
+- `AWS CodePipeline Source` が `Amazon S3` から `AWS CodeCommit` に変更
+- `Failure Tolerance Percentage` が `10` から `0` に変更
+
 ```
 aws cloudformation deploy \
   --template-file $HOME/aws-sra-examples/aws_sra_examples/solutions/common/common_cfct_setup/templates/sra-common-cfct-setup-main.yaml \
@@ -469,25 +476,31 @@ aws cloudformation deploy \
   --capabilities CAPABILITY_NAMED_IAM
 ```
 
+### 作成されるリソース
 
-## CloudFormation の template を取得
+IAM Role とか Policy とか Event Rule とかは省略
 
-CloudFormation の stack を作成するための template が GitHub にあるので git clone する
+- CodeCommit Repository
+  - custom-control-tower-configuration
+- CodeBuild
+  - Custom-Control-Tower-StackSet-CodeBuild
+  - Custom-Control-Tower-SCP-CodeBuild
+  - Custom-Control-Tower-CodeBuild
+- Lambda
+  - CustomControlTowerDeploymentLambda
+  - sra-common-cfct-setup-mai-CustomControlTowerLELamb-\*
+  - CustomControlTowerStateMachineLambda
+- S3 Bucket
+  - sra-common-cfct-setup-ma-customcontroltowerpipeli-\* (Pipeline Artifacts)
+  - custom-control-tower-configuration-\*
+  - sra-common-cfct-setup-ma-customcontroltowers3acce-\* (S3 AccessLog)
+- Step Functions
+  - CustomControlTowerServiceControlPolicyMachine
+  - CustomControlTowerStackSetStateMachine
+- SQS
+  - CustomControlTowerLEFIFODLQueue.fifo
+  - CustomControlTowerLEFIFOQueue.fifo
 
-```
-ghq get https://github.com/aws-samples/aws-security-reference-architecture-examples.git
-```
-
-[AWS Security Reference Architecture Examples](https://github.com/aws-samples/aws-security-reference-architecture-examples) の手順 ([Customizations for AWS Control Tower (CFCT) Setup](https://github.com/aws-samples/aws-security-reference-architecture-examples/tree/main/aws_sra_examples/solutions/common/common_cfct_setup)) で進める
-
-[customizations-for-aws-control-tower.template](https://github.com/aws-solutions/aws-control-tower-customizations/blob/main/customizations-for-aws-control-tower.template) では `AWS CodePipeline Source` が `Amazon S3` と `AWS CodeCommit` から選択可能で、`Amazon S3` がデフォルトだがこれを `AWS CodeCommit` にする、`Failure Tolerance Percentage` がデフォルトでは `10` だが `0` にする。
-
-```
-aws cloudformation deploy \
-  --template-file $(ghq root)/aws-sra-examples/aws_sra_examples/solutions/common/common_cfct_setup/templates/sra-common-cfct-setup-main.yaml \
-  --stack-name sra-common-cfct-setup-main \
-  --capabilities CAPABILITY_NAMED_IAM
-```
 
 ## 参考
 
