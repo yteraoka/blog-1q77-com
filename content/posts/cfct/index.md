@@ -19,7 +19,7 @@ Control Tower は有効化済みであること。
 
 ### SRA Prerequisites
 
-SRA 設定を使用する場合は [SRA Prerequisites](https://github.com/aws-samples/aws-security-reference-architecture-examples/tree/main/aws_sra_examples/solutions/common/common_prerequisites#15-aws-ssm-parameter-store) が deploy 済みでなければならない。
+SRA 設定を使用する場合は [SRA Prerequisites](https://github.com/aws-samples/aws-security-reference-architecture-examples/tree/main/aws_sra_examples/solutions/common/common_prerequisites) が deploy 済みでなければならない。
 
 これを deploy するための準備として次のことを実施する
 
@@ -56,6 +56,47 @@ Successfully created/updated stack - sra-common-prerequisites-staging-s3-bucket
 </details>
 
 ここで deploy された CloudFormation では OrganizationId を返すだけの Lambda と S3 Bucket と ParameterStore が作成される程度。この後の操作で必要なものたち。
+
+CloudFormation `sra-common-prerequisites-management-account-parameters` の deploy
+
+これで ParameterStore に `/sra` で始まる各種 parameter が登録される
+
+```bash
+aws cloudformation deploy --template-file $HOME/aws-sra-examples/aws_sra_examples/solutions/common/common_prerequisites/templates/sra-common-prerequisites-management-account-parameters.yaml --stack-name sra-common-prerequisites-management-account-parameters --capabilities CAPABILITY_NAMED_IAM
+```
+
+<details>
+<summary>実行ログ</summary>
+
+```
+Waiting for changeset to be created..
+Waiting for stack create/update to complete
+Successfully created/updated stack - sra-common-prerequisites-management-account-parameters
+```
+
+</details>
+
+
+CloudFormation `sra-common-prerequisites-main-ssm` の deploy
+
+これで Organization の管理アカウントに `AWSControlTowerExecution` Role が作成される。CfCT の StackSet の中で使われる。
+
+
+```bash
+aws cloudformation deploy --template-file $HOME/aws-sra-examples/aws_sra_examples/solutions/common/common_prerequisites/templates/sra-common-prerequisites-main-ssm.yaml --stack-name sra-common-prerequisites-main-ssm --capabilities CAPABILITY_NAMED_IAM
+```
+
+<details>
+<summary>実行ログ</summary>
+
+```
+Waiting for changeset to be created..
+Waiting for stack create/update to complete
+Successfully created/updated stack - sra-common-prerequisites-main-ssm
+```
+
+</details>
+
 
 次に、この後の CloudFormation の deploy に必要なデータを先の S3 Bucket にコピーするスクリプトを実行する。
 ただし、この後 CfCT 用の deploy がコケたのでその対策を先に行っておく。(2023-05-08 時点)
@@ -506,6 +547,13 @@ IAM Role とか Policy とか Event Rule とかは省略
 
 https://github.com/aws-solutions/aws-control-tower-customizations/tree/main/deployment/custom_control_tower_configuration から生成されたファイルが CodeCommit Repository に登録されているので clone して編集し、main branch に push すると Custom-Control-Tower-CodePipeline が実行される (中で上記の3つの CodeBuild が実行される)
 
+CodeCommit に git でアクセスする場合は [git-remote-codecommit](https://docs.aws.amazon.com/codecommit/latest/userguide/how-to-connect.html) を使用すると便利。(`brew install git-remote-codecommit`)
+
+```
+git clone codecommit::ap-northeast-1://sra-management@custom-control-tower-configuration \
+  $HOME/custom-control-tower-configuration
+```
+
 ```
 $ tree .
 .
@@ -533,6 +581,87 @@ version: 2021-03-15
 resources: []
 ```
 
+- `manifest.yaml` に [$HOME/aws-sra-examples/aws_sra_examples/quick_setup/customizations_for_aws_control_tower/manifest-v2.yaml](https://github.com/aws-samples/aws-security-reference-architecture-examples/blob/main/aws_sra_examples/quick_setup/customizations_for_aws_control_tower/manifest-v2.yaml) をコピーする
+  - `region` は環境に合わせて書き換える
+  - `REPLACE_ME_ORG_MANAGEMENT_ACCOUNT_NAME` を Organization の Management Account Name に書き換える
+  - `pDeploy` で始まる変数の値を deploy したいものだけ `Yes` にして他は `No` にしておく (これは前の手順で実行した shell script により solusions 配下のファイルが S3 に upload されておりそれが使われるようになっている)
+- `templates/sra-quick-setup-ssm.yaml` に [$HOME/aws-sra-examples/aws_sra_examples/quick_setup/templates/sra-quick-setup-ssm.yaml](https://github.com/aws-samples/aws-security-reference-architecture-examples/blob/main/aws_sra_examples/quick_setup/templates/sra-quick-setup-ssm.yaml) をコピーする
+
+<details>
+<summary>S3 に配置されているファイルのリスト (main-ssm.yaml で終わるもの)</summary>
+
+```bash
+$ aws s3api list-objects-v2 --bucket sra-staging-614212495865-ap-northeast-1 | jq -r '.Contents[] | select(.Key | contains("main-ssm.yaml")) | .Key'
+sra-account-alternate-contacts/templates/sra-account-alternate-contacts-main-ssm.yaml
+sra-cloudtrail-org/templates/sra-cloudtrail-org-main-ssm.yaml
+sra-common-prerequisites/templates/sra-common-prerequisites-main-ssm.yaml
+sra-config-aggregator-org/templates/sra-config-aggregator-org-main-ssm.yaml
+sra-config-conformance-pack-org/templates/sra-config-conformance-pack-org-main-ssm.yaml
+sra-config-management-account/templates/sra-config-management-account-main-ssm.yaml
+sra-ec2-default-ebs-encryption/templates/sra-ec2-default-ebs-encryption-main-ssm.yaml
+sra-firewall-manager-org/templates/sra-firewall-manager-org-main-ssm.yaml
+sra-guardduty-org/templates/sra-guardduty-org-main-ssm.yaml
+sra-iam-access-analyzer/templates/sra-iam-access-analyzer-main-ssm.yaml
+sra-iam-password-policy/templates/sra-iam-password-policy-main-ssm.yaml
+sra-inspector-org/templates/sra-inspector-org-main-ssm.yaml
+sra-macie-org/templates/sra-macie-org-main-ssm.yaml
+sra-s3-block-account-public-access/templates/sra-s3-block-account-public-access-main-ssm.yaml
+sra-securityhub-org/templates/sra-securityhub-org-main-ssm.yaml
+```
+
+</details>
+
+(`-ssm.yaml` は必要な値を SSM Parameter Store から取得するようになっている template。)
+
+manifest-v2.yaml を manifest.yaml にコピーして region を環境に合わせて書き換える。
+
+```bash
+cp $HOME/aws-sra-examples/aws_sra_examples/quick_setup/customizations_for_aws_control_tower/manifest-v2.yaml \
+  $HOME/custom-control-tower-configuration/manifest.yaml
+sed -i 's/^region:.*/region: ap-northeast-1/' $HOME/custom-control-tower-configuration/manifest.yaml
+mkdir $HOME/custom-control-tower-configuration/templates
+cp $HOME/aws-sra-examples/aws_sra_examples/quick_setup/templates/sra-quick-setup-ssm.yaml \
+  $HOME/custom-control-tower-configuration/templates/
+```
+
+deploy する solusion の選択 (`pDeploy` で始まる変数の調整)
+
+- [pDeployAccountAlternateContactsSolution](https://github.com/aws-samples/aws-security-reference-architecture-examples/tree/main/aws_sra_examples/solutions/account/account_alternate_contacts)
+- [pDeployCloudTrailSolution](https://github.com/aws-samples/aws-security-reference-architecture-examples/tree/main/aws_sra_examples/solutions/cloudtrail/cloudtrail_org)
+- [pDeployConfigManagementSolution](https://github.com/aws-samples/aws-security-reference-architecture-examples/tree/main/aws_sra_examples/solutions/config/config_management_account)
+- [pDeployConfigConformancePackSolution](https://github.com/aws-samples/aws-security-reference-architecture-examples/tree/main/aws_sra_examples/solutions/config/config_conformance_pack_org)
+- [pDeployEC2DefaultEBSEncryptionSolution](https://github.com/aws-samples/aws-security-reference-architecture-examples/tree/main/aws_sra_examples/solutions/ec2/ec2_default_ebs_encryption)
+- [pDeployFirewallManagerSolution](https://github.com/aws-samples/aws-security-reference-architecture-examples/tree/main/aws_sra_examples/solutions/firewall_manager/firewall_manager_org)
+- [pDeployGuardDutySolution](https://github.com/aws-samples/aws-security-reference-architecture-examples/tree/main/aws_sra_examples/solutions/guardduty/guardduty_org)
+- [pDeployIAMAccessAnalyzerSolution](https://github.com/aws-samples/aws-security-reference-architecture-examples/tree/main/aws_sra_examples/solutions/iam/iam_access_analyzer)
+- [pDeployIAMPasswordPolicySolution](https://github.com/aws-samples/aws-security-reference-architecture-examples/tree/main/aws_sra_examples/solutions/iam/iam_password_policy)
+- [pDeployMacieSolution](https://github.com/aws-samples/aws-security-reference-architecture-examples/tree/main/aws_sra_examples/solutions/macie/macie_org)
+- [pDeployS3BlockAccountPublicAccessSolution](https://github.com/aws-samples/aws-security-reference-architecture-examples/tree/main/aws_sra_examples/solutions/s3/s3_block_account_public_access)
+- [pDeploySecurityHubSolution](https://github.com/aws-samples/aws-security-reference-architecture-examples/tree/main/aws_sra_examples/solutions/securityhub/securityhub_org)
+
+まずは [pDeployS3BlockAccountPublicAccessSolution](https://github.com/aws-samples/aws-security-reference-architecture-examples/tree/main/aws_sra_examples/solutions/s3/s3_block_account_public_access) だけを有効にしてみる。
+
+
+
+```yaml
+resources:
+  - name: sra-quick-setup-ssm
+    resource_file: templates/sra-quick-setup-ssm.yaml
+    parameters:
+      # S3 Block Account Public Access Solution
+      - parameter_key: pDeployS3BlockAccountPublicAccessSolution
+        parameter_value: 'Yes'
+      - parameter_key: pExcludeS3BlockAccountPublicAccessTags
+        parameter_value: ''
+      - parameter_key: pEnableBlockPublicAcls
+        parameter_value: 'true'
+      - parameter_key: pEnableBlockPublicPolicy
+        parameter_value: 'true'
+      - parameter_key: pEnableIgnorePublicAcls
+        parameter_value: 'true'
+      - parameter_key: pEnableRestrictPublicBuckets
+        parameter_value: 'true'
+```
 
 ## 参考
 
