@@ -1,16 +1,16 @@
 languageCode = "ja"
 languageName = "Japanese"
-displayName = "JP"
-isoCode = "ja"
 weight = 1
-rtl = false
-
 title = "1Q77"
-# logo = "img/logo.png"
-description = "備忘録"
-# copyright = "Copy, _right?_ :thinking_face:"
 
-#dateFormat = "2 January 2006"
+[params]
+  displayName = "JP"
+  isoCode = "ja"
+  rtl = false
+  description = "備忘録"
+  # logo = "img/logo.png"
+  # copyright = "Copy, _right?_ :thinking_face:"
+  # dateFormat = "2 January 2006"
 
 [author]
   name = "yteraoka"
