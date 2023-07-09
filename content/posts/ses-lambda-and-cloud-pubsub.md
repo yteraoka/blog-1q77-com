@@ -37,6 +37,9 @@ SES での受信は東京リージョンでは提供されていないためバ�
 S3 に保存しなくてもメールのヘッダー情報は Lambda に渡されます。私の今回の要件でも Subject さえ受信できれば良かったので、Lambda では S3 の object にはアクセスしていませんが、Gmail からの転送先としてメールアドレスを登録する際にそのアドレス宛のメールが受信できることを確認できる必要があり、そのためには届いたメールの本文にある URL にアクセスする必要があります。
 このために S3 からメールを取り出して対処しました。
 
+[SES からの Lambda 起動時に渡される event データ](https://docs.aws.amazon.com/lambda/latest/dg/services-ses.html)
+Header の MIME Encode は decode されたものが渡されるので楽ちんです。([sample](https://docs.aws.amazon.com/ses/latest/dg/receiving-email-action-lambda-event.html))
+
 次から terraform の設定例を書いてみます。
 
 ### 変数定義
