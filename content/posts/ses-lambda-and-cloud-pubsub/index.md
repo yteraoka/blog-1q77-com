@@ -1,6 +1,7 @@
 ---
-title: "Amazon SES から Lambda を起動して Cloud PubSub に Publish する"
+title: "メールが届いたら Google Home で音声で通知する"
 date: 2023-07-07T23:42:54+09:00
+tags: ["GCP", "GoogleHome", "AWS", "Raspberry Pi"]
 draft: false
 ---
 
@@ -10,7 +11,7 @@ draft: false
 ## やりたいこと
 
 今回はメール受信をトリガーにして Google Home に喋らせたいと思いました。
-塾側のシステムで息子が塾に行った時と帰る時にメールを送ってくれるようにはなっているのですが、家に着くであろう時刻を知るのにメールをわざわざ見なくてもよくしたかったのです。
+塾側のシステムで息子が塾に行った時と帰る時にメールを送ってくれるようにはなっているのですが、家に着くであろう時刻を知るのにわざわざメールを見なくてもよくしたかったのです。
 
 ## 構成を考える
 
@@ -18,6 +19,12 @@ draft: false
 
 Amazon SES には[受信機能](https://docs.aws.amazon.com/ses/latest/dg/receiving-email.html)があり、[受信をトリガーに Lambda を実行する](https://docs.aws.amazon.com/ses/latest/dg/receiving-email-action-lambda.html)ことができます。
 この Lambda でメッセージを前回作った Cloud PubSub Topic に送ることでやりたいことはできそうです。
+
+---
+
+{{< figure src="diagram.png" caption="構成図" >}}
+
+---
 
 マルチクラウドになって面倒ですが、今は AWS の IAM Role でも private key 無しで Google Cloud の ServiceAccount を使えるようになっているのでこれも活用してみます。
 
@@ -116,6 +123,9 @@ resource "aws_s3_bucket_policy" "mail_received" {
   policy   = data.aws_iam_policy_document.ses_writable.json
 }
 ```
+
+メールをいつまでも残しておく必要はないので lifecycle 設定で削除した方が良いです。
+
 
 ### Lambda Function 作成
 
@@ -317,6 +327,11 @@ EOT
 }
 ```
 
+今回は go build と zip ファイル化は terraform 外で実行していますが、これも terraform でやってしまうのも手です。
+
+- [GolangのLambda関数をTerraformだけでデプロイする](https://dev.classmethod.jp/articles/deploy-golang-lambda-function-with-terraform/)
+
+
 ### SES が Lambda を実行できるようにする
 
 ```hcl
@@ -332,9 +347,7 @@ resource "aws_lambda_permission" "ses_to_cloud_pubsub" {
 
 ### SES の受信設定
 
-過去にすでに設定したことがあったのでもうドメインは使えるようになっていました。
-
-以前の設定ですでに `default-rule-set` というルールセットが存在しました。
+過去にすでに設定したことがあったのでもうドメインは使えるようになっていましたが、初回であればドメインとかメールアドレスの所有確認が必要かも。
 
 ```hcl
 resource "aws_ses_receipt_rule_set" "rule_set" {
@@ -352,12 +365,14 @@ resource "aws_ses_receipt_rule" "rule" {
   scan_enabled  = true
   tls_policy    = "Require"
 
+  # まず S3 にメッセージを保存
   s3_action {
     position          = 1
     bucket_name       = aws_s3_bucket.mail_received.id
     object_key_prefix = ""
   }
 
+  # Lambda 関数を実行
   lambda_action {
     function_arn    = aws_lambda_function.ses_to_cloud_pubsub.arn
     invocation_type = "Event"
@@ -372,3 +387,6 @@ resource "aws_ses_receipt_rule" "rule" {
 }
 ```
 
+以上、これでメールが届くと音声で教えてくれるようになりました。
+
+めでたしめでたし。
