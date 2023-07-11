@@ -2,7 +2,7 @@
 title: 'GitLabを4.0から5.2にアップグレードしたメモ'
 date: Wed, 29 May 2013 13:57:58 +0000
 draft: false
-tags: ['Linux', 'git', 'gitlab']
+tags: ['Linux', 'git', 'GitLab']
 ---
 
 （2013/06/07追記あり） GitLabがgitoliteからgitlab-shellに切り替えてからそこそこ時間も経ったし、5.2でforkがサポートされということなのでアップグレードしてみました。 [Gitリポジトリ管理ツール「GitLab 5.2」リリース、フォーク機能などを追加](http://sourceforge.jp/magazine/13/05/23/180000) いくつかハマりどころがあったのでメモっておきます。 全体的な流れは [https://github.com/gitlabhq/gitlabhq/tree/master/doc/update](https://github.com/gitlabhq/gitlabhq/tree/master/doc/update) にあるように順番にひとつずつアップグレードしていきます。
