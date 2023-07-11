@@ -2,7 +2,7 @@
 title: "GitLab CI で artifacts:reports:dotenv を使って Job をまたいで変数を渡す"
 date: 2023-04-05T01:27:22+09:00
 draft: false
-tags: ["gltlab", "GitLab CI"]
+tags: ["GitLab", "GitLab CI"]
 ---
 
 GitLab CI である Job で変数を定義して、それを後続の Job でも使いたいなと思って調べていたら
