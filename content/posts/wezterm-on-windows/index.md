@@ -105,6 +105,12 @@ winget install 7zip.7zip
 ```
 [Windows 10で「CapsLock」と「Ctrl」を入れ替える方法【PowerToys編】](https://news.mynavi.jp/techplus/article/20210609-1900755/) で紹介されているように PowerToys でも CapsLock キーを Ctrl に変更することはできたのだが、日本語入力の On/Off に `Ctrl + Space` を使うと不具合があるようなのでやめた。
 
+すっかり忘れていたが、前にセットアップした別の Windows PC では Microsoft の Sysinternals でも紹介されている [ctrl2cap](https://learn.microsoft.com/ja-jp/sysinternals/downloads/ctrl2cap) を使ったのでした。
+LZH に悩まされることもない。
+
+この環境は Ctrl+Space が期待の動作をしなかったが、今回の件で PowerToys が原因だとわかったので削除して解消された。ヤッタネ！
+
+
 ## Docker のインストール
 
 Windows Container を使う予定はないので Docker Desktop for Windows ではなく、Ubuntu 環境内にインストールする。
