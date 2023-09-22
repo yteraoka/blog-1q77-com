@@ -12,6 +12,25 @@ tags: ['Linux']
 {{< figure src="20141119_075905.jpg" caption="kano package" >}}
 
 しかしながら、数回起動させただけでずっと眠っていました。だってくっそ遅いんですもの。。。
+
+```
+root@DietPi:~# cat /proc/cpuinfo
+processor       : 0
+model name      : ARMv6-compatible processor rev 7 (v6l)
+BogoMIPS        : 898.66
+Features        : half thumb fastmult vfp edsp java tls
+CPU implementer : 0x41
+CPU architecture: 7
+CPU variant     : 0x0
+CPU part        : 0xb76
+CPU revision    : 7
+
+Hardware        : BCM2835
+Revision        : 000e
+Serial          : 00000000ae952dff
+Model           : Raspberry Pi Model B Rev 2
+```
+
 （今のモデルはもっと快適だと思いますが） 息子はスクラッチもマインクラフトも別の Windows PC でやってます。
 
 で、Google Home で遊ぶためのツールやサーバーを動かしておくためにこれを使おうと [DietPi](http://dietpi.com/) でセットアップしてみました（「[ラズパイZeroでもサクサク動く、軽量Linux「DietPi」](http://tech.nikkeibp.co.jp/it/atcl/column/17/041900152/101900027/)」で紹介されてました）。イメージファイルをダウンロードして Win32 Disk Imager などで SD カードに入れて起動するだけです。後はほぼ Wizard でセットアップできます。
