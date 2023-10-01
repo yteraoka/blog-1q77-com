@@ -12,7 +12,7 @@ DLNA サーバーはいくつか選択肢があるみたいですが簡単そう
 
 ## インストール
 
-ラズパイには DietPi をインストールしているので `dietpi-software` コマンドで
+ラズパイには [DietPi](https://dietpi.com/) をインストールしているので `dietpi-software` コマンドで
 minidlna をインストールして `/etc/minidlna.conf` を書き換えるだけ。
 
 デフォルトでは次のようになっているところを環境にあわせて変更する。
@@ -84,3 +84,7 @@ ntfs3
 ### ネットワーク
 
 今回のラズパイは PiVPN (WireGuard) で VPN サーバーも兼ねており、それ用の Network Interface が存在して不要なログが出てたので `network_interface=wlan0` で interface を限定しておいた。
+
+## 完成
+
+テレビ (REGZA) で再生できるようになったし、Windows や iPhone からも [VLC media player](https://www.videolan.org/) で再生可能になりました。
