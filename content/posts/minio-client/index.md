@@ -126,6 +126,8 @@ https://${ACCOUNT_ID}.r2.cloudflarestorage.com
 例えば 500GB 置くとすると $7.5 です。
 2023年11月12日の1ドル151.53円では1136.475円。
 
+{{< figure src="cloudflare-r2-pricing.png" alt="Cloudflare R2 Pricing" >}}
+
 現在、Google One のスタンダードで200GBを380円で利用中です。
 これをプレミアムで2TBにアップグレードした場合、月額1,300円です。
 おやおや？こっちの方がリーズナブルですね。
