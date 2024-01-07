@@ -9,6 +9,8 @@ tags: ["Windows", "WSL2"]
 
 WSL の Linux 内で awscli を使って SSO 認証する場合の `aws sso login` 実行時や GitHub の CLI である [gh](https://github.com/cli/cli) ([cli.github.com](https://cli.github.com/) ) コマンドで `gh auth login` を実行した場合に可能であれば自動でブラウザで指定の URL が開かれますが、WSL の場合、Linux 内のブラウザを使うわけではないため何も設定していない状態だと開いてくれないのでひと手間かかって面倒です。
 
+gh コマンドはログイン以外にもブラウザで開くコマンドがいくつもあるのでこれが使えるようになるのは重要。
+
 
 ## BROWSER 環境変数
 
