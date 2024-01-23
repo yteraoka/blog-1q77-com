@@ -25,7 +25,8 @@ openssl s_client \
   -starttls smtp -crlf -quiet
 ```
 
-ここで `-quiet` か `-ign_eof` をつけない場合、terminal から `R` とか `Q` を type した際に renegotiate や close 扱いとなり、切断されてしまうので注意。(RCPT TO コマンドを送ろうとして失敗します)
+ここで `-quiet` か `-ign_eof` をつけない場合、terminal から `R` とか `Q` を type した際に renegotiate や close 扱いとなり、切断されてしまうので注意。(RCPT TO コマンドを送ろうとして失敗します)  
+OpenSSL が version 3.2 であれば `-nocommands` でも可。([openssl s_client / CONNECTED-COMMANDS](https://www.openssl.org/docs/man3.2/man1/openssl-s_client.html#CONNECTED-COMMANDS-BASIC))
 
 あとは普通の SMTP 通信なので
 
@@ -54,5 +55,3 @@ openssl s_client \
 ```
 
 てな具合です。
-
-
