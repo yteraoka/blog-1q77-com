@@ -21,3 +21,8 @@ ln -sfn /opt/homebrew/opt/docker-buildx/bin/docker-buildx ~/.docker/cli-plugins/
 ```
 
 Orbstack を入れたことのある端末では Orbstack のファイルへの symbolic link があったのですが、Orbstack 削除後も link だけが残っていました。
+
+それぞれ GitHub の releases ページからバイナリをダウンロードして配置しても良い
+
+- https://github.com/docker/buildx/releases
+- https://github.com/docker/compose/releases
