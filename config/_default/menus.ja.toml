@@ -9,13 +9,13 @@
   weight = 20
 
 [[main]]
-  pre = "github"
+#  pre = "github"
   name = "GitHub"
   url = "https://github.com/yteraoka"
   weight = 30
 
 [[main]]
-  pre = "twitter"
+#  pre = "twitter"
   name = "Twitter"
   url = "https://twitter.com/yteraoka"
   weight = 40

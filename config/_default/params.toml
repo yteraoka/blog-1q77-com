@@ -5,7 +5,7 @@
 # Refer to the theme docs for more details about each of these parameters.
 # https://nunocoracao.github.io/blowfish/docs/configuration/#theme-parameters
 
-colorScheme = "blowfish"
+#colorScheme = "blowfish"
 defaultAppearance = "light" # valid options: light or dark
 autoSwitchAppearance = false
 
@@ -15,6 +15,9 @@ enableCodeCopy = true
 mainSections = ["posts"]
 # mainSections = ["section1", "section2"]
 # robots = ""
+
+[colorScheme]
+default = "auto"
 
 [header]
   layout = "basic" # valid options: basic, fixed
