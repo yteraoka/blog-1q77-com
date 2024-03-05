@@ -12,14 +12,14 @@ Minikube の起動
 
 まずは Kubernetes クラスタの作成。いつものように minikube です。[こちらのページ](https://istio.io/docs/setup/platform-setup/)によると Istio 1.5 は Kubernetes 1.14, 1.15, 1.16 でテストされているそうです。1.17 はまだ早いみたいです。特に理由はないですがここではひとまず 1.15 を使うことにしました。
 
-```
-$ minikube start --kubernetes-version=v1.15.10 --cpus=4 --memory=8gb
+```bash
+minikube start --kubernetes-version=v1.15.10 --cpus=4 --memory=8gb
 ```
 
 後で `type: LoadBalancer` の **Service** が作られるので別ターミナルで [minikube tunnel](https://minikube.sigs.k8s.io/docs/tasks/loadbalancer/#using-minikube-tunnel) を実行しておきます。
 
-```
-$ minikube tunnel
+```bash
+minikube tunnel
 ```
 
 Istio のインストール
@@ -29,8 +29,8 @@ Istio のインストール
 
 まずはダウンロードです。最新版をダウンロードする場合は ISTIO\_VERSION の指定は不要かと思いますが一応。
 
-```
-$ curl -L https://istio.io/downloadIstio | ISTIO_VERSION=1.5.0 sh -
+```bash
+curl -L https://istio.io/downloadIstio | ISTIO_VERSION=1.5.0 sh -
 ```
 
 これでカレントディレクトリに istio-1.5.0 というディレクトリができているはずです。(github の releases から環境に合わせた tar.gz をダウンロードして展開してくれるだけ)
@@ -56,21 +56,21 @@ Istio configuration profiles:
 
 した manifest を diff で確認した方がわかりやすいです。
 
-```
-$ diff -u <(istioctl manifest generate --set profile=default) \
-          <(istioctl manifest generate --set profile=minimal)
+```bash
+diff -u <(istioctl manifest generate --set profile=default) \
+        <(istioctl manifest generate --set profile=minimal)
 ```
 
 profile dump で確認できる変数を `--set` で上書きすることで細かいカスタマイズも可能でその影響も manifest generage で確認することができます。([オプション設定一覧](https://istio.io/docs/reference/config/installation-options/))
 
 Envoy proxy でアクセスログを出力するには `values.global.proxy.accessLogFile=/dev/stdout` とします。また、そのフォーマット（エンコーディング？）を JSON にするには `values.global.proxy.accessLogEncoding=JSON` とします。この manifest の差分が次のようにして確認できます。
 
-```
-$ diff -u <(istioctl manifest generate \
-                        --set profile=default \
-                        --set values.global.proxy.accessLogEncoding=JSON \
-                        --set values.global.proxy.accessLogFile=/dev/stdout) \
-          <(istioctl manifest generate --set profile=default)
+```bash
+diff -u <(istioctl manifest generate \
+                      --set profile=default \
+                      --set values.global.proxy.accessLogEncoding=JSON \
+                      --set values.global.proxy.accessLogFile=/dev/stdout) \
+        <(istioctl manifest generate --set profile=default)
 ```
 
 ```diff
@@ -107,11 +107,11 @@ Egress Gateway を有効にしたい場合は `gateways.components.egressGateway
 
 ### インストール
 
-```
-$ istioctl manifest apply \
-      --set profile=default \
-      --set values.global.proxy.accessLogEncoding=JSON \
-      --set values.global.proxy.accessLogFile=/dev/stdout
+```bash
+istioctl manifest apply \
+    --set profile=default \
+    --set values.global.proxy.accessLogEncoding=JSON \
+    --set values.global.proxy.accessLogFile=/dev/stdout
 ```
 
 ```

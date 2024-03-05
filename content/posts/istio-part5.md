@@ -16,7 +16,7 @@ OutlierDetection は [DestinationRule](https://istio.io/docs/reference/config/ne
 
 一旦 VirtualService での転送先を v2 だけにします。
 
-```
+```yaml
 $ kubectl apply -f - <<EOF
 apiVersion: networking.istio.io/v1beta1
 kind: VirtualService
@@ -40,13 +40,13 @@ EOF
 
 OutlierDetection で Target を Evict するには転送先にいくつかの Pod が必要なので replica 数を増やします。
 
-```
-$ kubectl scale --replicas=5 deployment/httpbin-deployment-v2
+```bash
+kubectl scale --replicas=5 deployment/httpbin-deployment-v2
 ```
 
 次に、DestinationRule に OutlierDetection を設定します。
 
-```
+```yaml
 $ kubectl apply -f - <<EOF
 apiVersion: networking.istio.io/v1beta1
 kind: DestinationRule
@@ -190,7 +190,7 @@ Retry について
 
 Retry の回数などは VirtualService の [http.retries.attempts](https://istio.io/docs/reference/config/networking/virtual-service/#HTTPRetry) などで設定することができます。Outlier の話から外れちゃうけどここで retries をいじってみます。
 
-```
+```yaml
 $ kubectl apply -f - <<EOF
 apiVersion: networking.istio.io/v1beta1
 kind: VirtualService
@@ -216,7 +216,7 @@ EOF
 
 curl を実行する Pod で **http://localhost:15000/config\_dump** を確認してみると `"num_retries": 10` になりました。`"retry_on": "connect-failure,refused-stream,unavailable,cancelled,resource-exhausted,retriable-status-codes"` ということなので、 **x-envoy-retriable-status-codes** ヘッダーで指定すれば 503 以外でも retry してくれそうです。
 
-```
+```json
         "routes": [
          {
           "match": {
@@ -277,7 +277,12 @@ ENDPOINT                        STATUS      OUTLIER CHECK     CLUSTER
 次のようにして状態を確認しながら `/status/503` にアクセスをしてみます。
 
 ```
-$ while : ; do date; istioctl proxy-config endpoint ubuntu-deployment-cc86cc647-vsvbh | egrep '^ENDPOINT|v2\|httpbin'; sleep 3; done
+while : ; do
+  date
+  istioctl proxy-config endpoint ubuntu-deployment-cc86cc647-vsvbh \
+    | egrep '^ENDPOINT|v2\|httpbin'
+  sleep 3
+done
 ```
 
 ```

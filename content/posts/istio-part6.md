@@ -24,7 +24,7 @@ prometheus             1/1     1            1           29h
 
 `istio=ingressgateway` という label がついていて、[Gateway](https://istio.io/docs/reference/config/networking/gateway/) で通常これが指定されます。
 
-```
+```json
 $ kubectl get deployment -n istio-system istio-ingressgateway -o json | jq .metadata.labels
 {
   "app": "istio-ingressgateway",
@@ -69,7 +69,7 @@ $ curl --resolve httpbin-service:80:10.108.149.40 -sv http://httpbin-service/
 
 istio-ingressgateway のログ
 
-```
+```json
 {
   "authority": "httpbin-service",
   "bytes_received": "0",
@@ -99,7 +99,7 @@ istio-ingressgateway のログ
 
 404 が返されるのは blackhole 設定によるものです。
 
-```
+```json
 $ istioctl -n istio-system proxy-config route istio-ingressgateway-757f454bff-57l8j --name http.80 -o json
 [
     {
@@ -133,7 +133,7 @@ Gateway の登録
 
 次のようにして Gateway を登録します。**servers** 内の **hosts** は Host Header を見てどれを対象とするかの定義です。ここでは httpbin.local という DNS 登録がされているということにします。この **hosts** には FQDN を指定する必要があります。
 
-```
+```yaml
 $ kubectl apply -f - <<EOF
 apiVersion: networking.istio.io/v1beta1
 kind: Gateway
@@ -169,7 +169,7 @@ httpbin-virtual-service              [httpbin-service]   22h
 
 ここで gateways を追加します。他の設定は前回のままで、ここでは特に意味はない。
 
-```
+```yaml
 $ kubectl apply -f - <<EOF
 apiVersion: networking.istio.io/v1beta1
 kind: VirtualService
@@ -179,9 +179,9 @@ spec:
 spec:
   hosts:
   - httpbin-service
-  **gateways:**
-  **- httpbin-gateway**
-  **- mesh**
+  gateways:
+  - httpbin-gateway
+  - mesh
   http:
   - retries:
       attempts: 10
@@ -225,7 +225,7 @@ Gateway 側の hosts に httpbin-service.default.svc.cluster.local を登録し�
 
 で、VirtualService を再度更新します。
 
-```
+```yaml
 $ kubectl apply -f - <<EOF
 apiVersion: networking.istio.io/v1beta1
 kind: VirtualService
@@ -235,7 +235,7 @@ spec:
 spec:
   hosts:
   - httpbin-service
-  - **httpbin.local**
+  - httpbin.local
   gateways:
   - httpbin-gateway
   - mesh
@@ -297,7 +297,7 @@ EOF
 
 ingress gateway のログです
 
-```
+```json
 {
   "authority": "httpbin.local",
   "bytes_received": "0",
@@ -334,7 +334,7 @@ ADDRESS     PORT      TYPE
 0.0.0.0     15090     HTTP
 ```
 
-```
+```json
 $ istioctl proxy-config route $(kubectl get pods -n istio-system -l istio=ingressgateway -o=jsonpath='{.items[0].metadata.name}') -n istio-system -o json | jq .
 [
   {

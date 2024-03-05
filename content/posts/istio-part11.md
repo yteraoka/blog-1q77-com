@@ -46,10 +46,10 @@ spec:
 自己署名の証明書作成
 ----------
 
-```
-$ openssl req -new -newkey rsa:2048 -days 365 -nodes -x509 \
-    -keyout server.key -out server.crt \
-    -subj "/CN=httpbin.example.com/"
+```bash
+openssl req -new -newkey rsa:2048 -days 365 -nodes -x509 \
+  -keyout server.key -out server.crt \
+  -subj "/CN=httpbin.example.com/"
 ```
 
 などとすれば作れますが、最近はブラウザがうるさいので `*.local.1q77.com` の証明書を Let's Encrypt で取得しました。これは後で [cert-manager](https://cert-manager.io/docs/installation/kubernetes/) 管理にしよう。（後日、[cert-manager で証明書管理](/2020/03/cert-manager/)という記事を書きました。）
@@ -64,10 +64,10 @@ Istio インストール時に有効にしていない場合は SDS を有効に
 
 Secrets の名前を `istio` や `prometheus` で始めてはダメらしい。また、中に `token` というフィールドを入れてもダメらしい。今回は httpbin サービスで使うのでドキュメントの例と同じく **httpbin-credential** という名前にしました。istio-system namespace 内の istio-ingressgateway Pod で使われるため istio-system namespace に作る必要があるみたい。
 
-```
-$ kubectl create -n istio-system secret generic httpbin-credential \
-    --from-file=key=_.local.1q77.com.key \
-    --from-file=cert=_.local.1q77.com.crt
+```bash
+kubectl create -n istio-system secret generic httpbin-credential \
+  --from-file=key=_.local.1q77.com.key \
+  --from-file=cert=_.local.1q77.com.crt
 ```
 
 Gateway を設定する

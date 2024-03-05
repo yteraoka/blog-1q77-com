@@ -16,7 +16,7 @@ tags: ['Istio']
 
 前回は最終的に次の設定を行いました。これで httpbin.org と www.google.com 宛ては通信が許可されました。(outboundTrafficPolicy は REGISTRY\_ONLY でした)
 
-```
+```yaml
 $ kubectl apply -f - <<EOF
 apiVersion: networking.istio.io/v1beta1
 kind: ServiceEntry
@@ -26,7 +26,7 @@ spec:
   hosts:
   - httpbin.org
   - www.google.com
-  location: MESH\_EXTERNAL
+  location: MESH_EXTERNAL
   ports:
   - number: 80
     name: http
@@ -36,7 +36,6 @@ spec:
     protocol: TLS
   resolution: DNS
 EOF
-
 ```
 
 しかし、これでは直接各サイトに出ていくだけです。[Fault Injection](https://istio.io/docs/reference/config/networking/virtual-service/#HTTPFaultInjection) は [VirtualService](https://istio.io/docs/reference/config/networking/virtual-service/) の機能でした。「[VirtualService 編](/2020/03/istio-part3/)」を読み返しましょう。VirtualService にはそのサービスの転送先として [DestinationRule](https://istio.io/docs/reference/config/networking/destination-rule/) しました。
@@ -48,7 +47,7 @@ VirtualService の作成
 
 httpbin.org 用の VirtualService を作成します。httpbin.org は HTTPS には対応していないため port 80 だけです。全リクエストに3秒の delay を入れ、30% のリクエストは 500 Internal Server Error を返すようにしてみます。DestinationRule は登録せずとも ServiceEntry があるため接続できます。ServiceEntry がない場合は `"response_flags":"NR,DI"` で Injection の後でエラーになります。これは outboundTrafficPolicy が ALLOW\_ANY でも同じです。ServiceEntry が必要です。
 
-```
+```yaml
 $ kubectl apply -f - <<EOF
 apiVersion: networking.istio.io/v1alpha3
 kind: VirtualService
@@ -60,82 +59,79 @@ spec:
   http:
   - match:
     - port: 80
-    **fault:**
-      **delay:**
-        **fixedDelay: 3s**
-        **percentage:**
-          **value: 100**
-      **abort:**
-        **httpStatus: 500**
-        **percentage:**
-          **value: 30**
+    fault:
+      delay:
+        fixedDelay: 3s
+        percentage:
+          value: 100
+      abort:
+        httpStatus: 500
+        percentage:
+          value: 30
     route:
     - destination:
         host: httpbin.org
 EOF
-
 ```
 
 Delay だけが適用された時のログです。
 
-```
+```json
 {
   "authority": "httpbin.org",
-  "bytes\_received": "0",
-  "bytes\_sent": "34",
-  "downstream\_local\_address": "35.170.216.115:80",
-  "downstream\_remote\_address": "172.17.0.8:43426",
+  "bytes_received": "0",
+  "bytes_sent": "34",
+  "downstream_local_address": "35.170.216.115:80",
+  "downstream_remote_address": "172.17.0.8:43426",
   "duration": "3366",
-  "istio\_policy\_status": "-",
+  "istio_policy_status": "-",
   "method": "GET",
   "path": "/ip",
   "protocol": "HTTP/1.1",
-  "request\_id": "fa22dc61-1cc5-45c4-bc97-4f02d8a7c468",
-  "requested\_server\_name": "-",
-  **"response\_code": "200"**,
-  **"response\_flags": "DI"**,
-  "route\_name": "-",
-  "start\_time": "2020-03-11T15:24:31.272Z",
-  "upstream\_cluster": "outbound|80||httpbin.org",
-  "upstream\_host": "34.230.193.231:80",
-  "upstream\_local\_address": "172.17.0.8:54090",
-  "upstream\_service\_time": "361",
-  "upstream\_transport\_failure\_reason": "-",
-  "user\_agent": "curl/7.58.0",
-  "x\_forwarded\_for": "-"
+  "request_id": "fa22dc61-1cc5-45c4-bc97-4f02d8a7c468",
+  "requested_server_name": "-",
+  "response_code": "200",
+  "response_flags": "DI",
+  "route_name": "-",
+  "start_time": "2020-03-11T15:24:31.272Z",
+  "upstream_cluster": "outbound|80||httpbin.org",
+  "upstream_host": "34.230.193.231:80",
+  "upstream_local_address": "172.17.0.8:54090",
+  "upstream_service_time": "361",
+  "upstream_transport_failure_reason": "-",
+  "user_agent": "curl/7.58.0",
+  "x_forwarded_for": "-"
 }
-
 ```
 
 こちらは Delay と Fault が両方適用された時のログです。
 
-```
+```json
 {
   "authority": "httpbin.org",
-  "bytes\_received": "0",
-  "bytes\_sent": "18",
-  "downstream\_local\_address": "3.232.168.170:80",
-  "downstream\_remote\_address": "172.17.0.8:50018",
+  "bytes_received": "0",
+  "bytes_sent": "18",
+  "downstream_local_address": "3.232.168.170:80",
+  "downstream_remote_address": "172.17.0.8:50018",
   "duration": "3001",
-  "istio\_policy\_status": "-",
+  "istio_policy_status": "-",
   "method": "GET",
   "path": "/ip",
   "protocol": "HTTP/1.1",
-  "request\_id": "98a3a4c5-4a0d-4325-a800-da7c3b6db3e3",
-  "requested\_server\_name": "-",
-  **"response\_code": "500"**,
-  **"response\_flags": "DI,FI"**,
-  "route\_name": "-",
-  "start\_time": "2020-03-11T15:24:47.524Z",
-  "upstream\_cluster": "-",
-  "upstream\_host": "-",
-  "upstream\_local\_address": "-",
-  "upstream\_service\_time": "-",
-  "upstream\_transport\_failure\_reason": "-",
-  "user\_agent": "curl/7.58.0",
-  "x\_forwarded\_for": "-"
+  "request_id": "98a3a4c5-4a0d-4325-a800-da7c3b6db3e3",
+  "requested_server_name": "-",
+  "response_code": "500",
+  "response_flags": "DI,FI",
+  "route_name": "-",
+  "start_time": "2020-03-11T15:24:47.524Z",
+  "upstream_cluster": "-",
+  "upstream_host": "-",
+  "upstream_local_address": "-",
+  "upstream_service_time": "-",
+  "upstream_transport_failure_reason": "-",
+  "user_agent": "curl/7.58.0",
+  "x_forwarded_for": "-"
 }
-
 ```
 
 ### www.google.com
@@ -146,7 +142,7 @@ Delay だけが適用された時のログです。
 
 httpbin.org の時と違って DestinationRule はありますが、こちらも ServiceEntry を消すとアクセスできなくなります。
 
-```
+```yaml
 $ kubectl apply -f - <<EOF
 apiVersion: networking.istio.io/v1alpha3
 kind: VirtualService
@@ -158,19 +154,19 @@ spec:
   http:
   - match:
     - port: 80
-    **fault:**
-      **delay:**
-        **fixedDelay: 1s**
-        **percentage:**
-          **value: 100**
-      **abort:**
-        **httpStatus: 400**
-        **percentage:**
-          **value: 30**
+    fault:
+      delay:
+        fixedDelay: 1s
+        percentage:
+          value: 100
+      abort:
+        httpStatus: 400
+        percentage:
+          value: 30
     route:
     - destination:
         host: www.google.com
-        **subset: tls-origination**
+        subset: tls-origination
         port:
           number: 443
 ---
@@ -181,80 +177,77 @@ metadata:
 spec:
   host: www.google.com
   subsets:
-  **\- name: tls-origination**
-    **trafficPolicy:**
-      **portLevelSettings:**
-      **\- port:**
-          **number: 443**
-        **tls:**
-          **mode: SIMPLE**
-          **sni: www.google.com**
+    - name: tls-origination
+      trafficPolicy:
+        portLevelSettings:
+        - port:
+          number: 443
+        tls:
+          mode: SIMPLE
+          sni: www.google.com
 EOF
-
 ```
 
 これで **http**://www.google.com/ にアクセスすれば Envoy が Injection したうえで https で www.google.com に proxy してくれます。
 
 ログです。`"downstream_local_address": "216.58.197.196:80"` で curl は www.google.com の port 80 にアクセスしようとしたことがわかります。`"upstream_cluster": "outbound|443|tls-origination|www.google.com"` で Envoy 内の経路がわかります。DestinationRule の tls-origination が使われています。`"upstream_host": "216.58.197.196:443"` で proxy 先が port 443 (https) であることがわかります。
 
-```
+```json
 {
   "authority": "www.google.com",
-  "bytes\_received": "0",
-  "bytes\_sent": "13062",
-  **"downstream\_local\_address": "216.58.197.196:80"**,
-  "downstream\_remote\_address": "172.17.0.8:41130",
+  "bytes_received": "0",
+  "bytes_sent": "13062",
+  "downstream_local_address": "216.58.197.196:80",
+  "downstream_remote_address": "172.17.0.8:41130",
   "duration": "1189",
-  "istio\_policy\_status": "-",
+  "istio_policy_status": "-",
   "method": "GET",
   "path": "/",
   "protocol": "HTTP/1.1",
-  "request\_id": "069baa9b-7d0a-4e84-9b4b-a11e34226fce",
-  "requested\_server\_name": "-",
-  "response\_code": "200",
-  **"response\_flags": "DI"**,
-  "route\_name": "-",
-  "start\_time": "2020-03-11T15:38:11.379Z",
-  **"upstream\_cluster": "outbound|443|tls-origination|www.google.com"**,
-  **"upstream\_host": "216.58.197.196:443"**,
-  "upstream\_local\_address": "172.17.0.8:43430",
-  "upstream\_service\_time": "186",
-  "upstream\_transport\_failure\_reason": "-",
-  "user\_agent": "curl/7.58.0",
-  "x\_forwarded\_for": "-"
+  "request_id": "069baa9b-7d0a-4e84-9b4b-a11e34226fce",
+  "requested_server_name": "-",
+  "response_code": "200",
+  "response_flags": "DI",
+  "route_name": "-",
+  "start_time": "2020-03-11T15:38:11.379Z",
+  "upstream_cluster": "outbound|443|tls-origination|www.google.com",
+  "upstream_host": "216.58.197.196:443",
+  "upstream_local_address": "172.17.0.8:43430",
+  "upstream_service_time": "186",
+  "upstream_transport_failure_reason": "-",
+  "user_agent": "curl/7.58.0",
+  "x_forwarded_for": "-"
 }
-
 ```
 
 次は Fault が Inject された時のログです。これは proxy せずに 400 を返しているため proxy 先の情報はありません。
 
-```
+```json
 {
   "authority": "www.google.com",
-  "bytes\_received": "0",
-  "bytes\_sent": "18",
-  "downstream\_local\_address": "216.58.197.196:80",
-  "downstream\_remote\_address": "172.17.0.8:41304",
+  "bytes_received": "0",
+  "bytes_sent": "18",
+  "downstream_local_address": "216.58.197.196:80",
+  "downstream_remote_address": "172.17.0.8:41304",
   "duration": "1001",
-  "istio\_policy\_status": "-",
+  "istio_policy_status": "-",
   "method": "GET",
   "path": "/",
   "protocol": "HTTP/1.1",
-  "request\_id": "78dabd1b-fe57-41fb-8eaf-44ccc6517e3b",
-  "requested\_server\_name": "-",
-  **"response\_code": "400"**,
-  **"response\_flags": "DI,FI"**,
-  "route\_name": "-",
-  "start\_time": "2020-03-11T15:38:21.648Z",
-  "upstream\_cluster": "-",
-  "upstream\_host": "-",
-  "upstream\_local\_address": "-",
-  "upstream\_service\_time": "-",
-  "upstream\_transport\_failure\_reason": "-",
-  "user\_agent": "curl/7.58.0",
-  "x\_forwarded\_for": "-"
+  "request_id": "78dabd1b-fe57-41fb-8eaf-44ccc6517e3b",
+  "requested_server_name": "-",
+  "response_code": "400",
+  "response_flags": "DI,FI",
+  "route_name": "-",
+  "start_time": "2020-03-11T15:38:21.648Z",
+  "upstream_cluster": "-",
+  "upstream_host": "-",
+  "upstream_local_address": "-",
+  "upstream_service_time": "-",
+  "upstream_transport_failure_reason": "-",
+  "user_agent": "curl/7.58.0",
+  "x_forwarded_for": "-"
 }
-
 ```
 
 www.google.com に https でアクセスしようとするとどうなるか
@@ -279,14 +272,14 @@ www.google.com に https でアクセスしようとするとどうなるか
 
 Istio 導入への道シリーズ
 
-*   [Istio 導入への道 (1) – インストール編](/2020/03/istio-part1/)
-*   [Istio 導入への道 (2) – サービス間通信編](/2020/03/istio-part2/)
-*   [Istio 導入への道 (3) – VirtualService 編](/2020/03/istio-part3/)
-*   [Istio 導入への道 (4) – Fault Injection 編](/2020/03/istio-part4/)
-*   [Istio 導入への道 (5) – OutlierDetection と Retry 編](/2020/03/istio-part5/)
-*   [Istio 導入への道 (6) – Ingress Gatway 編](/2020/03/istio-part6/)
-*   [Istio 導入への道 (7) – 外部へのアクセス / ServiceEntry 編](/2020/03/istio-part7/)
-*   Istio 導入への道 (8) – 外部へのアクセスでも Fault Injection 編
-*   [Istio 導入への道 (9) – gRPC でも Fault Injection 編](/2020/03/istio-part9/)
-*   [Istio 導入への道 (10) – 図解](/2020/03/istio-part10/)
-*   [Istio 導入への道 (11) – Ingress Gateway で TLS Termination 編](/2020/03/istio-part11/)
+* [Istio 導入への道 (1) – インストール編](/2020/03/istio-part1/)
+* [Istio 導入への道 (2) – サービス間通信編](/2020/03/istio-part2/)
+* [Istio 導入への道 (3) – VirtualService 編](/2020/03/istio-part3/)
+* [Istio 導入への道 (4) – Fault Injection 編](/2020/03/istio-part4/)
+* [Istio 導入への道 (5) – OutlierDetection と Retry 編](/2020/03/istio-part5/)
+* [Istio 導入への道 (6) – Ingress Gatway 編](/2020/03/istio-part6/)
+* [Istio 導入への道 (7) – 外部へのアクセス / ServiceEntry 編](/2020/03/istio-part7/)
+* Istio 導入への道 (8) – 外部へのアクセスでも Fault Injection 編
+* [Istio 導入への道 (9) – gRPC でも Fault Injection 編](/2020/03/istio-part9/)
+* [Istio 導入への道 (10) – 図解](/2020/03/istio-part10/)
+* [Istio 導入への道 (11) – Ingress Gateway で TLS Termination 編](/2020/03/istio-part11/)
