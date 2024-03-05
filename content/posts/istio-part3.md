@@ -14,8 +14,8 @@ tags: ['Istio']
 
 Version 違いを出し分けたりするテストを行うため、一旦今の httpbin-deployment を削除します。
 
-```
-$ kubectl delete deployment httpbin-deployment
+```bash
+kubectl delete deployment httpbin-deployment
 ```
 
 本当はレスポンスが異なる Pod を用意すればわかりやすいのですが、ログでアクセスを確認するってことで、v1 と v2 と version label だけが異なる Deployment を2つ deploy します。

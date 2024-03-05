@@ -14,7 +14,7 @@ tags: ['Istio']
 
 現在の設定を確認。QueryString に v=1 があれば v1 に、それ意外は v2 に送られます。
 
-```
+```yaml
 $ kubectl get vs httpbin-virtual-service -o yaml
 apiVersion: networking.istio.io/v1beta1
 kind: VirtualService
@@ -44,7 +44,7 @@ spec:
 
 `route` のレベルに `fault` を入れます。v1 のところに入れてみます。([HTTPFaultInjection.Abort](https://istio.io/docs/reference/config/networking/virtual-service/#HTTPFaultInjection-Abort))
 
-```
+```yaml
 $ kubectl apply -f - <<EOF
 apiVersion: networking.istio.io/v1beta1
 kind: VirtualService
@@ -134,7 +134,7 @@ Delay を挿入する
 
 次に v2 側に delay を入れてみます。([HTTPFaultInjection.Delay](https://istio.io/docs/reference/config/networking/virtual-service/#HTTPFaultInjection-Delay))
 
-```
+```yaml
 $ kubectl apply -f - <<EOF
 apiVersion: networking.istio.io/v1beta1
 kind: VirtualService

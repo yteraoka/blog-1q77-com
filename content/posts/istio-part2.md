@@ -70,8 +70,8 @@ spec:
 
 これに Istio の sidecar を inject するのが `istioctl kube-inject` です。次のように実行すれば inject 済みの manifest が出力されます。
 
-```
-$ istioctl kube-inject -f httpbin.yaml
+```bash
+istioctl kube-inject -f httpbin.yaml
 ```
 
 ```yaml
@@ -321,8 +321,8 @@ spec:
 
 よって、これを pipe で kubectl apply に食わせることで deploy できます。`kubectl apply -f <(istioctl kube-inject -f ...)` でも良いし、もちろんファイルに一旦書き出しても大丈夫。
 
-```
-$ istioctl kube-inject -f httpbin.yaml | kubectl apply -f -
+```bash
+istioctl kube-inject -f httpbin.yaml | kubectl apply -f -
 ```
 
 default namespace に deploy しました。
@@ -349,8 +349,8 @@ service/kubernetes        ClusterIP   10.96.0.1       443/TCP   4h24m
 
 毎回 Deployment を作る度に kube-inject をするのは面倒なので自動化することができる。自動 inject 対象としたい namespace に対して `istio-injection=enabled` という label をつけるだけで良い。
 
-```
-$ kubectl label namespace default istio-injection=enabled
+```bash
+kubectl label namespace default istio-injection=enabled
 ```
 
 ```
@@ -491,7 +491,7 @@ $ istioctl manifest generate --set profile=default | grep enableAutoMtls
 
 あれ？どこで変わったんだ？ 🤔 後で確認してみよう。
 
-```
+```yaml
     # If true, automatically configure client side mTLS settings to match the corresponding service's
     # server side mTLS authentication policy, when destination rule for that service does not specify
     # TLS settings.
@@ -506,8 +506,8 @@ $ istioctl manifest generate --set profile=default | grep enableAutoMtls
 
 まずは送信元の ubuntu 側。 grep を pipe に繋げると buffering されて全然 jq まで渡ってこないので `--line-buffered` をつけています。
 
-```
-$ kubectl logs -l app=ubuntu -c istio-proxy -f --tail 0 | grep --line-buffered '^{' | jq . 
+```bash
+kubectl logs -l app=ubuntu -c istio-proxy -f --tail 0 | grep --line-buffered '^{' | jq . 
 ```
 
 ```json
@@ -544,8 +544,11 @@ istio-proxy が 172.17.0.9:43422 --> 172.17.0.8:80 でリクエストを投げ�
 
 次に httpbin 側のログ
 
-```
-kubectl logs -l app=httpbin -c istio-proxy -f --tail 0 | grep --line-buffered '^{' | grep --line-buffered -v kube-probe | jq .
+```bash
+kubectl logs -l app=httpbin -c istio-proxy -f --tail 0 \
+  | grep --line-buffered '^{' \
+  | grep --line-buffered -v kube-probe \
+  | jq .
 ```
 
 ```json

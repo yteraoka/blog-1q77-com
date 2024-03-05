@@ -75,7 +75,7 @@ root@ubuntu-deployment-54bbd6f4ff-q9sdj:/# curl -sv http://httpbin.org/ip
 
 登録は簡単です。次の様にします。hosts に許可したい宛先 FQDN を指定します。
 
-```
+```yaml
 $ kubectl apply -f - <<EOF
 apiVersion: networking.istio.io/v1beta1
 kind: ServiceEntry
@@ -154,7 +154,7 @@ HTTPS の外部サービスを登録する
 
 次に HTTPS でも接続できるようにします。www.google.com でテストしてみます。port 443 を追加するだけですね。**resolution** が **DNS** や **NONE** であれば先の HTTP のやつとまとめてしまうことが可能です。
 
-```
+```yaml
 $ kubectl apply -f - <<EOF
 apiVersion: networking.istio.io/v1beta1
 kind: ServiceEntry

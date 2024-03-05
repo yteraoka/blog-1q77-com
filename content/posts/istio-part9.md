@@ -101,7 +101,7 @@ spec:
 クライアントからの接続テストは次のようにします。grpc-go って接続に成功するまでずっとリトライするんですね。間隔が開いていくんで Retry with Exponential Backoff and jitter ってやつかな。
 
 ```bash
-$ /client -server_addr grpc-helloworld-service.default.svc.cluster.local:10000 -timeout 10 
+/client -server_addr grpc-helloworld-service.default.svc.cluster.local:10000 -timeout 10 
 ```
 
 ### VirtualService 無しの状態でのアクセス

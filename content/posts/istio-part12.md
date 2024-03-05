@@ -32,11 +32,11 @@ config にテンプレートなどと、そのテンプレートに渡す values
 
 ### istio-sidecar-injector ConfigMap の config
 
-```
-$ kubectl get configmap -n istio-system istio-sidecar-injector -o jsonpath='{.data.config}'
+```bash
+kubectl get configmap -n istio-system istio-sidecar-injector -o jsonpath='{.data.config}'
 ```
 
-```
+```yaml
 policy: enabled
 alwaysInjectSelector:
         []
