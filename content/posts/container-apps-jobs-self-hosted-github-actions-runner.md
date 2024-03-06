@@ -94,6 +94,9 @@ az group create \
     --location "$LOCATION"
 ```
 
+<details>
+<summary>response</summary>
+
 ```json
 {
   "id": "/subscriptions/*****/resourceGroups/github-actions-runner",
@@ -107,6 +110,7 @@ az group create \
   "type": "Microsoft.Resources/resourceGroups"
 }
 ```
+</details>
 
 ### Container Apps 環境の作成
 
@@ -124,7 +128,8 @@ az containerapp env create \
 Log Analytics workspace も自動で作成されたっぽい。これがなんだかわからないけど。
 
 ```bash
-$ az containerapp env list | jq '.[] | {name: .name, endpoint: .properties.eventStreamEndpoint}'
+$ az containerapp env list \
+  | jq '.[] | {name: .name, endpoint: .properties.eventStreamEndpoint}'
 ```
 
 で、こんな出力が得られる。
@@ -144,7 +149,7 @@ Self-hosted Runner を使いたいリポジトリはすでに存在するもの�
 
 ### GitHub の Personal Access Token (PAT) を取得する
 
-GitHub App じゃなくて個人の PAT じゃなきゃダメなのか？
+GitHub App じゃなくて個人の PAT じゃなきゃダメなのか？ (GitHub App でもできることは後でわかった)
 
 [Fine-grained tokens](https://github.com/settings/tokens?type=beta) で Generate new token をクリック
 
@@ -240,10 +245,10 @@ KEDA の [Github Runner Scaler](https://keda.sh/docs/2.13/scalers/github-runner/
 `--polling-interval 30` (30秒) 間隔で GitHub の API にアクセスして実行待ちの Job が無いかを探す。
 GitHub App を使う方法も書いてあった。
 
-Polling から実行が必要だと判断されてコンテナが軌道されると [entrypoint.sh](https://github.com/Azure-Samples/container-apps-ci-cd-runner-tutorial/blob/d9175f4c0fe094736677640f0867dc88f0ccfc3d/github-actions-runner/entrypoint.sh) の中で runner の登録と実行が行われるようになっている。
+Polling から実行が必要だと判断されてコンテナが起動されると [entrypoint.sh](https://github.com/Azure-Samples/container-apps-ci-cd-runner-tutorial/blob/d9175f4c0fe094736677640f0867dc88f0ccfc3d/github-actions-runner/entrypoint.sh) の中で runner の登録と実行が行われるようになっている。
 Runner 登録のための token 取得処理が Personal Access Token 前提になっているため GitHub App を使う場合はここの処理を書き換える必要がある。
 
-ごにょごにょやって JWT を作ったりする必要があるのですが、先人が公開してくれていました。
+GitHub App の場合は JWT を作ったりする必要があるのですが、先人が公開してくれていました。
 [Github ActionsのセルフホステッドランナーにAzure Container Apps(ACA) jobsを活用する](https://qiita.com/kazu_yasu/items/4fd578b35752968a3bb4#github-app%E3%82%92%E4%BD%BF%E7%94%A8%E3%81%99%E3%82%8B) (Qiita)
 
 ### actions/setup-python が機能しない問題（解決済み）
