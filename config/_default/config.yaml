@@ -90,9 +90,9 @@ params:
 
     defaultImage:
         opengraph:
-            enabled: false
-            local: false
-            src:
+            enabled: true
+            local: true
+            src: img/yteraoka.png
 
     colorScheme:
         # Display toggle
@@ -129,6 +129,14 @@ menu:
         - identifier: qiita
           name: Qiita
           url: https://qiita.com/yteraoka
+          params:
+              icon: letter-q
+
+        - identifier: bluesky
+          name: Bluesky
+          url: https://bsky.app/profile/yteraoka.bsky.social
+          params:
+              icon: brand-bluesky
 
 related:
     includeNewer: true
