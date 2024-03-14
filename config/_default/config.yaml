@@ -108,7 +108,7 @@ params:
             enabled: true
 
 ### Custom menu
-### See https://docs.stack.jimmycai.com/configuration/custom-menu.html
+### See hnttps://docs.stack.jimmycai.com/configuration/custom-menu.html
 ### To remove about, archive and search page menu item, remove `menu` field from their FrontMatter
 menu:
     main: []
@@ -137,6 +137,12 @@ menu:
           url: https://bsky.app/profile/yteraoka.bsky.social
           params:
               icon: brand-bluesky
+
+        - identifier: linkedin
+          name: Linkedin
+          url: https://www.linkedin.com/in/fa5b66b7-9c77-4e1b-8b97-40ba4a5a2c13/
+          params:
+              icon: brand-linkedin
 
 related:
     includeNewer: true
