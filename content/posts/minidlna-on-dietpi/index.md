@@ -3,6 +3,7 @@ title: DietPi で DNLA サーバー
 date: 2023-09-30T17:33:09+09:00
 draft: false
 tags: [DietPi, "Raspberry Pi", DLNA]
+image: cover.jpg
 ---
 
 Raspberry Pi 4 を買った週に Raspberry Pi 5 が発表されてちょっと悔しいところですが Windows XP 時代から OS を更新しながら使っていた古いデスクトップPCを処分したのでそこで使っていた HDD をラズパイにつないで Samba で NAS としてアクセス可能にしてみました。そこには昔ハンディカムで撮影した動画なんかも沢山保存されていたのでテレビでそれを見れるように DLNA のメディアサーバーすることにしました。

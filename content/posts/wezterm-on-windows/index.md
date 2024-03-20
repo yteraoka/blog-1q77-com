@@ -3,6 +3,7 @@ title: "WezTerm で快適な WSL2 環境にする"
 date: 2023-08-12T20:07:01+09:00
 draft: false
 tags: ['Windows', 'Ubuntu', 'WSL2', 'WezTerm']
+image: cover.jpg
 ---
 
 家の自分用 Laptop はずっと Linux を使ってきましたが、数か月前に Inspiron 14 に買い替えたタイミングで Ubuntu 22.04 にしてからやっぱり不便だなあとも思っていました。(InputMethod の切り替えで直接入力とひらがなだけにしたいのに Hankaku ってのが外せないとか、電源管理回りとか、snap でインストールしたアプリは日本語入力できないとか)

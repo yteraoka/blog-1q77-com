@@ -3,6 +3,7 @@ title: "メールが届いたら Google Home で音声で通知する"
 date: 2023-07-10T23:25:35+09:00
 tags: ["GCP", "GoogleHome", "AWS", "Raspberry Pi"]
 draft: false
+image: cover.jpg
 ---
 
 以前、「[LINE に送ったメッセージを Google Home に読み上げさせる](/2023/02/line-bot-tts/)」という記事を書きました。

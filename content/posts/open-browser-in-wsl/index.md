@@ -3,6 +3,7 @@ title: "WSL の Linux から Windows のブラウザで URL を開く"
 date: 2024-01-07T20:43:53+09:00
 draft: false
 tags: ["Windows", "WSL2"]
+image: cover.jpg
 ---
 
 ## 課題
