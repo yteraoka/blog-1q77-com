@@ -3,6 +3,7 @@ title: Azure Container Apps Jobs を Self-hosted GitHub Actions Runner として
 date: 2024-02-23T19:05:41+09:00
 draft: false
 tags: [Azure, GitHub]
+image: cover.jpg
 ---
 GitHub Actions の Self-hosted Runner を安く用意する方法を探していたところ、
 Azure の Container Apps Jobs というのが便利に使えるらしいというのを見つけたので試してみる。

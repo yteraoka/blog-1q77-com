@@ -3,6 +3,7 @@ title: "Tagpr で tag trigger の workflow が実行されなくてハマった�
 date: 2024-03-15T09:00:00+09:00
 tags: [GitHub]
 draft: false
+image: cover.jpg
 ---
 
 最近 [tagpr](https://github.com/Songmu/tagpr) という便利ツールの存在を知って試していたのですが、使い方が悪くてハマったのでメモ。

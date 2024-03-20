@@ -3,6 +3,7 @@ title: "openssl s_client で SMTP 認証"
 date: 2024-01-23T11:44:23+09:00
 draft: false
 tags: [AWS, SMTP, ssl]
+image: cover.jpg
 ---
 
 Amazon SES で SMTP を使ってメール送信したい場合、IAM User の credentials をちょいと加工してやる必要があります。

@@ -3,6 +3,7 @@ title: renovate で CircleCI の terraform_version を更新する
 date: 2024-02-04T19:37:36+09:00
 tags: [renovate, CircleCI, Terraform]
 draft: false
+image: cover.jpg
 ---
 
 Circle CI の [terraform Orb](https://circleci.com/developer/orbs/orb/circleci/terraform) で
