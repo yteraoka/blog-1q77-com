@@ -3,6 +3,7 @@ title: "asdf の代わりに rtx を使う"
 date: 2023-06-07T10:25:11+09:00
 draft: false
 tags: ['asdf', 'rtx']
+image: cover.jpg
 ---
 
 [nodeenv](https://github.com/nodenv/nodenv) とか [rbenv](https://github.com/rbenv/rbenv) とか [tfenv](https://github.com/tfutils/tfenv) とか XXenv がそれぞれ `.xxx-version` というファイルにそのディレクトリ配下で使用する software の version を指定するという仕様があり、それらをまとめてやってくれる [asdf](https://github.com/asdf-vm/asdf) というツールが登場し、`.tool-versions` というファイルに複数のソフトウェアのバージョンを指定できるようになりました。 (aqua はまだ使ったことがない)
