@@ -3,6 +3,7 @@ title: "editcap で tcpdump のキャプチャファイルから指定の時間�
 date: 2023-06-15T23:46:42+09:00
 draft: false
 tags: ['tcpdump']
+image: cover.jpg
 ---
 
 ちょっと大きめ (時間範囲の広い) pcap ファイルがあって、wireshark で見るにしてもちょっと大きすぎるなということがありました。
