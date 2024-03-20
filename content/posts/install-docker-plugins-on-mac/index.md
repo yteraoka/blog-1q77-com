@@ -3,6 +3,7 @@ title: Mac に Homebrew で docker pluings をインストールする
 date: 2024-01-26T21:36:56+09:00
 tags: [macOS, docker]
 draft: false
+image: cover.jpg
 ---
 
 Docker Desktop for Mac であれば何もしなくても `docker compose` コマンドは使えるようになっているのですが、Lima で docker を使っている場合などで Homebrew で docker をインストールしていると `docker compose` や `docker buildx` を使えるようにするためには追加でのインストールが必要でした。

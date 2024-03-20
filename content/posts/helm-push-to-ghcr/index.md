@@ -3,6 +3,7 @@ title: "Helm chart を GitHub Container Registry に host する"
 date: 2024-03-15T00:13:39+09:00
 tags: [GitHub, Helm]
 draft: false
+image: "cover.jpg"
 ---
 
 ## 背景
