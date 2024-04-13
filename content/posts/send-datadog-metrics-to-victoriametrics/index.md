@@ -3,6 +3,7 @@ title: "Datadog Agent からの Metrics を Victoria Metrics で受ける"
 date: 2023-03-19T21:38:04+09:00
 draft: false
 tags: ["VictoriaMetrics", "Datadog"]
+image: cover.jpg
 ---
 
 [Victoria Metrics](https://github.com/VictoriaMetrics/VictoriaMetrics) は [v1.67.0](https://github.com/VictoriaMetrics/VictoriaMetrics/releases/tag/v1.67.0) で Datadog Agent からのメトリクスを受け取れるようになっているので今回はこれを試してみる。

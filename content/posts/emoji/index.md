@@ -2,7 +2,8 @@
 title: '絵文字の顔の使い分け'
 date: Wed, 07 Nov 2018 14:54:29 +0000
 draft: false
-tags: ['未分類']
+tags: ['emoji']
+image: cover.jpg
 ---
 
 GitHub とか文字としても残るので意味を知って使ってみよう
