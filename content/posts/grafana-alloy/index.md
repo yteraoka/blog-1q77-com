@@ -3,6 +3,7 @@ title: "Grafana Alloy でメトリクス収集"
 date: 2024-04-16T00:16:09+09:00
 draft: false
 tags: [grafana, alloy]
+image: cover.png
 ---
 
 Raspberry Pi を新しくしてからメトリクスの可視化を行っていなかったので Grafana Cloud で見れるようにセットアップしようと Grafana のサイトを見ていたら Alloy というものの存在を知ったので試してみる。
