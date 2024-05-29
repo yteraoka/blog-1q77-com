@@ -98,3 +98,22 @@ export BROWSER=/usr/bin/wslview
 
 `az login` や `gcloud auth login` でも同じように `BROWSER` 環境変数で対応できるようです。
 
+
+## xdg-open の代わりに使う
+
+ArgoCD の CLI でアクセスしようと思って WSL 環境で次のコマンドを実行すると
+
+```bash
+argocd login argocd.example.com --sso --grpc-web
+```
+
+```
+FATA[0001] exec: "xdg-open": executable file not found in $PATH
+```
+
+と xdf-open ファイルが存在しないというエラーでログインできませんでした。
+xdg-open の代わりに直接ブラウザを実行させれば良いみたいなのでこれも Symbolic link で対応しました。
+
+```bash
+ln -s /mnt/c/Program\ Files/Google/Chrome/Application/chrome.exe ~/bin/xdg-open
+```
