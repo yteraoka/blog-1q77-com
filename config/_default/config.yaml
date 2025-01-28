@@ -1,7 +1,8 @@
 baseurl: https://blog.1q77.com
 languageCode: ja-jp
 theme: hugo-theme-stack
-paginate: 6
+pagination:
+  pagerSize: 6
 title: 1q77
 copyright: Yoshinori Teraoka
 
