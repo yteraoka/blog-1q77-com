@@ -4,6 +4,9 @@ date: 2024-04-28T21:57:31+09:00
 tags: [Grafana, alloy, wireguard, Rust]
 draft: false
 image: cover.png
+author: "@yteraoka"
+categories:
+  - Monitoring
 ---
 先日、家のラズパイに Grafana Alloy をセットアップしてメトリクス可視化の環境はできているので WireGuard での VPN 通信のメトリクスを可視化してみようかなと試してみました。
 

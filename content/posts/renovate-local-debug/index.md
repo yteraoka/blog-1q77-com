@@ -3,6 +3,10 @@ title: "Renovate を手元の repository に対して debug 実行する"
 date: 2025-01-28T19:45:08+09:00
 draft: false
 tags: [renovate]
+image: cover.png
+author: "@yteraoka"
+categories:
+  - CI/CD
 ---
 
 [renovate](https://docs.renovatebot.com/) の設定を手元で試行錯誤したい時のメモです。
