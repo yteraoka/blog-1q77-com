@@ -3,13 +3,21 @@ title: "Raspberry Pi 4 での USB Strage Driver"
 date: 2024-07-20T19:19:30+09:00
 tags: [Raspberry, Linux]
 draft: false
+image: cover.png
+author: "@yteraoka"
+categories:
+  - Home IT
 ---
+
+## ラズパイが時々ハングアップする
 
 おうちの Raspberry Pi4 は USB で SSD Driver を接続して Samba で File Server にしているわけですが
 多くの Read/Write を行うとなぜか OS ごと Hangup するという問題がありました。
 
 最初は電源不足かなと思って電源を交換したりもしたのですが改善しませんでした。
 電源は TP-Link の [HS105](https://www.tp-link.com/jp/home-networking/smart-plug/hs105/) 経由にしているのでハングアップしたらリモートで電源 Off / On して復旧させていたわけですが不便なのでググって別の解決策を探してみたところそれらしいものがあったのでメモ。(HS105 は生産も終了しており、後継は [Tapo P110M](https://amzn.to/4f9IQuG) のようです)
+
+## USB Attached SCSI と USB Controller チップの相性問題
 
 - [(SOLVED) Rpi 4 large file transfer makes system hang - Raspberry Pi Forums](https://forums.raspberrypi.com/viewtopic.php?t=324549)
 
@@ -77,6 +85,14 @@ reboot すると反映される
 
 > UGREEN 2.5 インチ hdd ケース 2.5インチ HDD/SSD 外付けケース USB3.0 UASP対応 5Gbps高速転送 ハードディスクケース SATA III 9.5mm 7mm HDD/SSD対応 工具不要 USB-A ケーブル一体型
 
-参考
+## 参考
 
 - [How to bind to the right USB storage driver](https://smitchell.github.io/how-to-bind-to-the-right-usb-storage-driver)
+
+
+## 補足
+
+後日 [ASM1153E](https://www.asmedia.com.tw/product/7B6yQ54sX7YiFhGD/d1Eyq85QN8GhBwRC) の搭載された USB アダプタを購入したところ UAS でも問題なく機能してくれました
+
+- [ハードディスクアダプタ、プラグアンドプレイASM1153Eチップワイド適用性USB3.0 TO SATA for SSD for HDD](https://amzn.to/42H4i6B)
+- [ハードディスクアダプタ、USB3.0 TO SATA ASM1153Eチップワイド適用性6Gbps転送速度プラグアンドプレイ)HDD用SSD用)](https://amzn.to/4aCLp6H)

@@ -3,6 +3,10 @@ title: "LINE に送ったメッセージを Google Home に読み上げさせる
 date: 2023-02-25T21:51:58+09:00
 draft: false
 tags: ["GCP", "AWS", "go", "LINE", "Raspberry Pi"]
+image: cover.png
+author: "@yteraoka"
+categories:
+  - Home IT
 ---
 
 令和の時代、家に固定電話はなく、外出先から家族に直ぐに答えて欲しいことがあってもスマホはマナーモードで手元に置いてなければ気づくことができません。

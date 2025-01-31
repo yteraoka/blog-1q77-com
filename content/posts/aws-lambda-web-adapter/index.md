@@ -3,6 +3,10 @@ title: "AWS Lambda Web Adapter でお手軽 Web Service 公開"
 date: 2025-01-30T00:40:00+09:00
 draft: false
 tags: [AWS, Lambda]
+image: cover.png
+author: "@yteraoka"
+categories:
+  - Cloud
 ---
 
 ずっと AWS にも Cloud Run が欲しいなあと思っていました。AppRunner はコレじゃない...
