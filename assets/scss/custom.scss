@@ -23,3 +23,13 @@
 
     --article-line-height: 1.85;
 }
+
+.article-list {
+    article {
+        .article-image {
+            img {
+                height: 0;
+            }
+        }
+    }
+}
