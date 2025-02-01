@@ -1,11 +1,17 @@
 ---
 title: 'Istio 導入への道 – 図解'
-date: Thu, 19 Mar 2020 16:13:28 +0000
+date: 2020-03-19T16:13:28+00:00
 draft: false
 tags: ['Istio', 'Kubernetes']
+author: "@yteraoka"
+image: cover.png
+categories:
+  - IT
 ---
 
 [Istio シリーズ](/tags/istio/) 第10回です。
+
+## 図解
 
 そろそろ図解してみようと思ったのだが...  
 正確に描くのは非常に難しい、そのうち Argo CD + Argo rollouts についても書くので Argo CD が描画する図を見る方が良いかもしれない。
@@ -16,7 +22,7 @@ tags: ['Istio', 'Kubernetes']
 
 * * *
 
-Istio 導入への道シリーズ
+## Istio 導入への道シリーズ
 
 * [Istio 導入への道 (1) – インストール編](/2020/03/istio-part1/)
 * [Istio 導入への道 (2) – サービス間通信編](/2020/03/istio-part2/)
