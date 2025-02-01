@@ -1,8 +1,12 @@
 ---
 title: 'kind で kubernetes に触れる (2) - Istio'
-date: Tue, 07 Jan 2020 16:44:11 +0000
+date: 2020-01-07T16:44:11+00:00
 draft: false
 tags: ['Istio', 'Kubernetes']
+author: "@yteraoka"
+image: cover.png
+categories:
+  - IT
 ---
 
 [前回](/2019/12/kind-part-1/)の続き。今回は Istio を導入してみる。
