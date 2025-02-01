@@ -1,9 +1,14 @@
 ---
 title: "WSL 2 で外部ストレージをマウント"
+description: |
+  Windows の WSL2 で外付けの HDD をマウントする方法
 date: 2023-09-21T23:08:28+09:00
 tags: [Windows, Linux, WSL2, XFS]
 draft: false
 image: cover.jpg
+author: "@yteraoka"
+categories:
+  - Windows
 ---
 
 Laptop を Linux で使用していた時の遺産を WSL 環境でも使おうと XFS でフォーマットされた USB 接続の HDD をマウントする方法がないかなと思って調べたメモ。

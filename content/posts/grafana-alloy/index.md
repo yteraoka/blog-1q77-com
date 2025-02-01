@@ -1,5 +1,7 @@
 ---
 title: "Grafana Alloy でメトリクス収集"
+description: |
+  Grafana Alloy でラズパイのメトリクスを収集し、Grafana Cloud で可視化する
 date: 2024-04-16T00:16:09+09:00
 draft: false
 tags: [grafana, alloy]

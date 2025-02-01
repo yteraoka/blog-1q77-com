@@ -1,5 +1,7 @@
 ---
 title: "AWS Lambda Web Adapter でお手軽 Web Service 公開"
+description: |
+  AWS Lambda Web Adapter を使って通常の Web Service を AWS Lambda の Function URL で公開する
 date: 2025-01-30T00:40:00+09:00
 draft: false
 tags: [AWS, Lambda]

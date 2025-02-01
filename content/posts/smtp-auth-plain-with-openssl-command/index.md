@@ -1,10 +1,17 @@
 ---
 title: "openssl s_client で SMTP 認証"
+description: |
+  openssl コマンドで SMTP 認証 (PLAIN) のテストを行う方法
 date: 2024-01-23T11:44:23+09:00
 draft: false
 tags: [AWS, SMTP, ssl]
-image: cover.jpg
+image: cover.png
+author: "@yteraoka"
+categories:
+  - IT
 ---
+
+## Amazon SES での SMTP 認証情報の確認をしたい
 
 Amazon SES で SMTP を使ってメール送信したい場合、IAM User の credentials をちょいと加工してやる必要があります。
 
@@ -12,11 +19,15 @@ Amazon SES で SMTP を使ってメール送信したい場合、IAM User の cr
 
 これで、変換した値が正しいことを確認するために実際にメールの送信を試すわけですが、使えるメール送信ツールがないという場合に openssl コマンドでやればいっかということでメモ。
 
+## SMTP AUTH の PLAIN で渡す文字列
+
 SMTP 認証は PLAIN 方式とすることにしたので次のコマンドの出力を AUTH PLAIN コマンドの引数として渡します。
 
 ```bash
 printf "${USERNAME}\0${USERNAME}\0${PASSWORD}" | base64 -w 0
 ```
+
+## OpenSSL コマンドで認証のテスト
 
 接続は port 587 に対して STARTTLS を使います。
 

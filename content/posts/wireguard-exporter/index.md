@@ -1,5 +1,7 @@
 ---
-title: "Wireguard Exporter と Grafana Alloy で VPN 通信量を可視化"
+title: "WireGuard Exporter と Grafana Alloy で VPN 通信量を可視化"
+description: |
+  Grafana Alloy で WireGuard のメトリクスを収集し、Grafana Cloud で可視化する
 date: 2024-04-28T21:57:31+09:00
 tags: [Grafana, alloy, wireguard, Rust]
 draft: false
