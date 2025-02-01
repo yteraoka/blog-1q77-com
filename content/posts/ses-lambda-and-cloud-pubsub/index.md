@@ -1,9 +1,14 @@
 ---
 title: "メールが届いたら Google Home で音声で通知する"
+description: |
+  ある通知を受け取ったら、それに気づけるようにしたいなと思い、条件に一致するメールが届いた場合に TTS を用いて音声に変換し Google Home で再生するようにしました
 date: 2023-07-10T23:25:35+09:00
 tags: ["GCP", "GoogleHome", "AWS", "Raspberry Pi"]
 draft: false
 image: cover.jpg
+author: "@yteraoka"
+categories:
+  - Home IT
 ---
 
 以前、「[LINE に送ったメッセージを Google Home に読み上げさせる](/2023/02/line-bot-tts/)」という記事を書きました。

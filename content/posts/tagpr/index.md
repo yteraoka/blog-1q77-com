@@ -1,9 +1,13 @@
 ---
 title: "Tagpr で tag trigger の workflow が実行されなくてハマった話"
+description: |
+  Tagpr を使った自動化を構築しようとしたが、期待の動作をしなくて調査したが、ドキュメントの読み落としで時間を浪費した件
 date: 2024-03-15T09:00:00+09:00
 tags: [GitHub]
 draft: false
 image: cover.jpg
+categories:
+  - CI/CD
 ---
 
 最近 [tagpr](https://github.com/Songmu/tagpr) という便利ツールの存在を知って試していたのですが、使い方が悪くてハマったのでメモ。

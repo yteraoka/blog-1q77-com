@@ -1,9 +1,14 @@
 ---
 title: "Helm chart を GitHub Container Registry に host する"
+description: |
+  Helm chart は OCI registry に格納することが可能であるため、公開用に GitHub の Container Registry を使い、
+  GitHub Actions で push する方法
 date: 2024-03-15T00:13:39+09:00
 tags: [GitHub, Helm]
 draft: false
 image: "cover.jpg"
+categories:
+  - CI/CD
 ---
 
 ## 背景

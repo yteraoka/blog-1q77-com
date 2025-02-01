@@ -1,10 +1,17 @@
 ---
 title: renovate で CircleCI の terraform_version を更新する
+description: |
+  renovate の config をカスタマイズする
 date: 2024-02-04T19:37:36+09:00
 tags: [renovate, CircleCI, Terraform]
 draft: false
-image: cover.jpg
+image: cover.png
+author: "@yteraoka"
+categories:
+  - CI/CD
 ---
+
+## 課題
 
 Circle CI の [terraform Orb](https://circleci.com/developer/orbs/orb/circleci/terraform) で
 terraform の version を指定するには次のようにしますが、この `terraform_version` の値に変数を
@@ -14,6 +21,8 @@ terraform の version を指定するには次のようにしますが、この 
 - terraform/install:
     terraform_version: 1.7.2
 ```
+
+## Workaround
 
 GitHub Actions では他の step の output などを使うことができるので [hashicorp/setup-terraform](https://github.com/hashicorp/setup-terraform) では `.tool-versions` から取り出した値を渡すことにしました。
 
@@ -30,6 +39,9 @@ GitHub Actions では他の step の output などを使うことができるの
 ```
 
 tf ファイル内の `required_version` や `.tool-versions` は [renovate](https://github.com/renovatebot/renovate) がサポートしているので更新の Pull Request を作ってくれます。
+
+## .circleci/config.yml に対応するためのカスタマイズ
+
 Circle CI も renovate がサポートしてくれれば良いのですが、renovate.json を[カスタマイズ](https://docs.renovatebot.com/configuration-options/)することで `.circleci/config.yml` 内の上記の `terraform_version` を更新できるようにしてみた。
 
 ```json

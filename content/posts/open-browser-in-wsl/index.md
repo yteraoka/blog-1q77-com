@@ -1,9 +1,15 @@
 ---
 title: "WSL の Linux から Windows のブラウザで URL を開く"
+description: |
+  コマンドライン操作でもログイン処理時にブラウザを開くことが多くなっていますが、Windows の WSL では通常は Linux 側にブラウザはインストールされていないし、
+  認証に使う必要があるのは Windows 側なのでそのための設定を行う
 date: 2024-01-07T20:43:53+09:00
 draft: false
 tags: ["Windows", "WSL2"]
-image: cover.jpg
+image: cover.png
+author: "@yteraoka"
+categories:
+  - Windows
 ---
 
 ## 課題

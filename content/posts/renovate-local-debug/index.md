@@ -1,5 +1,7 @@
 ---
 title: "Renovate を手元の repository に対して debug 実行する"
+description: |
+  renovate のカスタマイズをする際に手元で動作確認する方法
 date: 2025-01-28T19:45:08+09:00
 draft: false
 tags: [renovate]

@@ -1,9 +1,14 @@
 ---
 title: "MinIO Client で Amazon S3 や Cloudflare R2 を利用する"
+description: |
+  MiniIO 向けの client である mc コマンドは Amazon S3 や Cloudflare R2 の操作にも使える
 date: 2023-11-12T20:13:31+09:00
 draft: false
 tags: ["AWS", "S3", "Cloudflare", "R2"]
-image: cover.jpg
+image: cover.png
+author: "@yteraoka"
+categories:
+  - IT
 ---
 
 Cloudflare R2 は egress の費用がかからないということで手元のファイルのバックアップに使ってみようかなと思ったときにクライアントとして何を使おうかな aws cli 使うほどじゃないしなということで [MinIO Client (mc)](https://github.com/minio/mc) を使ってみたメモ。

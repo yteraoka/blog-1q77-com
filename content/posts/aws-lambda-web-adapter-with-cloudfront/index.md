@@ -1,5 +1,8 @@
 ---
 title: "AWS Lambda Web Adapter の Function URL を Cloudfront で公開する"
+description: |
+  AWS Lambda Web Adapter で通常の Web Service を AWS Lambda の Function URL で公開できるようになったが、
+  これを CloudFront 経由にすることで独自ドメインで公開する。また、OAC により Function URL への直接アクセスできないようにする
 date: 2025-01-31T00:01:24+09:00
 draft: false
 tags:
