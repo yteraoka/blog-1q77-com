@@ -35,7 +35,7 @@ local platform の場合、[dryRun](https://docs.renovatebot.com/self-hosted-con
 
 `lookup` では依存関係を調べて更新があるかどうかを見つけるためにパッケージのスキャンを行います。
 
-`full` を指定すると Pull Request (Merge Request) の作成内容もログに出力します。
+`full` を指定すると Pull Request (Merge Request) の作成に関するログに出力します。しかし、local では機能しないため、これは remote repository を対象として実行する必要があります。
 
 `extract` では依存関係を抽出するだけのスキャンに留めます。
 
@@ -61,15 +61,17 @@ public な repository への依存だけであれば [Fine-grained personal acce
 
 ## 手元から Self-hosted な GitLab 上の repository に対して実行する方法
 
-ついでなのでメモ
+Pull Request / Merge Request に関する情報は `--platform=local` では確認できず、GitLab や GitHub のサーバーを指定して `--dry-run=full` を付けて実行する必要がありました。
 
-Self-hosted な GitLab の repository を対象に実行する方法
+### Self-hosted な GitLab の repository を対象に実行する方法
 
-`--platform` で gitlab を指定する。GitLab で Merge Request を作成可能な権限の Personal Access Token (scopes: api, read_user, write_repository) を作成し、`RENOVATE_TOKEN` 環境変数にセットする。
+`--platform=gitlab` を指定する。GitLab で Merge Request を作成可能な権限の Personal Access Token (scopes: api, read_user, write_repository) を作成し、`RENOVATE_TOKEN` 環境変数にセットする。
 
-対象の branch がデフォルト branch 以外の場合に `RENOVATE_BRANCH_NAME` で指定可能。
+対象の branch がデフォルト branch 以外の場合には `RENOVATE_BRANCH_NAME` で指定可能。
 
-dry-run で確認
+remote repository を指定する場合は renovate が ${TMPDIR}/renovate に git clone して実行してくれるので current working directory には何も必要がありません。
+
+**dry-run で確認**
 
 ```bash
 LOG_LEVEL=debug \
@@ -82,7 +84,9 @@ npx renovate \
   mygroup/myrepo
 ```
 
-実際に実行
+`--schedule=""` は利用する renovate.json などで指定されている schedule をデフォルトの　`at any time` で上書きするための指定なので必須ではありません。
+
+**実際に実行**
 
 ```bash
 RENOVATE_BRANCH_NAME="feature/renovate-config" \
@@ -94,5 +98,21 @@ npx renovate \
 ```
 
 対象の repository に renovate.json が存在しない場合は、renovate.json を作成する onboarding Merge Request が作成されるだけで、それを Merge した後は更新の Merge Request が作成されるようになる。
-設定にもよるが。
 
+### 手元の renovate.json を使ってテストする
+
+手元に用意した renovate.json を使った動作確認をしたいことが多いと思うが、そのためには `RENOVATE_CONFIG_FILE` に手元のファイルを指定し、 `--require-config=ignored` を追加する必要がありました。
+
+renovate の設定はその意図をコメントで残せるように renovate.[json5](https://json5.org/) を利用する方が良いかもしれない。
+
+```bash
+LOG_LEVEL=debug \
+RENOVATE_CONFIG_FILE=renovate.json5 \
+npx renovate \
+  --platform=gitlab \
+  --endpoint=https://gitlab.example.com/api/v4 \
+  --schedule="" \
+  --dry-run=full \
+  --require-config=ignored \
+  mygroup/myrepo
+```
