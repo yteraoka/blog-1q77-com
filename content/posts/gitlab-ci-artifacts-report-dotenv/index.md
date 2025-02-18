@@ -3,13 +3,16 @@ title: "GitLab CI で artifacts:reports:dotenv を使って Job をまたいで�
 date: 2023-04-05T01:27:22+09:00
 draft: false
 tags: ["GitLab", "GitLab CI"]
-image: cover.jpg
+image: cover.png
+author: "@yteraoka"
+categories:
+  - IT
 ---
 
 GitLab CI である Job で変数を定義して、それを後続の Job でも使いたいなと思って調べていたら
 [artifacts:reports:dotenv](https://docs.gitlab.com/ee/ci/yaml/artifacts_reports.html#artifactsreportsdotenv) にたどり着いたのでメモ。
 
-以下、使用例
+## 使用例
 
 ```yaml
 stages:
@@ -97,3 +100,23 @@ job3_5:
 https://gitlab.com/gitlab-org/gitlab/-/issues/22638
 
 ずっと対応されないままかと思ってたけどもう対応されてたんですねえ
+
+## 追記
+
+artifacts に credentials を保存してしまったら download して中身が見れちゃうじゃん、という問題がありましたが、
+v16.11 から [artifacts.access](https://docs.gitlab.com/ci/yaml/#artifactsaccess) という設定が可能になっており
+次のように `none` と指定すれば download できなくなります。
+
+```json
+job:
+  artifacts:
+    access: none
+```
+
+選択肢は次の3つ
+
+- `all` (default): Artifacts in a job in public pipelines are available for download by anyone, including anonymous, guest, and reporter users.
+- `developer`: Artifacts in the job are only available for download by users with the Developer role or higher.
+- `none`: Artifacts in the job are not available for download by anyone.
+
+https://forum.gitlab.com/t/how-to-restrict-artifact-download-access-in-gitlab-ci/104888/2
