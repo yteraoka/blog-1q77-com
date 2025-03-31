@@ -7,6 +7,8 @@ image: cover.png
 author: "@yteraoka"
 categories:
   - IT
+description: |
+  gopass というマルチプラットフォーム対応のパスワードマネージャ（コマンドラインツール）で公開鍵暗号を利用した複数人に対するパスワードなどの共有を試してみた
 ---
 
 ## gopass とは
@@ -692,22 +694,62 @@ Deploy keys で試したからか Read-only の場合 `gopass sync` で push し
 
 ## Web Browser での入力補助
 
-[Gopass Bridge](https://github.com/gopasspw/gopassbridge) というものがあり、Web Browser でのパスワード入力を助けてくれるようだがまだ試せていない。
+[Gopass Bridge](https://github.com/gopasspw/gopassbridge) というものがあり、Web Browser でのパスワード入力を助けてくれる。
 
-こんなファイルを作るって言うんで Windows の Chrome + WSL2 上の gopass では無理そうだ。
+Windows の Chrome と WSL2 上での gopass とでは機能しそうになかったため、ここは macOS で試した。
+（Windows でも Windows Native な環境に Git, Gpg4win, gopass をセットアップすれば使えると思われる）
 
-```
-Manifest File (/home/yteraoka/.config/google-chrome/NativeMessagingHosts/com.justwatch.gopass.json):
+ブラウザの拡張機能である [Gopass Bridge](https://chromewebstore.google.com/detail/gopass-bridge/kkhfnlkhiapbiehimabddjbimfaijdhk) と [gopasspw/gopass-jsonapi](https://github.com/gopasspw/gopass-jsonapi) が必要になります。
+
+gopass-jsonapi は repository を clone して make コマンドを実行することで gopass-jsonapi コマンドが build されます。build できたら configure コマンドを実行します。
+
+```bash
+$ ./gopass-jsonapi configure
+For which browser do you want to install gopass native messaging? [arc,brave,chrome,chromium,firefox,iridium,slimjet,vivaldi] [chrome]:
+Install for all users? (might require sudo gopass) [y/N/q]:
+In which path should gopass_wrapper.sh be installed? [/Users/teraoka/.config/gopass]:
+Native Messaging Setup Preview:
+Wrapper Script (/Users/teraoka/.config/gopass/gopass_wrapper.sh):
+#!/bin/sh
+
+export PATH="$PATH:$HOME/.nix-profile/bin" # required for Nix
+export PATH="$PATH:/usr/local/bin" # required on MacOS/brew
+export PATH="$PATH:/usr/local/MacGPG2/bin" # required on MacOS/GPGTools GPGSuite
+export GPG_TTY="$(tty)"
+
+# Uncomment to debug gopass-jsonapi
+# export GOPASS_DEBUG_LOG=/tmp/gopass-jsonapi.log
+
+if [ -f ~/.gpg-agent-info ] && [ -n "$(pgrep gpg-agent)" ]; then
+	source ~/.gpg-agent-info
+	export GPG_AGENT_INFO
+else
+	eval $(gpg-agent --daemon)
+fi
+
+export PATH="$PATH:/opt/homebrew/bin:/usr/local/bin"
+
+/Users/teraoka/ghq/github.com/gopasspw/gopass-jsonapi/gopass-jsonapi listen
+
+exit $?
+
+
+Manifest File (/Users/teraoka/Library/Application Support/Google/Chrome/NativeMessagingHosts/com.justwatch.gopass.json):
 {
     "name": "com.justwatch.gopass",
     "description": "Gopass wrapper to search and return passwords",
-    "path": "/home/yteraoka/.config/gopass/gopass_wrapper.sh",
+    "path": "/Users/teraoka/.config/gopass/gopass_wrapper.sh",
     "type": "stdio",
     "allowed_origins": [
         "chrome-extension://kkhfnlkhiapbiehimabddjbimfaijdhk/"
     ]
 }
+Install manifest and wrapper? [Y/n/q]:
 ```
+
+これで、上記の `gopass_wrapper.sh` と `com.justwatch.gopass.json` が作成され Gopass Bridge 拡張が機能するようになります。
+
+使い勝手としては 1password ほど便利ではないですが、まあ使えるかなという UI ですね。
 
 
 ## GPG のメモ
