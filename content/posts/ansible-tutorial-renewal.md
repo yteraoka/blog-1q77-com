@@ -14,4 +14,4 @@ tags: ['Advent Calendar', 'Ansible', 'ansible']
 *   その Wiki に [failed\_when](https://github.com/yteraoka/ansible-tutorial/wiki/failed-when), [changed\_when](https://github.com/yteraoka/ansible-tutorial/wiki/changed-when) を追加。この機能便利です。
 *   あと typo の修正とか細かい所は忘れました
 
-もっと書きたいことはあったりしますが Wiki に追加して行こうと思います。 まだ、入門には使えるんじゃないかなと我ながら思ってます。Ansible 使ってみようかなって思ってる人は試してみてください。ではでは〜 明日は [@r\_rudi](https://twitter.com/r_rudi) さんです。
+もっと書きたいことはあったりしますが Wiki に追加して行こうと思います。 まだ、入門には使えるんじゃないかなと我ながら思ってます。Ansible 使ってみようかなって思ってる人は試してみてください。ではでは〜 明日は [@r\_rudi](https://x.com/r_rudi) さんです。

@@ -21,9 +21,9 @@ Oct 10 00:00:00 192.168.1.1 date=2013-10-09 time=23:59:59 devname=FG..... device
 
 ここまで来れば、後は [fluent-plugin-elasticsearch](https://github.com/uken/fluent-plugin-elasticsearch) で [ElasticSearch](http://www.elasticsearch.org/) に突っ込んで [Kibana3](http://www.elasticsearch.org/overview/kibana/) で自由自在です。Kibana3 については前回の 「[Kibana3 を使ってみよう](/2013/10/lets-try-kibana3/)」 をどうぞ。 FortiGate のログには src\_country, dst\_country という項目に国名を出力してくれます。でも、2文字の国コードじゃないので [http://dev.maxmind.com/geoip/legacy/geolite/](http://dev.maxmind.com/geoip/legacy/geolite/) あたりからリストをダウンロードして置換してあげれば Kibana3 の World Map 機能が使えそうです。 Syslog は [rsyslog](http://www.rsyslog.com/) の Template 機能で出力先を日別に変わるようにしているのですが、この場合、Fluentd 付属の in\_tail ではそのままでは日をまたげません。でも [fluent-plugin-tail-ex](https://github.com/yosisa/fluent-plugin-tail-ex) ってのがあるよって教えてもらいました。
 
-> [@yteraoka](https://twitter.com/yteraoka) 遅レスすみません。。これ使ってます。 [http://t.co/hNJveaOJMZ](http://t.co/hNJveaOJMZ)
+> [@yteraoka](https://x.com/yteraoka) 遅レスすみません。。これ使ってます。 [http://t.co/hNJveaOJMZ](http://t.co/hNJveaOJMZ)
 > 
-> — 名前 (@majesta0110) [October 3, 2013](https://twitter.com/majesta0110/statuses/385619100078055424)
+> — 名前 (@majesta0110) [October 3, 2013](https://x.com/majesta0110/statuses/385619100078055424)
 
 これは便利そうだという事で試してみたものの、pos\_file が効かないのと、停止時になんかエラーが出るのが気になったので見送りました。詳細は調べてない。またオレオレ plugin を書こうかとも思いましたが、 [fluent-plugin-tail-asis](https://github.com/yteraoka/fluent-plugin-tail-asis) ほど簡単にも書けなさそうだったから symlink を張り替えるスクリプトを書くことで対応しました。ところで、今回は parse 処理は out\_fortigate\_syslog\_parser.rb で行うので tail で parse する必要がないため、使うなら [fluent-plugin-tail-ex-asis](https://github.com/sonots/fluent-plugin-tail-ex-asis) の方がより合っていそうです。（tail-asis 相当の機能は none parser として本家に merge されたので asis の役割は終わりました） rsyslog の Template を使った例
 

@@ -17,7 +17,7 @@ case hdr_note:
     break;
 ```
 
-私は subprocess\_env にコピーしたのですが、これは notes にコピーしていますね。 notes っていうのは module 間でデータを受け渡しできるメモ用テーブルです。 mod\_log\_config で %{VARNAME}n として書き出すことができます。「[モニカジ#3に参加してきた](/2013/03/monitoring-casual-3/)」で触れた [@kazeburo](https://twitter.com/kazeburo) さんの [mod\_copy\_header](https://github.com/kazeburo/mod_copy_header) もこの notes で実装されてます。（あ、Example の LogFormat のところにミスが...） mod\_headers の note は次のように使います。CGI で出力するヘッダーを扱う場合は always が必要です（これでしばらくハマりました）。Proxy だったら不要。
+私は subprocess\_env にコピーしたのですが、これは notes にコピーしていますね。 notes っていうのは module 間でデータを受け渡しできるメモ用テーブルです。 mod\_log\_config で %{VARNAME}n として書き出すことができます。「[モニカジ#3に参加してきた](/2013/03/monitoring-casual-3/)」で触れた [@kazeburo](https://x.com/kazeburo) さんの [mod\_copy\_header](https://github.com/kazeburo/mod_copy_header) もこの notes で実装されてます。（あ、Example の LogFormat のところにミスが...） mod\_headers の note は次のように使います。CGI で出力するヘッダーを扱う場合は always が必要です（これでしばらくハマりました）。Proxy だったら不要。
 
 ```
 Header [always] note X-Foo foo

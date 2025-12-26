@@ -7,7 +7,7 @@ tags: ['Docker', 'Guacamole', 'remotedesktop']
 
 kakakakakku さんの[ブログの Guacamole 記事](https://kakakakakku.hatenablog.com/entry/2019/01/09/001605)を見て、私もやったのになあとこんな tweet をしてしまいました。
 
-{{< twitter user="yteraoka" id="1082856539667365888" >}}
+{{< x user="yteraoka" id="1082856539667365888" >}}
 
 てなわけで書かざるをえません。そして書こうと思ったら直前に1年ぶりの新バージョン [1.0.0 がリリース](https://guacamole.apache.org/releases/1.0.0/)されていたのでこれを試します。
 

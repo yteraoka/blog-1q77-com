@@ -347,7 +347,7 @@ Hello Kubernetes bootcamp! | Running on: kubernetes-bootcamp-390780338-42692 | v
 
 `minikube service` というコマンドを教えてもらいました。
 
-{{< twitter user="kkam0907" id="821528378419220480" >}}
+{{< x user="kkam0907" id="821528378419220480" >}}
 
 `minikube service list` コマンドで service の URL が簡単に確認できます。
 

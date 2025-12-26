@@ -5,11 +5,11 @@ draft: false
 tags: ['Ansible', 'Google Compute Engine', 'gce', 'google']
 ---
 
-{{< twitter user="ansible" id="482323942427099136" >}}
+{{< x user="ansible" id="482323942427099136" >}}
 
 > A quick demo of Ansible and GCE [http://t.co/6rqxSt41NL](http://t.co/6rqxSt41NL)
 > 
-> — Ansible (@ansible) [2014, 6月 27](https://twitter.com/ansible/statuses/482323942427099136)
+> — Ansible (@ansible) [2014, 6月 27](https://x.com/ansible/statuses/482323942427099136)
 
 という tweet を見て、Docker Meetup で GCE の $500 分クーポンをもらっていたのを思い出したので試してみました。
 
@@ -162,11 +162,11 @@ myinstance[1:4]
 
 んんん？ myinstance1,2,3,4 のIPアドレスとかはどうやって知るの？ instance の作成までは local へ接続して行うので可能なのですが web.yml にある Web サーバーセットアップができません。 これはどうやら gce.py というインベントリスクリプトを使うらしい。 が、[plugins/inventory/gce.py](https://github.com/ansible/ansible/blob/devel/plugins/inventory/gce.py) は Ansible の GitHub リポジトリにはあるのに pip でインストールされたファイルの中にはありません... ムムム。ないものはしかたないので GitHub から `gce.py` だけダウンロードして使いました。 これはこういうものらしい。
 
-{{< twitter user="r_rudi" id="483986662322475008" >}}
+{{< x user="r_rudi" id="483986662322475008" >}}
 
-> [@yteraoka](https://twitter.com/yteraoka) inventoryのファイルはインストールされないはずです。githubからダウンロードする必要があるかと思います。
+> [@yteraoka](https://x.com/yteraoka) inventoryのファイルはインストールされないはずです。githubからダウンロードする必要があるかと思います。
 > 
-> — shirou - しろう (@r\_rudi) [2014, 7月 1](https://twitter.com/r_rudi/statuses/483986662322475008)
+> — shirou - しろう (@r\_rudi) [2014, 7月 1](https://x.com/r_rudi/statuses/483986662322475008)
 
 それでは `-i` で gce.py を指定して実行してみよう。Dynamic Inventory ってやつですね。
 

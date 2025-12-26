@@ -467,5 +467,5 @@ Twitter で [kubectl tree](https://github.com/ahmetb/kubectl-tree) という便�
 kubectl krew install tree
 ```
 
-{{< twitter user="ahmetb" id="1212792452064501760" >}}
+{{< x user="ahmetb" id="1212792452064501760" >}}
 

@@ -21,10 +21,10 @@ $ echo 789 | gzip >> a.gz
 
 こんな感じで追記されてる gzip ファイルから読みだしても最初の 123 しか出てこないのです。（gzip コマンドなどでは問題なく扱えます） Twitter でつぶやいたら nodejs 6.0.0 で対応されたらしいことまでわかりました。7.4 で試したら確かにちゃんと読み出せました。
 
-{{< twitter user="shuheikagawa" id="823499642092613633" >}}
+{{< x user="shuheikagawa" id="823499642092613633" >}}
 
-> [@yteraoka](https://twitter.com/yteraoka) これですかね。Node 6.0.0 からの模様。 [https://t.co/BeC9SWf2F8](https://t.co/BeC9SWf2F8) [https://t.co/WfqUtatYYh](https://t.co/WfqUtatYYh)
+> [@yteraoka](https://x.com/yteraoka) これですかね。Node 6.0.0 からの模様。 [https://t.co/BeC9SWf2F8](https://t.co/BeC9SWf2F8) [https://t.co/WfqUtatYYh](https://t.co/WfqUtatYYh)
 > 
-> — Shuhei Kagawa (@shuheikagawa) [2017年1月23日](https://twitter.com/shuheikagawa/status/823499642092613633)
+> — Shuhei Kagawa (@shuheikagawa) [2017年1月23日](https://x.com/shuheikagawa/status/823499642092613633)
 
 Lambda は python で書き直しましたとさ。 みんな困ってないのかな？ AWS のサポートにリクエストしておこう。

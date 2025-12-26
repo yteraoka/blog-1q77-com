@@ -5,7 +5,7 @@ draft: false
 tags: ['Advent Calendar', 'fluentd']
 ---
 
-ワイワイ！ この投稿は [Fluentd Advent Calendar 2013](http://qiita.com/advent-calendar/2013/fluentd) の7日目の記事です。 [前日](http://orihubon.com/blog/2013/12/06/fluentd-multiprocess-input-plugin/) 10ヶ月ほど前、私が [@tagomoris](https://twitter.com/tagomoris) 氏のブログをコピペしながら人生初 rubygem として [fluent-plugin-tail-asis](https://github.com/yteraoka/fluent-plugin-tail-asis) を書いた時、[http://fluentd.org/plugin/](http://fluentd.org/plugin/) の plugin はまだ2桁だったんじゃないかと思うのですが、今覗いてみるとなんと 209 です。もう全部を調べるわけにはいかない量です。Fluentd プラグインは簡単に書けることから調べるの面倒だから自分で書いちゃえってなりがちな気もします。実際、私も他では利用価値の無さそうな plugin はちょろっと書いて /etc/td-agent/plugin/ に放り込むだけだったりします。private な Git リポジトリには入っていますけども。 そこで、今回はよく使われてそうなプラグインを「こんなことをしたい場合にはこれ」っていうかたちで紹介したいと思います。とは言うものの、そんなにいろんな使い方してないので自分が使うかもなあってのをいくつかピックアップして紹介してみます。 4日目の [@yoshi\_ken](https://twitter.com/yoshi_ken) さんの「[Fluentdが流行る理由がいま分かる、10の実践逆引きユースケース集](http://y-ken.hatenablog.com/entry/fluentd-case-studies)」っていうタイトルを見て「やべっ！逆引きだっ！」って思って焦りました。
+ワイワイ！ この投稿は [Fluentd Advent Calendar 2013](http://qiita.com/advent-calendar/2013/fluentd) の7日目の記事です。 [前日](http://orihubon.com/blog/2013/12/06/fluentd-multiprocess-input-plugin/) 10ヶ月ほど前、私が [@tagomoris](https://x.com/tagomoris) 氏のブログをコピペしながら人生初 rubygem として [fluent-plugin-tail-asis](https://github.com/yteraoka/fluent-plugin-tail-asis) を書いた時、[http://fluentd.org/plugin/](http://fluentd.org/plugin/) の plugin はまだ2桁だったんじゃないかと思うのですが、今覗いてみるとなんと 209 です。もう全部を調べるわけにはいかない量です。Fluentd プラグインは簡単に書けることから調べるの面倒だから自分で書いちゃえってなりがちな気もします。実際、私も他では利用価値の無さそうな plugin はちょろっと書いて /etc/td-agent/plugin/ に放り込むだけだったりします。private な Git リポジトリには入っていますけども。 そこで、今回はよく使われてそうなプラグインを「こんなことをしたい場合にはこれ」っていうかたちで紹介したいと思います。とは言うものの、そんなにいろんな使い方してないので自分が使うかもなあってのをいくつかピックアップして紹介してみます。 4日目の [@yoshi\_ken](https://x.com/yoshi_ken) さんの「[Fluentdが流行る理由がいま分かる、10の実践逆引きユースケース集](http://y-ken.hatenablog.com/entry/fluentd-case-studies)」っていうタイトルを見て「やべっ！逆引きだっ！」って思って焦りました。
 
 ### MongoDB に保存したい
 
@@ -73,7 +73,7 @@ timestamp tag {"key":"line"}
 
 * * *
 
-監視や可視化は [@sonots](https://twitter.com/sonots) さんのブログに大変わかりやすくまとめられています。
+監視や可視化は [@sonots](https://x.com/sonots) さんのブログに大変わかりやすくまとめられています。
 
 * [sonots:blog : FluentdとGrowthForecastを使った可視化 〜 Haikanko OSS化への道(4)](http://blog.livedoor.jp/sonots/archives/25189820.html)
 * [sonots:blog : fluentdを使ったログ監視 〜 Haikanko OSS化への道(3)](http://blog.livedoor.jp/sonots/archives/25018617.html)
@@ -82,9 +82,9 @@ timestamp tag {"key":"line"}
 
 今回のネタのきっかけは↓コレです。おぉ、こんな便利なプラグインがあったの知らなかったよってことで。
 
-{{< twitter user="yteraoka" id="395416927729754112" >}}
+{{< x user="yteraoka" id="395416927729754112" >}}
 
-明日はこの [@repeatedly](https://twitter.com/repeatedly) さんんで〜す。
+明日はこの [@repeatedly](https://x.com/repeatedly) さんんで〜す。
 
 * * *
 

@@ -507,7 +507,7 @@ compile 時に header file が見つからないようなエラーが出てい�
 
 Twitter でつぶやいたら Jetpack の中の人が対処方法を教えてくれた。ありがたい。
 
-{{< twitter user="jetpack_john" id="1630597719592173571" >}}
+{{< x user="jetpack_john" id="1630597719592173571" >}}
 
 これを見て devbox.json での shell.init_hook や [shell.scripts](https://www.jetpack.io/devbox/docs/guides/scripts/) の使い方を知った。
 

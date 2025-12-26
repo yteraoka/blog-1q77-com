@@ -11,16 +11,16 @@ tags: ['Apache', 'monitoring', '勉強会']
 
 でも、@kazeburo さんから次のようなツッコミがっ！！
 
-{{< twitter user="kazeburo" id="310012048379621376" >}}
+{{< x user="kazeburo" id="310012048379621376" >}}
 
-> それ mod\_copy\_headers [#monitoringcasual](https://twitter.com/search/%23monitoringcasual)
+> それ mod\_copy\_headers [#monitoringcasual](https://x.com/search/%23monitoringcasual)
 > 
-> — masahiro naganoさん (@kazeburo) [2013年3月8日](https://twitter.com/kazeburo/status/310012048379621376)
+> — masahiro naganoさん (@kazeburo) [2013年3月8日](https://x.com/kazeburo/status/310012048379621376)
 
-{{< twitter user="kazeburo" id="310012240814284800" >}}
+{{< x user="kazeburo" id="310012240814284800" >}}
 
 > s/headers/header/
 > 
-> — masahiro naganoさん (@kazeburo) [2013年3月8日](https://twitter.com/kazeburo/status/310012240814284800)
+> — masahiro naganoさん (@kazeburo) [2013年3月8日](https://x.com/kazeburo/status/310012240814284800)
 
 ん? mod\_copy\_header? ぐぐったら出てきました。 [mod\_copy\_header ってのを書いた話 Re: Apache上のPerl FastCGIはCustomLogにデータを書くことができるか？](http://blog.nomadscafe.jp/2012/08/mod-copy-header-re-apacheperl-fastcgicustomlog.html) おぉ、こんなものが。これで良いですね。私もひとつのモジュールとして独立化させようかと思いましたが面倒なので諦めてました。 今回のモニカジの中心的な話題はサーバー台数が増えると監視の設定が大変なのでそれをどうやってツールで自動化するかというものでした。 モニカジ参加者のほとんどやTwitterでフォローしてる人とかが年下とわかり少しショックを受けたりもしましたが、また次回もよろしくお願いします。京都へ行きたいところですがちょっと無理ですね。

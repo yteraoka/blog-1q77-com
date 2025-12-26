@@ -7,7 +7,7 @@ tags: ["Docker", "orbstack"]
 
 ## きっかけ
 
-{{< twitter user="yteraoka" id="1613544910606716929" >}}
+{{< x user="yteraoka" id="1613544910606716929" >}}
 
 で、[orbstack](https://orbstack.dev/) っていう formula が追加されてるのを見てほー、そんなものが、ということで試してみる。
 
