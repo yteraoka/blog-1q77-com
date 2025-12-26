@@ -16,28 +16,28 @@ em2 ---+             +--- vlan3 --- br1
 という Teaming で冗長化したインターフェースを VLAN で分割してそれぞれを Bridge にするというネットワーク構成にしようとして、2014年末頃には期待通りにどうさせず、次のようにつぶやいてたら
 
 
-{{< twitter user="yteraoka" id="556616999803969536" >}}
+{{< x user="yteraoka" id="556616999803969536" >}}
 
 > team + vlan + bridge 構成にしようとすると NetworkManager が邪魔をするんですよねえ / “RHEL7/CentOS7 NetworkManager徹底入門” [http://t.co/zc2WHznEB8](http://t.co/zc2WHznEB8)
 > 
-> — yteraoka (@yteraoka) [2015年1月18日](https://twitter.com/yteraoka/status/556616999803969536)
+> — yteraoka (@yteraoka) [2015年1月18日](https://x.com/yteraoka/status/556616999803969536)
 
 中井さんが調べて Bugzilla に登録したりしてくださり、まとめページまでつくっていただけたので2016年に再チャレンジしたときにはすんなりできました。ありがとうございます。
 
-{{< twitter user="yteraoka" id="720106581300547584" >}}
+{{< x user="yteraoka" id="720106581300547584" >}}
 
 > teaming + tag vlan + bridge がすんなりできた、ありがたや / “RHEL7/CentOS7のnmcliコマンドでBonding/VLAN/ブリッジを組み合わせる方法 - めもめも” [https://t.co/ZbSZOAJi8J](https://t.co/ZbSZOAJi8J)
 > 
-> — yteraoka (@yteraoka) [2016年4月13日](https://twitter.com/yteraoka/status/720106581300547584)
+> — yteraoka (@yteraoka) [2016年4月13日](https://x.com/yteraoka/status/720106581300547584)
 
 ががが、テスト用の環境でセットアップした際には期待通りに動作していたはずなのに実環境に持って行ったらなぜか vlan が片方だけしか Up しないという問題が発生...
 
-{{< twitter user="yteraoka" id="722974379210989568" >}}
+{{< x user="yteraoka" id="722974379210989568" >}}
 
 > CentOS7のteaming-vlan-bridge構成で起動時にvlanが1つbring upでtimeoutする謎  
 > nmcli d で connecting (prepare) と表示されており nmcli d connect vlan2 とするとつながる
 > 
-> — yteraoka (@yteraoka) [2016年4月21日](https://twitter.com/yteraoka/status/722974379210989568)
+> — yteraoka (@yteraoka) [2016年4月21日](https://x.com/yteraoka/status/722974379210989568)
 
 ```
 $ sudo systemctl status network.service -l

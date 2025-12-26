@@ -53,7 +53,7 @@ local cookie_name = "Foo"
 local cookie_value = ngx.var["cookie_" .. cookie_name]
 ```
 
-取り出した cookie の値からそのリクエストが有効かどうかを判定するために、別のサーバーに問い合わせる必要があります。memcached に入ってるなら直接そのサーバーに問い合わせるという方法もありますね。でもアプリで Consistent Hashing とかしてると困りますね。[twemproxy](https://github.com/twitter/twemproxy) 使ってれば大丈夫ですかね。 でも今回は Web サーバーに GET で問い合わせる方法を説明します。
+取り出した cookie の値からそのリクエストが有効かどうかを判定するために、別のサーバーに問い合わせる必要があります。memcached に入ってるなら直接そのサーバーに問い合わせるという方法もありますね。でもアプリで Consistent Hashing とかしてると困りますね。[twemproxy](https://github.com/x/twemproxy) 使ってれば大丈夫ですかね。 でも今回は Web サーバーに GET で問い合わせる方法を説明します。
 
 ngx.location.capture() を使うことで、別の URI へリクエストを出すことができます。が、ngx.location.capture("http://example.com/auth?session=XXXX") などと直接別のサーバーを指定することはできません。 これをどうするかというと [lua-nginx-module の紹介 ならびに Nginx+Lua+Redisによる動的なリバースプロキシの実装案 - hibomaのはてなダイアリー](http://d.hatena.ne.jp/hiboma/20120205/1328448746) で紹介されているように
 

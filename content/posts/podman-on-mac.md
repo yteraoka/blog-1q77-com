@@ -540,7 +540,7 @@ $ podman run -it -v /usr:/work --privileged docker.io/ubuntu
 Error: error preparing container 98a665c8090d1693a963b7da46c5dfc0337d060f5010def610a9bad5f312ec8a for attach: error configuring network namespace for container 98a665c8090d1693a963b7da46c5dfc0337d060f5010def610a9bad5f312ec8a: error adding pod agitated_wiles_agitated_wiles to CNI network "podman": unexpected end of JSON input
 ```
 
-こちらも @tnk4on からの情報で、これは podman machine のバグで、すでにアップストリームでは修正されているそうです。([tweet](https://twitter.com/tnk4on/status/1441223276211015685?s=20))
+こちらも @tnk4on からの情報で、これは podman machine のバグで、すでにアップストリームでは修正されているそうです。([tweet](https://x.com/tnk4on/status/1441223276211015685?s=20))
 
 podman-compose
 --------------

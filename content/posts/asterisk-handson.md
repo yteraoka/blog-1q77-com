@@ -19,7 +19,7 @@ tags: ['Asterisk', 'IP電話', 'Linux', 'SIP']
         
         > $ ls /etc/asterisk/\*.conf | wc -l 98 え...
         > 
-        > — yteraoka (@yteraoka) [April 12, 2014](https://twitter.com/yteraoka/statuses/454861001964285952)
+        > — yteraoka (@yteraoka) [April 12, 2014](https://x.com/yteraoka/statuses/454861001964285952)
         
         でも実際に使ったのはファイル2つだけで内容もシンプルなものでした
 5.  PC のソフトフォンとスマホのIP電話アプリで内線通話を行う

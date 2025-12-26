@@ -35,7 +35,7 @@ https://github.com/terraform-module/terraform-aws-lambda/issues/10
 
 https://github.com/fluent/fluent-bit/issues/2277
 
-7月、[このツイート](https://twitter.com/danielepolencic/status/1275786970610843648) を見て kubectl-isolate っていう shell script を書いた。実際にこれを役立てたことはまだないけど。
+7月、[このツイート](https://x.com/danielepolencic/status/1275786970610843648) を見て kubectl-isolate っていう shell script を書いた。実際にこれを役立てたことはまだないけど。
 
 https://github.com/yteraoka/kubectl-isolate
 
