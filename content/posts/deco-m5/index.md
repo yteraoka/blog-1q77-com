@@ -32,8 +32,6 @@ Ethernet Backhaul を使うようにしました（これが使えるのもル�
 
 無線APはできれば高い位置に設置することが望ましいとされています。deco M5 にはサードパーティ製品ですが、壁掛け、天井取付も可能な[ホルダー](https://amzn.to/2nwIdmn)があるので、これを購入して壁にかけました。壁にネジの穴を開けるのはちょっと気になるので[フック](https://amzn.to/2vDJKLT)にかけました。
 
-<iframe sandbox="allow-popups allow-scripts allow-modals allow-forms allow-same-origin" style="width:120px;height:240px;float:left;" marginwidth="0" marginheight="0" scrolling="no" frameborder="0" src="//rcm-fe.amazon-adsystem.com/e/cm?lt1=_blank&bc1=000000&IS2=1&bg1=FFFFFF&fc1=000000&lc1=0000FF&t=ytera-22&language=ja_JP&o=9&p=8&l=as4&m=amazon&f=ifr&ref=as_ss_li_til&asins=B07CGZ8N8Q&linkId=faeea163eace53238fe5839bc25f316d"></iframe> <iframe sandbox="allow-popups allow-scripts allow-modals allow-forms allow-same-origin" style="width:120px;height:240px;float:left;margin-left:20px;" marginwidth="0" marginheight="0" scrolling="no" frameborder="0" src="//rcm-fe.amazon-adsystem.com/e/cm?lt1=_blank&bc1=000000&IS2=1&bg1=FFFFFF&fc1=000000&lc1=0000FF&t=ytera-22&language=ja_JP&o=9&p=8&l=as4&m=amazon&f=ifr&ref=as_ss_li_til&asins=B003CFE5U6&linkId=bd24cc30f32f6807f07c95ad3336a052"></iframe>
-
 <div style="clear:both;"></div>
 
 

@@ -85,4 +85,3 @@ location / {
 ```
 
 とした場合は `proxy_pass` の値に変数を入れてもダメでした... `balancer_by_lua` というのが使えるようだ [Nginx balancer\_by\_luaの話とupstream名前解決の話](http://qiita.com/toritori0318/items/a9305d528b52936c0573)
-[![](//ws-fe.amazon-adsystem.com/widgets/q?_encoding=UTF8&ASIN=4774178667&Format=_SL160_&ID=AsinImage&MarketPlace=JP&ServiceVersion=20070822&WS=1&tag=ytera-22)](https://www.amazon.co.jp/nginx%E5%AE%9F%E8%B7%B5%E5%85%A5%E9%96%80-WEB-DB-PRESS-plus/dp/4774178667/ref=as_li_ss_il?_encoding=UTF8&pd_rd_i=4774178667&pd_rd_r=062ZRMCDATPXQFGFDNPS&pd_rd_w=0kpVG&pd_rd_wg=xgz4R&psc=1&refRID=A0EGF8Q7JT9W61M466QR&linkCode=li2&tag=ytera-22&linkId=4840d637b7e902c7df91072454fa22f6)![](https://ir-jp.amazon-adsystem.com/e/ir?t=ytera-22&l=li2&o=9&a=4774178667)

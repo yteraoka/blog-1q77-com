@@ -9,7 +9,6 @@ tags: ['DietPi', 'OpenVPN', 'OpenVPN']
 
 Chrome の Remote Desktop 機能使えば簡単にできるのかと思ったけれども Android から接続した場合に Ctrl キーなどを入力する方法がなかったのでしかたなく VPN サーバーをセットアップすることにしました。サーバーとなるのは以前の記事にもした「[kano を DietPi でサーバーにした](/2018/03/kano-dietpi/)」ラズパイです。
 
-[![](//ws-fe.amazon-adsystem.com/widgets/q?_encoding=UTF8&ASIN=B01CSFZ4JG&Format=_SL250_&ID=AsinImage&MarketPlace=JP&ServiceVersion=20070822&WS=1&tag=ytera-22&language=ja_JP)](https://www.amazon.co.jp/Raspberry-%E3%83%9C%E3%83%BC%E3%83%89%EF%BC%86%E3%82%B1%E3%83%BC%E3%82%B9%E3%82%BB%E3%83%83%E3%83%88-Physical-Computing-Lab/dp/B01CSFZ4JG/ref=as_li_ss_il?adgrpid=50836980942&hvadid=289187078079&hvdev=c&hvlocphy=1009312&hvnetw=g&hvpos=1t1&hvqmt=e&hvrand=16615727980069949895&hvtargid=kwd-334548493913&jp-ad-ap=0&keywords=%E3%83%A9%E3%82%BA%E3%83%99%E3%83%AA%E3%83%BC%E3%83%BB%E3%83%91%E3%82%A4&qid=1554030760&s=gateway&sr=8-14&linkCode=li3&tag=ytera-22&linkId=db03dd5ea9015cc3a1f29564ff2e2cb2&language=ja_JP)![](https://ir-jp.amazon-adsystem.com/e/ir?t=ytera-22&language=ja_JP&l=li3&o=9&a=B01CSFZ4JG)（ラズパイイメージ図）
 
 DietPi に PiVPN をインストールする
 ------------------------
