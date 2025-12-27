@@ -108,6 +108,8 @@ params:
         content:
             enabled: true
 
+    amazonJpAffiliate: ytera-22
+
 ### Custom menu
 ### See hnttps://docs.stack.jimmycai.com/configuration/custom-menu.html
 ### To remove about, archive and search page menu item, remove `menu` field from their FrontMatter
