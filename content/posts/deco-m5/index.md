@@ -2,7 +2,7 @@
 title: 'Deco M5 を softbank 光環境に導入しました'
 date: Mon, 13 Aug 2018 03:08:30 +0000
 draft: false
-tags: ['WiFi']
+tags: ['WiFi', 'Deco']
 ---
 
 我が家の無線LAN環境改善のために [TP-Link Deco M5 3台セット](https://amzn.to/2vDRBsz)を導入しました。

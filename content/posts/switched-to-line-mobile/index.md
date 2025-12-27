@@ -2,7 +2,7 @@
 title: 'IIJmio から LINE Mobile へ MNP で乗り換えた'
 date: Thu, 26 Jan 2017 14:28:32 +0000
 draft: false
-tags: ['LINE', 'LINE', 'MNP', 'MVNO', 'MVNO', 'スマホ', 'スマホ']
+tags: ['LINE', 'MNP', 'MVNO', 'スマホ']
 ---
 
 [LINE MOBILE](https://mobile.line.me/) を使ってみようかなと思って [IIJmio](https://www.iijmio.jp/) から乗り換えることにした。 [FREETEL](https://www.freetel.jp/) の 200kbps であれば3日間制限とかなく 20GB まで使い放題ってのも魅力ではあったものの LINE にしてみた。FREETEL はとりかえ〜るなんてのも魅力的ではある。 IIJmio はパケットの追加が割高なんですよね。息子が入院した際にテザリングで YouTube 見せてたら使いきっちゃって、さらに3日の通信量制限にもひっかかってしまった。この3日の制限は非常に厳しくてまったくもってまともにブラウジングもできない、パケットを追加購入するのも困難なほどです。[Google Play Music](https://play.google.com/store/music) とか Amazon Prime Music を 200kbps で垂れ流そうとしたときにもそんな制限を知らなくてひっかかってしまった。 端末は2015年に買った docomo [SO-01G (Xperia Z3)](http://www.sonymobile.co.jp/xperia/docomo/so-01g/) もう Android 7 に更新できなくて辛い。ハードウェア的に不満は無いのに。 IIJmio は2014年10月に au から MNP で乗り換えてました。 ちなみに LINE MOBILE は2017年2月1日から400円追加で必要になるようです。 [初期費用の改定について（SIMカード発行手数料400円が2/1より追加）](http://mobile-blog.line.me/archives/11538677.html) さて、申し込みページにアクセスしてみると謎の「エントリーコード」なるものが存在するようです。

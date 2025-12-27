@@ -2,7 +2,7 @@
 title: '「セキュリティ初級ペネトレーションハンズオン＠東京」に参加してきた'
 date: Sat, 31 Aug 2013 13:01:33 +0000
 draft: false
-tags: ['Linux', 'linux', 'security']
+tags: ['Linux', 'security']
 ---
 
 8月31日（土）「[セキュリティ初級ペネトレーションハンズオン＠東京](http://www.zusaar.com/event/967010)」に参加してきました。 ブログを書くまでが勉強会だっちゅーの！（ぷにゅっ）ということで、以下参加レポート 会場は渋谷。（渋谷駅周辺の迷路ではいつも道に迷う…） 参加者が持参のノートPC上で VMware なり、 VirtualBox で複数のサーバーを起動させて、そのサーバー間で penetration を実際に行なってみるという形式で行われました。 内容は[こちら](http://www.ddhost.jp/lab/2013/08/post_375.html)にあります。

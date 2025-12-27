@@ -2,7 +2,7 @@
 title: 'Redis の冗長化を考える (keepalived, HAProxy, Redis Sentinel)'
 date: Sat, 14 Feb 2015 04:59:54 +0000
 draft: false
-tags: ['Linux', 'haproxy', 'keepalived', 'redis', 'sentinel']
+tags: ['Linux', 'HAProxy', 'keepalived', 'Redis', 'sentinel']
 ---
 
 Redis を冗長化したいなって思って探していたらこんなのを見つけたので試してみます。

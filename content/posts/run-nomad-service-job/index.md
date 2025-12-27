@@ -2,7 +2,7 @@
 title: 'Nomad で Service Job を実行する'
 date: Mon, 22 Apr 2019 15:13:41 +0000
 draft: false
-tags: ['Nomad', 'Nomad']
+tags: ['Nomad']
 ---
 
 [前回](/2019/04/setup-nomad-cluster/) Nomad クラスタを構築しました。今回はこのクラスタで Job を実行します。

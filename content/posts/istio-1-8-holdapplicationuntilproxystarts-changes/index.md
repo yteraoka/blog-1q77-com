@@ -4,7 +4,7 @@ description: |
 
 date: 2020-12-07T22:45:16+09:00
 draft: false
-tags: ['Istio', 'advent calendar 2020']
+tags: ['Istio', 'Advent Calendar 2020']
 image: cover.png
 author: "@yteraoka"
 categories:

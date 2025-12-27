@@ -2,7 +2,7 @@
 title: 'Nomad cluster のセットアップ'
 date: Sun, 14 Apr 2019 15:10:59 +0000
 draft: false
-tags: ['Consul', 'Hashicorp', 'Nomad', 'Nomad']
+tags: ['Consul', 'Hashicorp', 'Nomad']
 ---
 
 口にするとマサカリならぬ船のホイールが飛んできそうですが、[話題](https://matthias-endler.de/2019/maybe-you-dont-need-kubernetes/)の [Hashicorp Nomad](https://www.nomadproject.io/) のクラスタをセットアップしてみました。下の図のような構成です。3台のサーバーで構築した Consul クラスタとこれまた3台のサーバーで Nomad のサーバークラスタを構築し、そこへ3台の Nomad クライアント(worker)を参加させます。公式の図を拝借したらこうなっていたのですが、Nomad サーバーとクライアントが特定のもの同士で紐づいているように見えますがそういうわけではなく、クライアントはクラスタに対して参加しています。[DigitalOcean](https://m.do.co/c/97e74a2e7336) に簡単に構築するための Terraform & Ansible を [https://github.com/yteraoka/nomad-cluster-do](https://github.com/yteraoka/nomad-cluster-do) に置いてあります。

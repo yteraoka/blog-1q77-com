@@ -2,7 +2,7 @@
 title: 'Ansible Tutorial リニューアルしました'
 date: Sun, 22 Dec 2013 15:22:09 +0000
 draft: false
-tags: ['Advent Calendar', 'Ansible', 'ansible']
+tags: ['Advent Calendar', 'Ansible']
 ---
 
 この投稿は [Ansible Advent Calendar 2013](http://qiita.com/advent-calendar/2013/ansible) の23日目の記事です。 22日目: [Ansibleを導入したい人の為のくどきポイント](http://qiita.com/ryurock/items/9cd0aee66003eba482e4) 前回の Advent Calendar ポストの翌日が3736回目の誕生日だったのですが、胃腸炎でゲロゲロしながら過ごした @yteraoka です。息子もゲロゲロしてて、ゲロゲロがゲロゲロを介護するという老老介護ならぬゲロゲロ介護でした。素晴らしい誕生日ですね。。。 最近の Ansible の話題と言えば [ANSIBLEWORKS GALAXY](https://galaxy.ansibleworks.com/) ですが、こっちは明日、明後日できっと誰か書いてくれますよね。Ansible 開発者の書いた Playbook とか参考になりますね。へ〜、はぁ〜って見てました。っていうほどまだ見れてないけど今後、どんどん参考にしていきたい。 今日の話題は [Ansible Tutorial](http://yteraoka.github.io/ansible-tutorial/) をリニューアルしましたよという告知。まぁ、内容的にはほとんど変わってないわけですけど... ググると上位に出てくるので Ansible の変化にもついていかないとなという事で。 一応変更点を上げると

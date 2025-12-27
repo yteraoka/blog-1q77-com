@@ -2,7 +2,7 @@
 title: 'telepresence 入門 (2)'
 date: Sat, 08 Jan 2022 14:27:39 +0900
 draft: false
-tags: ['Kubernetes', 'Kubernetes', 'telepresence']
+tags: ['Kubernetes', 'telepresence']
 ---
 
 前回の [telepresence 入門 (1)](/2021/12/telepresence-part-1/) の続きです。今回は Kubernetes クラスタの Service へのアクセスをインターセプトして手元の環境に転送することを試します。Kubernetes 側の volume も手元で mount させるし、環境変数も引っ張ってきます。 バージョンなど環境については前回と同じ。

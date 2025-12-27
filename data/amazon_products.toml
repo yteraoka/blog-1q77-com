@@ -20,25 +20,25 @@ categories = ["misc"]
 title = "AWSで実現するモダンアプリケーション入門"
 id = "B0BRPRQFMH"
 imageUrl = "//m.media-amazon.com/images/I/51WI8nr0ziL._SY342_.jpg"
-categories = ["AWS", "aws"]
+categories = ["AWS"]
 
 [[products]]
 title = "図解まるわかり セキュリティのしくみ"
 id = "B07FTN333K"
 imageUrl = "//m.media-amazon.com/images/I/715IYGXNfyL._SY342_.jpg"
-categories = ["Password"]
+categories = ["password", "security"]
 
 [[products]]
 title = "マルチクラウドセキュリティの教科書 クラウド横断で実現する堅牢なセキュリティ基盤"
 id = "B0FHZTWBTG"
 imageUrl = "//m.media-amazon.com/images/I/71LavocwoUL._SY342_.jpg"
-categories = ["Password"]
+categories = ["password", "security"]
 
 [[products]]
 title = "GitHub CI/CD実践ガイド――持続可能なソフトウェア開発を支えるGitHub Actionsの設計と運用 エンジニア選書"
 id = "B0D4DBYJJ9"
 imageUrl = "//m.media-amazon.com/images/I/81Yr2DW1WRL._SY342_.jpg"
-categories = ["Renovate", "GitHub"]
+categories = ["renovate", "GitHub"]
 
 [[products]]
 title = "入門Terraform　クラウド時代のインフラ統合管理 impress top gearシリーズ"
@@ -56,13 +56,13 @@ categories = ["Terraform"]
 title = "ラズパイ５ ＡＩ活用ガイド　電子工作×ＡＩを楽しもう！"
 id = "B0G752891H"
 imageUrl = "//m.media-amazon.com/images/I/816ixuoYROL._SY342_.jpg"
-categories = ["Raspberry", "Raspberry Pi"]
+categories = ["Raspberry Pi"]
 
 [[products]]
 title = "Raspberrypi5 8G ラズベリーパイ5 技適取得済マーク入り商品"
 id = "B0CQZHN2K4"
 imageUrl = "//m.media-amazon.com/images/I/31ulVhoF7LL._AC_.jpg"
-categories = ["Raspberry", "Raspberry Pi"]
+categories = ["Raspberry Pi"]
 
 [[products]]
 title = "ゼロトラストセキュリティ実践ガイド"
@@ -176,13 +176,13 @@ categories = ["SQL", "PostgreSQL"]
 title = "改訂新版 Go言語プログラミングエッセンス エンジニア選書"
 id = "B0FPV1XSSZ"
 imageUrl = "//m.media-amazon.com/images/I/81ZGJWGVp4L._SY342_.jpg"
-categories = ["Go", "go"]
+categories = ["Go"]
 
 [[products]]
 title = "Go言語 100Tips ありがちなミスを把握し、実装を最適化する impress top gearシリーズ"
 id = "B0CFL1DK8Q"
 imageUrl = "//m.media-amazon.com/images/I/910HTtie3GL._SY342_.jpg"
-categories = ["Go", "go"]
+categories = ["Go"]
 
 [[products]]
 title = "SSL/TLS実践入門──Webの安全性を支える暗号化技術の設計思想 WEB+DB PRESS plus"
@@ -224,13 +224,13 @@ categories = ["HTML"]
 title = "Rubyフレームワーク Ruby on Rails 8入門"
 id = "B0FRLCRRS9"
 imageUrl = "//m.media-amazon.com/images/I/61mNGnNVWXL._SY342_.jpg"
-categories = ["Ruby", "ruby"]
+categories = ["Ruby"]
 
 [[products]]
 title = "独習Ruby 新版"
 id = "B09BHLFXPN"
 imageUrl = "//m.media-amazon.com/images/I/81KFMhfhHjL._SY342_.jpg"
-categories = ["Ruby", "ruby"]
+categories = ["Ruby"]
 
 [[products]]
 title = "DNSがよくわかる教科書 第2版"
@@ -367,5 +367,53 @@ categories = ["Apache"]
 [[products]]
 title = "nginx実践入門 (WEB+DB PRESS plus)"
 id = "B07JHJF3NQ"
-imageUrl = "https://m.media-amazon.com/images/I/81Ki8sZg9UL._SY342_.jpg"
+imageUrl = "//m.media-amazon.com/images/I/81Ki8sZg9UL._SY342_.jpg"
 categories = ["nginx"]
+
+[[products]]
+title = "Amazon eero 6+ - メッシュwifi ルーター | AX3000"
+id = "B0BP73KBC2"
+imageUrl = "//m.media-amazon.com/images/I/61QGwTYncEL._SX425_.jpg"
+categories = ["WiFi"]
+
+[[products]]
+title = "Amazon eero 7 - メッシュwifiルーター | Wi-Fi 7対応 | BE3400"
+id = "B0DN36NDPN"
+imageUrl = "//m.media-amazon.com/images/I/41g9T6v7CsL._SX425_.jpg"
+categories = ["WiFi"]
+
+[[products]]
+title = "バッファロー WiFi ルーター無線LAN Wi-Fi 6 11ax / 11ac AX5400 4803+574Mbps"
+id = "B0CB8N3K8C"
+imageUrl = "//m.media-amazon.com/images/I/31hzBXC9WfL._AC_SX569_.jpg"
+categories = ["WiFi"]
+
+[[products]]
+title = "バッファロー WiFi ルーター 無線 LAN Wi-Fi 7 11be デュアルバンド 2882+688Mbps"
+id = "B0F5B69SKC"
+imageUrl = "//m.media-amazon.com/images/I/715PqYt8o4L._AC_SX569_.jpg"
+categories = ["WiFi"]
+
+[[products]]
+title = "TP-Link WiFi7 ルーター メッシュwi-fi 無線lan メッシュWi-Fiシステム BE3600規格 2882Mbps(5GHz) + 688Mbps(2.4GHz) MLO Deco BE22 2-pack"
+id = "B0DTTSWTFG"
+imageUrl = "//m.media-amazon.com/images/I/41jF5guL1FL._AC_SY355_.jpg"
+categories = ["Deco"]
+
+[[products]]
+title = "TP-Link メッシュwifi ルーター deco 無線LAN 2.5Gbps イーサネットポート ps5 対応5760Mbps (6GHz) + 4320Mbps (5GHz) + 688Mbps (2.4GHz) 最大wifi範囲538m² | 同時接続台数200台 Deco BE9300 2ユニット"
+id = "B0DL5WY1QT"
+imageUrl = "//m.media-amazon.com/images/I/51WR8Yd-VDL._AC_SY355_.jpg"
+categories = ["Deco"]
+
+[[products]]
+title = "TP-Link WiFi 無線LANルーター Wi-Fi6 2402 + 574 Mbps HE160 メッシュWi-Fiシステム 3年保証 Deco X3000 1-pack"
+id = "B0DQ89CP44"
+imageUrl = "//m.media-amazon.com/images/I/31mKxKcRNVL._AC_SY355_.jpg"
+categories = ["Deco"]
+
+[[products]]
+title = "TP-Link WiFi ルーター 無線ルーター AX3000 IPv6対応 2402+574Mbps HE160 EasyMesh Archer AX3000V"
+id = "B0DDXYJG4W"
+imageUrl = "//m.media-amazon.com/images/I/6166-WHbn8L._AC_SY450_.jpg"
+categories = ["Deco"]

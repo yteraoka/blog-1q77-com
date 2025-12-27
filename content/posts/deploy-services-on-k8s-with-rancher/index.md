@@ -2,7 +2,7 @@
 title: 'RancherのKubernetesにサービスをデプロイしてみる'
 date: Tue, 02 May 2017 12:44:12 +0000
 draft: false
-tags: ['Caddy', 'Kubernetes', 'Rancher', 'haproxy', 'sacloud']
+tags: ['Caddy', 'Kubernetes', 'Rancher', 'HAProxy', 'sacloud']
 ---
 
 「[さくらのクラウドRancherOSでKubernetes環境を構築](/2017/05/build-kubernetes-using-rancheros-on-sakura-cloud/)」の続きです。さくらのクラウドで Rancher + RancherOS を使って構築した Kubernetes 環境にサービスをデプロイしてみます。Kubernetes への deploy 自体は minikube でやったことがある（[Kubernetes Secrets を使って minikube に netbox を deploy してみる](/2017/02/deploy-netbox-on-minikube/)）ので Rancher を使った場合のネットワーク構成とかを調査していきたい。

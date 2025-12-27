@@ -2,7 +2,7 @@
 title: 'tcpdump のお供に Brim を使いましょう'
 date: Thu, 10 Dec 2020 00:10:37 +0900
 draft: false
-tags: ['Brim', 'Network', 'advent calendar 2020']
+tags: ['Brim', 'Network', 'Advent Calendar 2020']
 ---
 
 [Advent Calendar 2020 全部オレシリーズ](https://qiita.com/advent-calendar/2020/yteraoka) 9日目です。もう完走は諦めましたがなんとか続いています。

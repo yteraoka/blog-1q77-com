@@ -3,7 +3,7 @@ title: "Raspberry Pi 4 での USB Strage Driver"
 description: |
   ラズパイで SATA SSD を USB 接続した際にハングアップしてしまう問題への対応
 date: 2024-07-20T19:19:30+09:00
-tags: [Raspberry, Linux]
+tags: ["Raspberry Pi", "Linux"]
 draft: false
 image: cover.png
 author: "@yteraoka"

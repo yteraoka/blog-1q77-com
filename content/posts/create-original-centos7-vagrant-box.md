@@ -2,7 +2,7 @@
 title: 'CentOS7の自前Vagrant boxを作成する'
 date: Thu, 29 Oct 2015 13:30:18 +0000
 draft: false
-tags: ['Linux', 'vagrant']
+tags: ['Linux', 'Vagrant']
 ---
 
 何が入ってるかわからないイメージじゃなくて自分で作りたいと思ったので作ってみたので自分用にメモ。 ほぼ「[CentOS7.1にてVagrant Base Boxを作成する - とあるエンジニアの技術メモ](http://kan3aa.hatenablog.com/entry/2015/05/29/120212)」に書いてあるままですけど。 まずはインストール用に ISO ファイルをダウンロード [https://www.centos.org/download/](https://www.centos.org/download/) Oracle VM VirtualBox マネージャーで新しい仮想サーバーを作成。ここでは名前を「centos7」とする。 仮想ハードディスクは「VDI」で「可変サイズ」サイズは適当に「16GB」としておいた。 設定を開いてオーディオ、USBを無効化する。フロッピーもチェックを外す。 ダウンロードした ISO ファイルをマウントして起動し、CentOS をインストール 「vagrant」ユーザーを作成しておく。 インストール後

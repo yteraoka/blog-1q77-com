@@ -2,7 +2,7 @@
 title: 'Bash on Ubuntu on Windows をセットアップする'
 date: Sat, 20 Aug 2016 02:01:28 +0000
 draft: false
-tags: ['Linux', 'Windows', 'Windows', 'bash', 'ubuntu']
+tags: ['Linux', 'Windows', 'Bash', 'Ubuntu']
 ---
 
 そろそろ Bash on Ubuntu on Linux ([https://msdn.microsoft.com/ja-jp/commandline/wsl/about](https://msdn.microsoft.com/ja-jp/commandline/wsl/about)) を試してみようかなと。 普段 Ubuntu 16.04 のインストールされた VAIO を使っているので特に何かやりたいというわけではないけど... インストールの手順は [https://msdn.microsoft.com/commandline/wsl/install\_guide](https://msdn.microsoft.com/commandline/wsl/install_guide) に書いてある通り。ただ、英語環境向けなので日本語環境では検索時のキーワードが違ってたりする。

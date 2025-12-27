@@ -2,7 +2,7 @@
 title: 'Vagrant box 作成方法'
 date: Sat, 17 Sep 2016 01:07:33 +0000
 draft: false
-tags: ['Packer', 'VirtualBox', 'boxcutter', 'vagrant']
+tags: ['Packer', 'VirtualBox', 'boxcutter', 'Vagrant']
 ---
 
 前にも作ってみたが、もっとイカした作成方法が無いかな？ってのと自分用の Vagrant box を Github に置こうかなと思って調べてたら [https://atlas.hashicorp.com/boxcutter](https://atlas.hashicorp.com/boxcutter) という便利ツールの存在を知った https://github.com/misheska/basebox-packer から https://github.com/box-cutter に移り、今は [https://github.com/boxcutter](https://github.com/boxcutter) となっているようだ そんでもって [https://atlas.hashicorp.com/boxcutter](https://atlas.hashicorp.com/boxcutter) にほぼ最小構成の box が揃ってるから欲しかったのはこれだということでわざわざ作らなくても良くなった... カスタマイズしたくなったら各 distribution の repository を clone して編集して build すれば良さそう。[CentOS](https://github.com/boxcutter/centos) なら [kickstart 用のファイル](https://github.com/boxcutter/centos/tree/master/http) をいじるか [custom-script.sh](https://github.com/boxcutter/centos/blob/master/custom-script.sh) をいじってビルドすれば良い。[ubuntu](https://github.com/boxcutter/ubuntu) の場合は [preseed.cfg](https://github.com/boxcutter/ubuntu/tree/master/http) か [custom-script.sh](https://github.com/boxcutter/ubuntu/blob/master/custom-script.sh) で良さそう。 どちらの場合も custom-script.sh でできることはこっちでやるのがスジだろう

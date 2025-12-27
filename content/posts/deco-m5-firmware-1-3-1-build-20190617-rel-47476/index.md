@@ -2,7 +2,7 @@
 title: 'Deco M5 の firmware 更新 1.3.1 Build 20190617 Rel. 47476'
 date: Tue, 06 Aug 2019 15:51:35 +0000
 draft: false
-tags: ['WiFi', 'deco']
+tags: ['WiFi', 'Deco']
 ---
 
 Deco M5 の新しい firmware が公開されていたので更新しました。全然関係なけど今「[TCP 技術入門](https://amzn.to/33ktbUz)」読んでます。

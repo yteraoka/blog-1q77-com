@@ -2,7 +2,7 @@
 title: 'GKE Guestbook チュートリアルを試す'
 date: Sun, 12 Jul 2015 16:14:01 +0000
 draft: false
-tags: ['GCP', 'GKE', 'Google Compute Engine', 'Kubernetes', 'tutorial']
+tags: ['GCP', 'GKE', 'GCE', 'Kubernetes', 'tutorial']
 ---
 
 前回は [Wordpress のチュートリアルを試しました](/2015/07/gke-hello-wordpress-tutorial/)、次はもう少し複雑な [Guestbook Tutorial - Container Engine — Google Cloud Platform](https://cloud.google.com/container-engine/docs/tutorials/guestbook) をなぞります。

@@ -3,7 +3,7 @@ title: Mac に Homebrew で docker pluings をインストールする
 description: |
   Mac で docker に Lima を使っている場合に docker compose や docker buildx を実行するためのセットアップ
 date: 2024-01-26T21:36:56+09:00
-tags: [macOS, docker]
+tags: [macOS, Docker]
 draft: false
 image: cover.png
 author: "@yteraoka"

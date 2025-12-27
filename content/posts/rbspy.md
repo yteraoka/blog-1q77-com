@@ -1,7 +1,7 @@
 ---
 title: "rbspy で ruby の stacktrace を flamegraph にする"
 date: 2022-12-28T20:26:10+09:00
-tags: ["ruby"]
+tags: ["Ruby"]
 draft: false
 ---
 

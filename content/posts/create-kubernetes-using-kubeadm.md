@@ -2,7 +2,7 @@
 title: 'kubeadm で kubernetes を構築'
 date: Mon, 30 Apr 2018 13:52:13 +0000
 draft: false
-tags: ['DigitalOcean', 'Kubernetes', 'ansible']
+tags: ['DigitalOcean', 'Kubernetes', 'Ansible']
 ---
 
 DigitalOcean の Community サイトにある [Tutorials](https://www.digitalocean.com/community/tutorials) に「[How To Create a Kubernetes 1.10 Cluster Using Kubeadm on Ubuntu 16.04](https://www.digitalocean.com/community/tutorials/how-to-create-a-kubernetes-1-10-cluster-using-kubeadm-on-ubuntu-16-04)」というのがあったので試してみる。 Tutorial 書いて提供するとお金がもらえる（[Write for DOnations](https://www.digitalocean.com/write-for-donations/)）ということでなんかすごいペースで増えてる気がする

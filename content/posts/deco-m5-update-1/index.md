@@ -2,7 +2,7 @@
 title: 'Deco M5 が VPN、WPS、LANアドレス設定に対応'
 date: Sat, 01 Sep 2018 05:12:11 +0000
 draft: false
-tags: ['WiFi', 'deco']
+tags: ['WiFi', 'Deco']
 ---
 
 先月、我が家に [TP-Link Deco M5 3台セット](https://amzn.to/3VbWaom) を[導入した](/2018/08/deco-m5/)わけですが、ネットの紹介記事を見ていると次のような課題があるようでした（私はたまたまこれには困っていない）。

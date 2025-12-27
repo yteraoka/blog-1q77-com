@@ -2,7 +2,7 @@
 title: 'dyld: Library not loaded への対応方法'
 date: Mon, 30 Nov 2020 15:11:57 +0000
 draft: false
-tags: ['advent calendar 2020', 'macOS']
+tags: ['Advent Calendar 2020', 'macOS']
 ---
 
 [Advent Calendar 2020 全部オレシリーズ](https://qiita.com/advent-calendar/2020/yteraoka) 1日目です。完走できるか心配です。
