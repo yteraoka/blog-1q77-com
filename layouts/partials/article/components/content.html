@@ -1,0 +1,37 @@
+<section class="article-content">
+    <!-- Refer to https://discourse.gohugo.io/t/responsive-tables-in-markdown/10639/5 -->
+    {{ $wrappedTable := printf "<div class=\"table-wrapper\">${1}</div>" }}
+    {{ .Content | replaceRE "(<table>(?:.|\n)+?</table>)" $wrappedTable | safeHTML }}
+
+{{ $page_tags := .Params.tags }}
+{{ $products := where .Site.Data.amazon_products.products "categories" "intersect" $page_tags }}
+{{ $products := shuffle $products }}
+{{ if $products }}
+<hr>
+{{ $requestedCount := 1 }}
+{{ $count := cond (le $requestedCount (len $products)) $requestedCount (len $products) }}
+{{- $tag := .Site.Params.amazonJpAffiliate -}}
+{{ range $i, $product := $products | first $count }}
+    <link rel="stylesheet" href="/css/amazon.css">
+    <div class="amazon-widget">
+        <a href="https://www.amazon.co.jp/gp/product/{{ $product.id }}/?tag={{ $tag }}"></a>
+        <div class="amazon-widget-img">
+          <img src="{{ $product.imageUrl }}" />
+        </div>
+        <div class="amazon-widget-info">
+            <span class="amazon-widget-title">
+                {{ $product.title }}
+            </span>
+            <span class="amazon-widget-synopsis">
+                {{ $product.synopsis }}
+            </span>
+            <span class="amazon-widget-via">
+                <img src="https://www.amazon.co.jp/favicon.ico" />
+                amazon.co.jp
+            </span>
+        </div>
+    </div>
+{{ end }}
+{{ end }}
+
+</section>
