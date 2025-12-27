@@ -417,3 +417,9 @@ title = "TP-Link WiFi ルーター 無線ルーター AX3000 IPv6対応 2402+574
 id = "B0DDXYJG4W"
 imageUrl = "//m.media-amazon.com/images/I/6166-WHbn8L._AC_SY450_.jpg"
 categories = ["Deco"]
+
+[[products]]
+title = "Astro × GitHub × Cloudflareで学ぶモダンWeb開発"
+id = "B0F7FH7BB6"
+imageUrl = "//m.media-amazon.com/images/I/61EBPZwn32L._SY342_.jpg"
+categories = ["Cloudflare"]
