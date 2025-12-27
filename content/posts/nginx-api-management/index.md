@@ -62,7 +62,4 @@ API Management というと [Kong](https://github.com/Kong/kong) などを導入
 Tシャツもいただきました！！ありがとうございます。前に SIOS さんからもらった紺色のやつもまだ部屋着として着てます。
 <img src="nginx-t-shirt.jpg">
 
-
-[![](//ws-fe.amazon-adsystem.com/widgets/q?_encoding=UTF8&ASIN=4774178667&Format=_SL250_&ID=AsinImage&MarketPlace=JP&ServiceVersion=20070822&WS=1&tag=ytera-22&language=ja_JP)](https://www.amazon.co.jp/dp/4774178667/ref=as_li_ss_il?ie=UTF8&linkCode=li3&tag=ytera-22&linkId=d8889f5b855b6b2d1dc071de95ff17dc&language=ja_JP)![](https://ir-jp.amazon-adsystem.com/e/ir?t=ytera-22&language=ja_JP&l=li3&o=9&a=4774178667) [![](//ws-fe.amazon-adsystem.com/widgets/q?_encoding=UTF8&ASIN=4873116457&Format=_SL250_&ID=AsinImage&MarketPlace=JP&ServiceVersion=20070822&WS=1&tag=ytera-22&language=ja_JP)](https://www.amazon.co.jp/dp/4873116457/ref=as_li_ss_il?ie=UTF8&linkCode=li3&tag=ytera-22&linkId=3243a98115252525d5369724dcbb8e0f&language=ja_JP)![](https://ir-jp.amazon-adsystem.com/e/ir?t=ytera-22&language=ja_JP&l=li3&o=9&a=4873116457)
-
 <div style="clear:both"></div>
