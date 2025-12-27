@@ -2,7 +2,7 @@
 title: 'Acmesmith で証明書発行を試す - その3'
 date: Mon, 08 Feb 2016 16:23:13 +0000
 draft: false
-tags: ['aws', 'kms', 's3', 'ssl', 'acme', 'route53']
+tags: ['AWS', 'KMS', 'S3', 'SSL', 'ACME', 'Route53']
 ---
 
 過去2回 Acmesmith を filesystem, S3 を storage として試してきました。 [Acmesmith で証明書発行を試す - その1](/2016/02/acmesmith-1/) (filesystem) [Acmesmith で証明書発行を試す - その2](/2016/02/acmesmith-2/) (S3) 証明書の秘密鍵はセキュアな管理がが必要なので KMS (Key Management Service) を使って S3 に保存することを試してみます。 まずは AWS の IAM Console にある「Encryption Keys（暗号化キー）」にてキーを作成します（リージョンに注意しましょう）。 作成時の設定でキーの利用者に Acmesmith で使う IAM ユーザーを指定しておきます（後からでも設定可能です）。 後は key id （11111111-2222-3333-4444-555555555555 みたいなやつ）を acmesmith.yml に設定するだけです。

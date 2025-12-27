@@ -2,7 +2,7 @@
 title: "LINE に送ったメッセージを Google Home に読み上げさせる"
 date: 2023-02-25T21:51:58+09:00
 draft: false
-tags: ["GCP", "AWS", "go", "LINE", "Raspberry Pi"]
+tags: ["GCP", "AWS", "Go", "LINE", "Raspberry Pi"]
 image: cover.png
 author: "@yteraoka"
 categories:

@@ -2,7 +2,7 @@
 title: 'Ansible の block でエラーハンドリング'
 date: Sat, 14 Sep 2019 10:24:18 +0000
 draft: false
-tags: ['Ansible', 'ansible']
+tags: ['Ansible']
 ---
 
 Ansible で一連の処理を実行する際に、途中で失敗したらそれまでの変更も元に戻したいといったことがあるかもしれません。そんな場合に使えるのが [Block](https://docs.ansible.com/ansible/latest/user_guide/playbooks_blocks.html) 機能です。Ansible 2.3 （[2017年4月](https://github.com/ansible/ansible/blob/stable-2.3/CHANGELOG.md#23-ramble-on---2017-04-12)）から使える結構古い機能です。

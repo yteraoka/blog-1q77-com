@@ -2,7 +2,7 @@
 title: 'Oracle Cloud の Object Storage での Lifecycle Policy 設定'
 date: Sun, 06 Dec 2020 13:09:31 +0900
 draft: false
-tags: ['OracleCloud', 'advent calendar 2020']
+tags: ['OracleCloud', 'Advent Calendar 2020']
 ---
 
 [Advent Calendar 2020 全部オレシリーズ](https://qiita.com/advent-calendar/2020/yteraoka) 6日目です。

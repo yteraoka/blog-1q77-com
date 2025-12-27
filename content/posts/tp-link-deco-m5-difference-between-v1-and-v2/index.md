@@ -2,7 +2,7 @@
 title: 'TP-Link Deco M5 の V1 と V2 の違いって何だ？'
 date: Sun, 07 Oct 2018 15:33:43 +0000
 draft: false
-tags: ['WiFi']
+tags: ['WiFi', 'Deco']
 ---
 
 以前にも書いたように我が家にはメッシュ WiFi システムの [TP-Link Deco M5 3台セット](https://amzn.to/2QxPD5a) を導入したわけですが、ふと Amazon のページを開いてみると「この商品には新しいモデルがあります」という表示が！

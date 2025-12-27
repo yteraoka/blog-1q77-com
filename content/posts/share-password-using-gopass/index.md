@@ -2,7 +2,7 @@
 title: "gopass を使ってパスワード共有を試す"
 date: 2025-03-29T09:57:32+09:00
 draft: false
-tags: ['password']
+tags: ['password', 'security']
 image: cover.png
 author: "@yteraoka"
 categories:

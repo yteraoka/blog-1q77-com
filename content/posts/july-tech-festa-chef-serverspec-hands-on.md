@@ -2,7 +2,7 @@
 title: 'July Tech Festa の Chef / serverspec ハンズオンを家で試した #techfesta'
 date: Fri, 19 Jul 2013 14:21:33 +0000
 draft: false
-tags: ['chef', 'vagrant', 'ハンズオン']
+tags: ['chef', 'Vagrant', 'ハンズオン']
 ---
 
 [July Tech Festa](http://www.techfesta.jp/) の Chef ハンズオン資料が[公開](http://tily.github.io/jtf2013/)されていたので家で試してみた。公開ありがとうございます。 Vagrant でテスト用環境を立ち上げる

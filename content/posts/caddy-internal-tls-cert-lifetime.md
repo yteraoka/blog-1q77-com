@@ -2,7 +2,7 @@
 title: "Caddy の Internal TLS 証明書の有効期間を指定する"
 date: 2023-02-09T23:29:32+09:00
 draft: false
-tags: ["tls", "caddy"]
+tags: ["TLS", "Caddy"]
 ---
 
 以前 [ワンライナーで https の Reverse Proxy を実行する](/2020/08/one-liner-https-reverse-proxy-caddy/) という記事で [Caddy](https://caddyserver.com/) を使うと local での開発用に任意のドメインの証明書を簡単に発行できるし CA の証明書も OS の証明書ストアに保存してくれるため、ブラウザでアクセスしても警告が出なくて便利というのを書きました。

@@ -2,7 +2,7 @@
 title: 'AnsibleでGCEサーバーをセットアップする'
 date: Wed, 02 Jul 2014 15:29:09 +0000
 draft: false
-tags: ['Ansible', 'Google Compute Engine', 'gce', 'google']
+tags: ['Ansible', 'GCE', 'Google']
 ---
 
 {{< x user="ansible" id="482323942427099136" >}}

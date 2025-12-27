@@ -2,7 +2,7 @@
 title: '無料版の公開された Sophos Anti-Virus for Linux を Linux Mint で試す'
 date: Fri, 22 May 2015 14:40:50 +0000
 draft: false
-tags: ['Linux', 'linux', 'sophos', 'virus']
+tags: ['Linux', 'sophos', 'virus']
 ---
 
 「[ソフォス、無料版 Linux アンチウイルス製品を個人向けに提供開始](https://www.sophos.com/ja-jp/press-office/press-releases/2015/05/sophos-av-for-linux-free-edition.aspx)」ということなので早速手元の Linux Mint にインストールしてみました。 環境はこれ

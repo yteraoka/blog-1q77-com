@@ -2,7 +2,7 @@
 title: 'Lima で nerdctl'
 date: Mon, 20 Sep 2021 01:58:10 +0900
 draft: false
-tags: ['Docker', 'Docker']
+tags: ['Docker', 'lima']
 ---
 
 [Docker Desktop の代わりに docker cli + Minikube](/2021/09/replace-docker-desktop-with-minikube/) ってのを試しただけど、Kubernetes は docker を非推奨にしてるし、kubernetes は不要な場合は無駄が多いしなあ... ってことで [lima](https://github.com/lima-vm/lima) も試してみる。

@@ -2,7 +2,7 @@
 title: 'Oracle Cloud の oci コマンドセットアップ'
 date: Fri, 04 Dec 2020 00:37:57 +0900
 draft: false
-tags: ['OracleCloud', 'advent calendar 2020']
+tags: ['OracleCloud', 'Advent Calendar 2020']
 ---
 
 [Advent Calendar 2020 全部オレシリーズ](https://qiita.com/advent-calendar/2020/yteraoka) 4日目です。

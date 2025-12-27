@@ -2,7 +2,7 @@
 title: 'オンデマンド画像変換サーバー thumbor を使う - その1'
 date: Thu, 21 May 2015 14:38:43 +0000
 draft: false
-tags: ['Linux', 'Python', 'python', 'thumbor', 'thumbor', '画像変換']
+tags: ['Linux', 'Python', 'thumbor', '画像変換']
 ---
 
 画像を表示場所に合わせていろいろなサイズで表示したいという要件は良くあるようで「[画像変換Night](http://connpass.com/event/11516/presentation/)」というイベントが開催されるほどのようです。

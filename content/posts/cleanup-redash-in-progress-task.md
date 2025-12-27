@@ -2,7 +2,7 @@
 title: 'Redash でコケてしまったタスク情報の掃除'
 date: Tue, 17 Jul 2018 15:06:38 +0000
 draft: false
-tags: ['Redash', 'redis']
+tags: ['Redash', 'Redis']
 ---
 
 [Redash](https://redash.io/) でクエリの実行は redis の queue を通して [celery](http://www.celeryproject.org/) にて実行されているようです、この celery で実行している処理が不慮の事故で死んでしまうと Redash の画面上ではずっと IN PROGRESS 状態として残ってしまうという問題がありました。これを削除するためにやったことのメモです。 最初は Database (PostgreSQL) に入ってるのかなと思ったけど、それらしきレコードは見つかりませんでした

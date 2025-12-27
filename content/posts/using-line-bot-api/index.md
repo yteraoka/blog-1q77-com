@@ -2,7 +2,7 @@
 title: 'LINE BOT API を試してみた'
 date: Sun, 10 Apr 2016 02:23:57 +0000
 draft: false
-tags: ['Bot', 'Flask', 'LINE', 'Python', 'python']
+tags: ['Bot', 'Flask', 'LINE', 'Python']
 ---
 
 流行りに乗って [LINE BOT API](https://developers.line.me/bot-api/overview) を試してみた。

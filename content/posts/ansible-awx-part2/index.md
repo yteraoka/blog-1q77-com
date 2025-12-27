@@ -2,7 +2,7 @@
 title: 'Ansible AWX を試す その2 #ansible'
 date: Sat, 10 Aug 2013 15:13:32 +0000
 draft: false
-tags: ['Ansible', 'awx', 'python']
+tags: ['Ansible', 'AWX', 'Python']
 ---
 
 [前回](/2013/08/ansible-awx-part1/)の続きです。

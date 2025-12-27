@@ -2,7 +2,7 @@
 title: 'Deco M5 の firmware 更新 1.2.8 Build 20190403 Rel. 40244'
 date: Tue, 21 May 2019 09:46:40 +0000
 draft: false
-tags: ['WiFi']
+tags: ['WiFi', 'Deco']
 ---
 
 Push 通知が来なくて気づいていませんでしたが。Deco M5 の新しい firmware が[公開](https://www.tp-link.com/jp/support/download/deco-m5/v1/#Firmware)されていたので更新しました。

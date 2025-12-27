@@ -4,7 +4,7 @@ description: |
   Istio Ingress Gateway で client が黙って居なくなった場合に connection を close できるように TCP keepalive を送る
 date: 2020-12-14T20:48:15+09:00
 draft: false
-tags: ['Istio', 'advent calendar 2020']
+tags: ['Istio', 'Advent Calendar 2020']
 author: "@yteraoka"
 image: cover.png
 categories:

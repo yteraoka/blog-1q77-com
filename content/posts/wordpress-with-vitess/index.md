@@ -2,7 +2,7 @@
 title: 'Vitess で WordPress を動かしてみる'
 date: Sun, 16 Feb 2020 14:37:56 +0000
 draft: false
-tags: ['MySQL', 'WordPress', 'vitess', 'vitess']
+tags: ['MySQL', 'WordPress', 'vitess']
 ---
 
 最近、目にすることの増えた [Vitess](https://vitess.io/) ですが、[Tutorial](https://vitess.io/docs/get-started/kubernetes/) を試してみてもなかなか分かった気になれません。Sharding するとそれによる制限は受けそうだなというのと、実際にクエリを投げてみて `SELECT *` すると ORDER BY が使えない（SELECT で列を明示する必要がある）とか Sharding の key とした列を WHERE で指定するとちゃんとそれを持ってる tablet にだけ投げてくれる IN で複数指定してもその tablet のものだけにして投げてくれるとか、tablet を跨ぐ JOIN をすると Nested Loop がだいぶ辛そうだなというのは分かったけど。動かしたいアプリで必要なクエリに vtgate が対応しているのかは実際に動かしてみるしかありません。

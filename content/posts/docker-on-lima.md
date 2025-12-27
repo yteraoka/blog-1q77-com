@@ -2,7 +2,7 @@
 title: 'Docker on Lima'
 date: Wed, 05 Jan 2022 01:23:46 +0900
 draft: false
-tags: ['Docker', 'Docker']
+tags: ['Docker', 'lima']
 ---
 
 以前、「[Lima で nerdctl](/2021/09/lima/)」という記事を書きました。その後、lima の VM 上で docker daemon を実行し、ホスト側から docker コマンドでアクセスするという方法があることを知りました。たまたま、brew upgrade を実行していたところ lima が 0.8.0 に更新されたのを見て Github の [releases ページ](https://github.com/lima-vm/lima/releases)を見、試してみようかなと思ったのでメモです。 ちなみに、前回試した時のバージョンは 0.6.4 でした。

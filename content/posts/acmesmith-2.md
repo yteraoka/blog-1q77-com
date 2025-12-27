@@ -2,7 +2,7 @@
 title: 'Acmesmith で証明書発行を試す - その2'
 date: Sun, 07 Feb 2016 09:00:08 +0000
 draft: false
-tags: ['AWS', 'Route53', 'S3', 'TLS', 'acme']
+tags: ['AWS', 'Route53', 'S3', 'TLS', 'ACME']
 ---
 
 前回「[Acmesmith で証明書発行を試す - その1](/2016/02/acmesmith-1/)」で [](https://github.com/sorah/acmesmith)で filesystem に保存する方法を試してみました。 今回は AWS S3 に保存するテストを行ってみます。KMS はまだ使いません。bucket 名は `BUCKET-NAME` として進めます。 `aws s3` コマンドでも操作できるように IAM policy を設定します。README に書いてある policy には `s3:GetBucketLocation` がないために `aws s3` コマンドではアクセスできませんでした。

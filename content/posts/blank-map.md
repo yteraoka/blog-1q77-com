@@ -2,7 +2,7 @@
 title: '任意の場所の白地図を印刷したい'
 date: Sun, 28 Feb 2016 23:30:08 +0000
 draft: false
-tags: ['heroku', 'python']
+tags: ['heroku', 'Python']
 ---
 
 息子の社会科の勉強用にいくつかの都道府県の白地図を印刷しようと思い、「国土地理院」「白地図」でググってみたら [http://maps.gsi.go.jp/development/ichiran.html](http://maps.gsi.go.jp/development/ichiran.html) がヒット。[地理院タイル](http://maps.gsi.go.jp/development/siyou.html)というものがあってこれを並べれば良さそうだったのでとりあえず並べて表示するHTMLを書いてプリントアウトした。しかし、これをいくつもやるのはつらそうだ、長方形に並べるだけなら簡単だということで並べた HTML 返すだけのサーバーを書いてみよう。ついでにまだ使ったことのない heroku で動かしてみようということで bottle (python) を使って書いてみた。(JavaScriptで実装すればサーバーなんて要らないけれども) 出来たものの、Googleマップの手軽さから比べるとだいぶ面倒だった。

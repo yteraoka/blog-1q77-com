@@ -2,7 +2,7 @@
 title: 'Terraform の便利な null value'
 date: Thu, 03 Dec 2020 01:27:02 +0900
 draft: false
-tags: ['Terraform', 'advent calendar 2020']
+tags: ['Terraform', 'Advent Calendar 2020']
 ---
 
 [Advent Calendar 2020 全部オレシリーズ](https://qiita.com/advent-calendar/2020/yteraoka) 3日目です。

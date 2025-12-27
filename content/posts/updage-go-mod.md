@@ -1,7 +1,7 @@
 ---
 title: "go.mod の更新"
 date: 2022-12-27T12:52:31+09:00
-tags: ["go"]
+tags: ["Go"]
 draft: false
 ---
 

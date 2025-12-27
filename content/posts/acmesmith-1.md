@@ -2,7 +2,7 @@
 title: 'Acmesmith で証明書発行を試す - その1'
 date: Wed, 03 Feb 2016 16:42:28 +0000
 draft: false
-tags: ['AWS', 'Route53', 'TLS', 'acme']
+tags: ['AWS', 'Route53', 'TLS', 'ACME']
 ---
 
 無料でSSL証明書の発行ができる [Let's Encrypt](https://letsencrypt.org/) が Public Beta となり、これからどんどん利用されていくと思われますが、公式(?)のツール [https://github.com/letsencrypt/letsencrypt](https://github.com/letsencrypt/letsencrypt) はちょっと使いにくいところがありました。

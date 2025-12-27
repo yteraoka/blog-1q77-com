@@ -4,7 +4,7 @@ description: |
   openssl コマンドで SMTP 認証 (PLAIN) のテストを行う方法
 date: 2024-01-23T11:44:23+09:00
 draft: false
-tags: [AWS, SMTP, ssl]
+tags: [AWS, SMTP, TLS]
 image: cover.png
 author: "@yteraoka"
 categories:

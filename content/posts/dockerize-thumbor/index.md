@@ -2,7 +2,7 @@
 title: 'thumbor の docker 化'
 date: Sun, 31 Jan 2016 16:19:24 +0000
 draft: false
-tags: ['Docker', 'Docker', 'linux', 'thumbor', 'thumbor']
+tags: ['Docker', 'Linux', 'thumbor']
 ---
 
 Docker については Web や書籍で情報は追いつつも手を動かせていなかったがそろそろやらねばということで、まずは[以前紹介した](/2015/05/using-thumbor-part1/)画像のサムネイル化やクロップ、フィルタ処理を行う [thumbor](https://github.com/thumbor/thumbor) を docker 化してみた。

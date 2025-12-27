@@ -2,7 +2,7 @@
 title: 'golang で Google の Text-to-Speech を使う'
 date: Sun, 19 Aug 2018 08:27:02 +0000
 draft: false
-tags: ['Go', 'google']
+tags: ['Go', 'Google']
 ---
 
 [Google Home mini](https://store.google.com/jp/product/google_home_mini) に任意の文章を読み上げさせるために [https://github.com/ikasamah/homecast](https://github.com/ikasamah/homecast) をいじって使ってましたが、これは [https://translate.google.com/translate\_tts?client=tw-ob&ie=UTF-8&q=テスト&tl=ja](https://translate.google.com/translate_tts?client=tw-ob&ie=UTF-8&q=テスト&tl=ja) といった Google 翻訳の非公式(?) API にアクセスしていました。その後、Google は [Cloud Text-to-Speech](https://cloud.google.com/text-to-speech/) サービスを[発表](https://cloudplatform-jp.googleblog.com/2018/03/introducing-Cloud-Text-to-Speech-powered-by-Deepmind-WaveNet-technology.html)したので Go でこの [API](https://cloud.google.com/text-to-speech/docs/reference/rest/v1beta1/text/synthesize) を使ってみます。

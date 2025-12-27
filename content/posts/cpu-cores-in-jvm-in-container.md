@@ -2,7 +2,7 @@
 title: 'コンテナ内での Java の CPU Cores'
 date: Wed, 02 Dec 2020 01:23:38 +0900
 draft: false
-tags: ['Java', 'advent calendar 2020']
+tags: ['Java', 'Advent Calendar 2020']
 ---
 
 [Advent Calendar 2020 全部オレシリーズ](https://qiita.com/advent-calendar/2020/yteraoka) 2日目です。書きかけで放置されていたやつを掘り起こしました💦

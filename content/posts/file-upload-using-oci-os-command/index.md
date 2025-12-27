@@ -2,7 +2,7 @@
 title: 'oci コマンドでのファイルアップロードと権限の最小化'
 date: Sat, 05 Dec 2020 01:18:51 +0900
 draft: false
-tags: ['OracleCloud', 'advent calendar 2020']
+tags: ['OracleCloud', 'Advent Calendar 2020']
 ---
 
 [Advent Calendar 2020 全部オレシリーズ](https://qiita.com/advent-calendar/2020/yteraoka) 5日目です。 やっと 20% です... まだ先は長い

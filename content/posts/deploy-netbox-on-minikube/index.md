@@ -2,7 +2,7 @@
 title: 'Kubernetes Secrets を使って minikube に netbox を deploy してみる'
 date: Wed, 22 Feb 2017 15:59:40 +0000
 draft: false
-tags: ['Docker', 'Docker', 'Kubernetes', 'Kubernetes', 'minikube', 'netbox']
+tags: ['Docker', 'Kubernetes', 'minikube', 'netbox']
 ---
 
 [Kubernetes](https://kubernetes.io/) お試し中です。[Rancher](http://rancher.com/) で構築するべきか悩み中。

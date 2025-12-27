@@ -2,7 +2,7 @@
 title: '2020年のOSS活動ふり返り'
 date: Fri, 25 Dec 2020 00:46:56 +0900
 draft: false
-tags: ['Uncategorized', 'advent calendar 2020']
+tags: ['Uncategorized', 'Advent Calendar 2020']
 ---
 
 ほとんどサボってしまった [Advent Calendar 2020 全部オレシリーズ](https://qiita.com/advent-calendar/2020/yteraoka) ですが、最後の日は 2020 年の OSS 活動について振り返ってみる。

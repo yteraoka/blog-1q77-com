@@ -2,7 +2,7 @@
 title: 'minikube でローカルでのテスト用 Kubernetes を構築'
 date: Sat, 15 Oct 2016 13:52:48 +0000
 draft: false
-tags: ['Docker', 'Docker', 'Kubernetes', 'Kubernetes', 'minikube']
+tags: ['Docker', 'Kubernetes', 'minikube']
 ---
 
 Kubernetes を調査しようかなということで [minikube](https://github.com/kubernetes/minikube) を使ったセットアップを試してみる 環境は Ubuntu 16.04 の Note PC minikube は single node の Kubernetes を 1 コマンドでセットアップすることができるツールです。Windows でも使えます。 KVM または VirtualBox で仮想サーバをたてて、そこで Kubernetes 環境が構築されます。

@@ -2,7 +2,7 @@
 title: 'GitHub Actions での goreleaser と Docker Image の Push'
 date: Sat, 11 Apr 2020 15:25:05 +0000
 draft: false
-tags: ['Docker', 'GitHub', 'Go', 'go']
+tags: ['Docker', 'GitHub', 'Go']
 ---
 
 go でちょっとした調査用ツールを書いたのでついでに [goreleaser](https://goreleaser.com/) を使ってみたのと、コンテナでも使いたかったので Docker Image を作って Registory への Push も [GitHub Actions](https://help.github.com/en/actions) でやってみたメモです。
