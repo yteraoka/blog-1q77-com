@@ -1,5 +1,5 @@
 ---
-title: DietPi で DNLA サーバー
+title: DietPi で DLNA サーバー
 date: 2023-09-30T17:33:09+09:00
 draft: false
 tags: [DietPi, "Raspberry Pi", DLNA]
