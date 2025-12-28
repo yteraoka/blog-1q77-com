@@ -3,6 +3,12 @@
     {{ $wrappedTable := printf "<div class=\"table-wrapper\">${1}</div>" }}
     {{ .Content | replaceRE "(<table>(?:.|\n)+?</table>)" $wrappedTable | safeHTML }}
 
+<link rel="stylesheet" href="/css/3-shake.css">
+<div class="mobile-only-3-shake">
+  <hr>
+  <a href="https://hrmos.co/pages/threeshake/jobs?category=1905592875089539072"><img src="/3-shake.png" width="100%"></a>
+</div>
+
 {{ $page_tags := .Params.tags }}
 {{ $products := where .Site.Data.amazon_products.products "categories" "intersect" $page_tags }}
 {{ $products := shuffle $products }}
