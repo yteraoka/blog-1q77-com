@@ -1,0 +1,13 @@
+{{- $lang := .Type -}}
+{{- $code := .Inner -}}
+{{- $options := dict "lineNos" true "style" "github-dark" -}}
+{{- if $lang -}}
+{{- $highlighted := transform.Highlight $code $lang $options -}}
+{{- /* Replace language- with syntax- to avoid 1Password selector */ -}}
+{{- $highlighted = replace $highlighted (printf "language-%s" $lang) (printf "syntax-%s" $lang) -}}
+{{- $highlighted | safeHTML -}}
+{{- else -}}
+{{- /* For code blocks without language specified */ -}}
+<pre><code>{{- $code -}}</code></pre>
+
+{{- end -}}
