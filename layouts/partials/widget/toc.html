@@ -1,0 +1,14 @@
+<a href="https://hrmos.co/pages/threeshake/jobs?category=1905592875089539072"><img src="/3-shake.png" width="100%"></a>
+
+{{ if (.Context.Scratch.Get "TOCEnabled") }}
+    <section class="widget archives">
+        <div class="widget-icon">
+            {{ partial "helper/icon" "hash" }}
+        </div>
+        <h2 class="widget-title section-title">{{ T "article.tableOfContents" }}</h2>
+        
+        <div class="widget--toc">
+            {{ .Context.TableOfContents }}
+        </div>
+    </section>
+{{ end }}
