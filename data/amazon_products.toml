@@ -1,425 +1,425 @@
 [[products]]
 title = "QNAP (キューナップ) NAS キット 2ベイ ホーム向け TS-233 /AZ"
 id = "B09TDWPFTW"
-imageUrl = "//m.media-amazon.com/images/I/61R1yZt8p5L._AC_SY550_.jpg"
+imageUrl = "https://m.media-amazon.com/images/I/61R1yZt8p5L._AC_SY550_.jpg"
 categories = ["DLNA"]
 
 [[products]]
 title = "UGREEN NASync DXP2800 2ベイデスクトップnasキット"
 id = "B0DXKZV61R"
-imageUrl = "//m.media-amazon.com/images/I/61WvMIHMDcL._AC_SY300_SX300_QL70_ML2_.jpg"
+imageUrl = "https://m.media-amazon.com/images/I/61WvMIHMDcL._AC_SY300_SX300_QL70_ML2_.jpg"
 categories = ["DLNA"]
 
 [[products]]
 title = "SwitchBot スマートリモコン ハブミニ(Matter対応)"
 id = "B0DSPXKDP8"
-imageUrl = "//m.media-amazon.com/images/I/61VOGq-R9nL._AC_SX522_.jpg"
+imageUrl = "https://m.media-amazon.com/images/I/61VOGq-R9nL._AC_SX522_.jpg"
 categories = ["misc"]
 
 [[products]]
 title = "AWSで実現するモダンアプリケーション入門"
 id = "B0BRPRQFMH"
-imageUrl = "//m.media-amazon.com/images/I/51WI8nr0ziL._SY342_.jpg"
+imageUrl = "https://m.media-amazon.com/images/I/51WI8nr0ziL._SY342_.jpg"
 categories = ["AWS"]
 
 [[products]]
 title = "図解まるわかり セキュリティのしくみ"
 id = "B07FTN333K"
-imageUrl = "//m.media-amazon.com/images/I/715IYGXNfyL._SY342_.jpg"
+imageUrl = "https://m.media-amazon.com/images/I/715IYGXNfyL._SY342_.jpg"
 categories = ["password", "security"]
 
 [[products]]
 title = "マルチクラウドセキュリティの教科書 クラウド横断で実現する堅牢なセキュリティ基盤"
 id = "B0FHZTWBTG"
-imageUrl = "//m.media-amazon.com/images/I/71LavocwoUL._SY342_.jpg"
+imageUrl = "https://m.media-amazon.com/images/I/71LavocwoUL._SY342_.jpg"
 categories = ["password", "security"]
 
 [[products]]
 title = "GitHub CI/CD実践ガイド――持続可能なソフトウェア開発を支えるGitHub Actionsの設計と運用 エンジニア選書"
 id = "B0D4DBYJJ9"
-imageUrl = "//m.media-amazon.com/images/I/81Yr2DW1WRL._SY342_.jpg"
+imageUrl = "https://m.media-amazon.com/images/I/81Yr2DW1WRL._SY342_.jpg"
 categories = ["renovate", "GitHub"]
 
 [[products]]
 title = "入門Terraform　クラウド時代のインフラ統合管理 impress top gearシリーズ"
 id = "B0DR9ZP5LW"
-imageUrl = "//m.media-amazon.com/images/I/81TJiS+pWbL._SY342_.jpg"
+imageUrl = "https://m.media-amazon.com/images/I/81TJiS+pWbL._SY342_.jpg"
 categories = ["Terraform"]
 
 [[products]]
 title = "実践Terraform　AWSにおけるシステム設計とベストプラクティス (技術の泉シリーズ（NextPublishing）)"
 id = "B07XT7LJLC"
-imageUrl = "//m.media-amazon.com/images/I/91mhYaHhjqL._SY342_.jpg"
+imageUrl = "https://m.media-amazon.com/images/I/91mhYaHhjqL._SY342_.jpg"
 categories = ["Terraform"]
 
 [[products]]
 title = "ラズパイ５ ＡＩ活用ガイド　電子工作×ＡＩを楽しもう！"
 id = "B0G752891H"
-imageUrl = "//m.media-amazon.com/images/I/816ixuoYROL._SY342_.jpg"
+imageUrl = "https://m.media-amazon.com/images/I/816ixuoYROL._SY342_.jpg"
 categories = ["Raspberry Pi"]
 
 [[products]]
 title = "Raspberrypi5 8G ラズベリーパイ5 技適取得済マーク入り商品"
 id = "B0CQZHN2K4"
-imageUrl = "//m.media-amazon.com/images/I/31ulVhoF7LL._AC_.jpg"
+imageUrl = "https://m.media-amazon.com/images/I/31ulVhoF7LL._AC_.jpg"
 categories = ["Raspberry Pi"]
 
 [[products]]
 title = "ゼロトラストセキュリティ実践ガイド"
 id = "B0CSYDRWWQ"
-imageUrl = "//m.media-amazon.com/images/I/71tigOjj+RL._SY342_.jpg"
+imageUrl = "https://m.media-amazon.com/images/I/71tigOjj+RL._SY342_.jpg"
 categories = ["VPN", "Wireguard"]
 
 [[products]]
 title = "Prometheus実践ガイド　クラウドネイティブな監視システムの構築"
 id = "B0C1MDF14Y"
-imageUrl = "//m.media-amazon.com/images/I/91-UsSDUupL._SY342_.jpg"
+imageUrl = "https://m.media-amazon.com/images/I/91-UsSDUupL._SY342_.jpg"
 categories = ["Grafana", "Prometheus", "Alloy", "Datadog"]
 
 [[products]]
 title = "つくって、壊して、直して学ぶ Kubernetes入門"
 id = "B0CVQCNN6W"
-imageUrl = "//m.media-amazon.com/images/I/81lHNpEh0SL._SY342_.jpg"
+imageUrl = "https://m.media-amazon.com/images/I/81lHNpEh0SL._SY342_.jpg"
 categories = ["Helm", "Kubernetes"]
 
 [[products]]
 title = "Azureクラウド設計完全ガイド　最適なサービスを選定して組み合わせる"
 id = "B0GBQ4BMCP"
-imageUrl = "//m.media-amazon.com/images/I/71FxOvbcQxL._SY342_.jpg"
+imageUrl = "https://m.media-amazon.com/images/I/71FxOvbcQxL._SY342_.jpg"
 categories = ["Azure"]
 
 [[products]]
 title = "さわって習得　Azure基礎からのインフラ構築"
 id = "B0FRLHXFVR"
-imageUrl = "//m.media-amazon.com/images/I/81AQmWwXJ+L._SY342_.jpg"
+imageUrl = "https://m.media-amazon.com/images/I/81AQmWwXJ+L._SY342_.jpg"
 categories = ["Azure"]
 
 [[products]]
 title = "Docker実践ガイド 第3版 impress top gearシリーズ"
 id = "B0BV8VCCYX"
-imageUrl = "//m.media-amazon.com/images/I/81FXpUQbJVL._SY342_.jpg"
+imageUrl = "https://m.media-amazon.com/images/I/81FXpUQbJVL._SY342_.jpg"
 categories = ["Docker"]
 
 [[products]]
 title = "［改訂新版］イラストでわかるDockerとKubernetes Software Design plus"
 id = "B0CW1L7CDC"
-imageUrl = "//m.media-amazon.com/images/I/51xj5wAe+7L._SY342_.jpg"
+imageUrl = "https://m.media-amazon.com/images/I/51xj5wAe+7L._SY342_.jpg"
 categories = ["Docker"]
 
 [[products]]
 title = "実務で使える メール技術の教科書 基本のしくみからプロトコル・サーバー構築・送信ドメイン認証・添付ファイル・暗号化・セキュリティ対策まで"
 id = "B0CQQ5BGC8"
-imageUrl = "//m.media-amazon.com/images/I/81EMlGG8ZeL._SY342_.jpg"
+imageUrl = "https://m.media-amazon.com/images/I/81EMlGG8ZeL._SY342_.jpg"
 categories = ["SMTP"]
 
 [[products]]
 title = "Windows Subsystem for Linux 2 (WSL 2) Tips, Tricks, and Techniques"
 id = "B08K98C7DB"
-imageUrl = "//m.media-amazon.com/images/I/91LMWgoKGpL._SY342_.jpg"
+imageUrl = "https://m.media-amazon.com/images/I/91LMWgoKGpL._SY342_.jpg"
 categories = ["Windows", "WSL2"]
 
 [[products]]
 title = "図解即戦力　Google Cloudのしくみと技術がこれ1冊でしっかりわかる教科書［改訂2版］"
 id = "B0DF6TLJ36"
-imageUrl = "//m.media-amazon.com/images/I/819e2q20FFL._SY342_.jpg"
+imageUrl = "https://m.media-amazon.com/images/I/819e2q20FFL._SY342_.jpg"
 categories = ["GCP"]
 
 [[products]]
 title = "パケットキャプチャ実践技術 第2版 ― Wiresharkによるパケット解析 応用編"
 id = "4865940979"
-imageUrl = "//m.media-amazon.com/images/I/71WyVY-OnkL._SY342_.jpg"
+imageUrl = "https://m.media-amazon.com/images/I/71WyVY-OnkL._SY342_.jpg"
 categories = ["tcpdump", "Network"]
 
 [[products]]
 title = "パケットキャプチャの教科書"
 id = "B076CWFDB8"
-imageUrl = "//m.media-amazon.com/images/I/91kJNtI559L._SY342_.jpg"
+imageUrl = "https://m.media-amazon.com/images/I/91kJNtI559L._SY342_.jpg"
 categories = ["tcpdump", "Network"]
 
 [[products]]
 title = "［試して理解］Linuxのしくみ　―実験と図解で学ぶOS、仮想マシン、コンテナの基礎知識【増補改訂版】"
 id = "B0BG8J5QJ1"
-imageUrl = "//m.media-amazon.com/images/I/81qtSUyUGdL._SY342_.jpg"
+imageUrl = "https://m.media-amazon.com/images/I/81qtSUyUGdL._SY342_.jpg"
 categories = ["Linux", "asdf", "rtx"]
 
 [[products]]
 title = "ふつうのLinuxプログラミング 第2版　Linuxの仕組みから学べるgccプログラミングの王道"
 id = "B075ST51Y5"
-imageUrl = "//m.media-amazon.com/images/I/817kSp0IbhL._SY342_.jpg"
+imageUrl = "https://m.media-amazon.com/images/I/817kSp0IbhL._SY342_.jpg"
 categories = ["Linux", "asdf", "rtx"]
 
 [[products]]
 title = "GitLab実践ガイド第2版 impress top gearシリーズ"
 id = "B0CVRF23M2"
-imageUrl = "//m.media-amazon.com/images/I/819daWg-WTL._SY342_.jpg"
+imageUrl = "https://m.media-amazon.com/images/I/819daWg-WTL._SY342_.jpg"
 categories = ["GitLab"]
 
 [[products]]
 title = "［改訂3版］内部構造から学ぶPostgreSQL―設計・運用計画の鉄則 (Software Design plus)"
 id = "B0BLY4SPC4"
-imageUrl = "//m.media-amazon.com/images/I/91Y73TWZjAL._SY342_.jpg"
+imageUrl = "https://m.media-amazon.com/images/I/91Y73TWZjAL._SY342_.jpg"
 categories = ["PostgreSQL"]
 
 [[products]]
 title = "PostgreSQL実践入門──アーキテクチャ、運用監視、性能改善"
 id = "4297148617"
-imageUrl = "//m.media-amazon.com/images/I/710NULhGtGL._SY342_.jpg"
+imageUrl = "https://m.media-amazon.com/images/I/710NULhGtGL._SY342_.jpg"
 categories = ["SQL", "PostgreSQL"]
 
 [[products]]
 title = "［改訂新版］SQL実践入門──高速でわかりやすいクエリの書き方 WEB+DB PRESS plus"
 id = "B0FV5N2SSF"
-imageUrl = "//m.media-amazon.com/images/I/71wHmVlFr2L._SY342_.jpg"
+imageUrl = "https://m.media-amazon.com/images/I/71wHmVlFr2L._SY342_.jpg"
 categories = ["SQL", "PostgreSQL"]
 
 [[products]]
 title = "改訂新版 Go言語プログラミングエッセンス エンジニア選書"
 id = "B0FPV1XSSZ"
-imageUrl = "//m.media-amazon.com/images/I/81ZGJWGVp4L._SY342_.jpg"
+imageUrl = "https://m.media-amazon.com/images/I/81ZGJWGVp4L._SY342_.jpg"
 categories = ["Go"]
 
 [[products]]
 title = "Go言語 100Tips ありがちなミスを把握し、実装を最適化する impress top gearシリーズ"
 id = "B0CFL1DK8Q"
-imageUrl = "//m.media-amazon.com/images/I/910HTtie3GL._SY342_.jpg"
+imageUrl = "https://m.media-amazon.com/images/I/910HTtie3GL._SY342_.jpg"
 categories = ["Go"]
 
 [[products]]
 title = "SSL/TLS実践入門──Webの安全性を支える暗号化技術の設計思想 WEB+DB PRESS plus"
 id = "B0D1T41LWV"
-imageUrl = "//m.media-amazon.com/images/I/81IKSxc0d1L._SY342_.jpg"
+imageUrl = "https://m.media-amazon.com/images/I/81IKSxc0d1L._SY342_.jpg"
 categories = ["TLS"]
 
 [[products]]
 title = "SSLをはじめよう ～「なんとなく」から「ちゃんとわかる！」へ～ はじめようシリーズ"
 id = "B086Z9JM2C"
-imageUrl = "//m.media-amazon.com/images/I/71rWLcz+UCL._SY342_.jpg"
+imageUrl = "https://m.media-amazon.com/images/I/71rWLcz+UCL._SY342_.jpg"
 categories = ["TLS"]
 
 [[products]]
 title = "暗号技術入門 第3版　秘密の国のアリス"
 id = "B015643CPE"
-imageUrl = "//m.media-amazon.com/images/I/91SA6QA8OxL._SY342_.jpg"
+imageUrl = "https://m.media-amazon.com/images/I/91SA6QA8OxL._SY342_.jpg"
 categories = ["TLS"]
 
 [[products]]
 title = "図解即戦力　暗号と認証のしくみと理論がこれ1冊でしっかりわかる教科書"
 id = "B09G2T3X1W"
-imageUrl = "//m.media-amazon.com/images/I/81FZyjg+wkL._SY342_.jpg"
+imageUrl = "https://m.media-amazon.com/images/I/81FZyjg+wkL._SY342_.jpg"
 categories = ["TLS"]
 
 [[products]]
 title = "HTML&CSS Webデザイン 現場レベルのコーディング・スキルが身につく実践入門"
 id = "B0DPVWYDQ9"
-imageUrl = "//m.media-amazon.com/images/I/81fJ8B6gGRL._SY342_.jpg"
+imageUrl = "https://m.media-amazon.com/images/I/81fJ8B6gGRL._SY342_.jpg"
 categories = ["HTML"]
 
 [[products]]
 title = "HTML解体新書"
 id = "B0BJ1SGBG5"
-imageUrl = "//m.media-amazon.com/images/I/716o271fqVL._SY342_.jpg"
+imageUrl = "https://m.media-amazon.com/images/I/716o271fqVL._SY342_.jpg"
 categories = ["HTML"]
 
 [[products]]
 title = "Rubyフレームワーク Ruby on Rails 8入門"
 id = "B0FRLCRRS9"
-imageUrl = "//m.media-amazon.com/images/I/61mNGnNVWXL._SY342_.jpg"
+imageUrl = "https://m.media-amazon.com/images/I/61mNGnNVWXL._SY342_.jpg"
 categories = ["Ruby"]
 
 [[products]]
 title = "独習Ruby 新版"
 id = "B09BHLFXPN"
-imageUrl = "//m.media-amazon.com/images/I/81KFMhfhHjL._SY342_.jpg"
+imageUrl = "https://m.media-amazon.com/images/I/81KFMhfhHjL._SY342_.jpg"
 categories = ["Ruby"]
 
 [[products]]
 title = "DNSがよくわかる教科書 第2版"
 id = "B0FSCJBQYJ"
-imageUrl = "//m.media-amazon.com/images/I/51736VJhadL._SY342_.jpg"
+imageUrl = "https://m.media-amazon.com/images/I/51736VJhadL._SY342_.jpg"
 categories = ["DNS"]
 
 [[products]]
 title = "クラウドネイティブで実現する　マイクロサービス開発・運用 実践ガイド エンジニア選書"
 id = "B0CH7XY3YT"
-imageUrl = "//m.media-amazon.com/images/I/816cr7Mn-bL._SY342_.jpg"
+imageUrl = "https://m.media-amazon.com/images/I/816cr7Mn-bL._SY342_.jpg"
 categories = ["Istio"]
 
 [[products]]
 title = "Istio in Action (English Edition)"
 id = "B09XN9RDY1"
-imageUrl = "//m.media-amazon.com/images/I/61010Vi9EHL._SY342_.jpg"
+imageUrl = "https://m.media-amazon.com/images/I/61010Vi9EHL._SY342_.jpg"
 categories = ["Istio"]
 
 [[products]]
 title = "Istio: Up and Running: Using a Service Mesh to Connect, Secure, Control, and Observe (English Edition)"
 id = "B07YGRPDC1"
-imageUrl = "//m.media-amazon.com/images/I/81Pyvb5tIsL._SY342_.jpg"
+imageUrl = "https://m.media-amazon.com/images/I/81Pyvb5tIsL._SY342_.jpg"
 categories = ["Istio"]
 
 [[products]]
 title = "Podman in Action: Secure, rootless containers for Kubernetes, microservices, and more (English Edition)"
 id = "B0BRYK95DQ"
-imageUrl = "//m.media-amazon.com/images/I/61SSf12kRHL._SY342_.jpg"
+imageUrl = "https://m.media-amazon.com/images/I/61SSf12kRHL._SY342_.jpg"
 categories = ["Podman"]
 
 [[products]]
 title = "Kubernetesの教科書 (Compass Booksシリーズ)"
 id = "B0FY1XDSVF"
-imageUrl = "//m.media-amazon.com/images/I/81E2nW2nPkL._SY342_.jpg"
+imageUrl = "https://m.media-amazon.com/images/I/81E2nW2nPkL._SY342_.jpg"
 categories = ["Kubernetes"]
 
 [[products]]
 title = "Docker & Kubernetesネットワークのしくみ　クラウドネイティブに求められる情報通信の知識 Software Design plus"
 id = "B0F8GJB2VN"
-imageUrl = "//m.media-amazon.com/images/I/81zUEeZtRrL._SY342_.jpg"
+imageUrl = "https://m.media-amazon.com/images/I/81zUEeZtRrL._SY342_.jpg"
 categories = ["Kubernetes"]
 
 [[products]]
 title = "Oracle Cloud Infrastructure徹底入門 Oracle Cloudの基本からインフラ設計・構築まで"
 id = "B096VKL7RF"
-imageUrl = "//m.media-amazon.com/images/I/81OhY-FJR-L._SY342_.jpg"
+imageUrl = "https://m.media-amazon.com/images/I/81OhY-FJR-L._SY342_.jpg"
 categories = ["OracleCloud"]
 
 [[products]]
 title = "Oracle Cloud Infrastructure エンタープライズ構築実践ガイド"
 id = "B08R9GXZ2Y"
-imageUrl = "//m.media-amazon.com/images/I/819e28EEWWL._SY342_.jpg"
+imageUrl = "https://m.media-amazon.com/images/I/819e28EEWWL._SY342_.jpg"
 categories = ["OracleCloud"]
 
 [[products]]
 title = "OCIで学ぶクラウドネイティブ 実践×理論ガイド ThinkIT Books"
 id = "B0FR99CSGM"
-imageUrl = "//m.media-amazon.com/images/I/81pMeBIZYLL._SY342_.jpg"
+imageUrl = "https://m.media-amazon.com/images/I/81pMeBIZYLL._SY342_.jpg"
 categories = ["OracleCloud"]
 
 [[products]]
 title = "スッキリわかるJava入門 実践編 第4版 (スッキリわかる入門シリーズ)"
 id = "B0CTPWZ2V8"
-imageUrl = "//m.media-amazon.com/images/I/71-pVtRSwbL._SY342_.jpg"
+imageUrl = "https://m.media-amazon.com/images/I/71-pVtRSwbL._SY342_.jpg"
 categories = ["Java"]
 
 [[products]]
 title = "プロになるJava―仕事で必要なプログラミングの知識がゼロから身につく最高の指南書"
 id = "B09VK3FTDM"
-imageUrl = "//m.media-amazon.com/images/I/71EUwXF5fvL._SY342_.jpg"
+imageUrl = "https://m.media-amazon.com/images/I/71EUwXF5fvL._SY342_.jpg"
 categories = ["Java"]
 
 [[products]]
 title = "改訂3版　パーフェクトJava"
 id = "B0DXJKDSDT"
-imageUrl = "//m.media-amazon.com/images/I/81dHyYtUroL._SY342_.jpg"
+imageUrl = "https://m.media-amazon.com/images/I/81dHyYtUroL._SY342_.jpg"
 categories = ["Java"]
 
 [[products]]
 title = "MySQL徹底入門 第5版 MySQL 8.4 LTS対応"
 id = "B0F5QGY1JX"
-imageUrl = "//m.media-amazon.com/images/I/81GTDPzib-L._SY342_.jpg"
+imageUrl = "https://m.media-amazon.com/images/I/81GTDPzib-L._SY342_.jpg"
 categories = ["MySQL"]
 
 [[products]]
 title = "3ステップでしっかり学ぶ　MySQL入門［改訂第3版］"
 id = "B0CS2PQ5FB"
-imageUrl = "//m.media-amazon.com/images/I/71BXI9PJEqL._SY342_.jpg"
+imageUrl = "https://m.media-amazon.com/images/I/71BXI9PJEqL._SY342_.jpg"
 categories = ["MySQL"]
 
 [[products]]
 title = "MySQL運用・管理［実践］入門 〜安全かつ高速にデータを扱う内部構造・動作原理を学ぶ"
 id = "B0D3KQGMZB"
-imageUrl = "//m.media-amazon.com/images/I/71sI7ANQuFL._SY342_.jpg"
+imageUrl = "https://m.media-amazon.com/images/I/71sI7ANQuFL._SY342_.jpg"
 categories = ["MySQL"]
 
 [[products]]
 title = "インフラの構成管理と自動化のための実践Ansible"
 id = "B0D4PG8P1Q"
-imageUrl = "//m.media-amazon.com/images/I/61yoftqNPLL._SY342_.jpg"
+imageUrl = "https://m.media-amazon.com/images/I/61yoftqNPLL._SY342_.jpg"
 categories = ["Ansible"]
 
 [[products]]
 title = "Ansible実践ガイド 第4版［基礎編］ impress top gearシリーズ"
 id = "B0C7VCXCFM"
-imageUrl = "//m.media-amazon.com/images/I/91m1cOOLuCL._SY342_.jpg"
+imageUrl = "https://m.media-amazon.com/images/I/91m1cOOLuCL._SY342_.jpg"
 categories = ["Ansible"]
 
 [[products]]
 title = "［改訂新版］プログラマのための文字コード技術入門 WEB+DB PRESS plus"
 id = "B07M98R3S5"
-imageUrl = "//m.media-amazon.com/images/I/81E67fgStjL._SY342_.jpg"
+imageUrl = "https://m.media-amazon.com/images/I/81E67fgStjL._SY342_.jpg"
 categories = ["emoji"]
 
 [[products]]
 title = "文字コード超研究"
 id = "4899770510"
-imageUrl = "//m.media-amazon.com/images/I/41T9I0+yD1L._SY342_.jpg"
+imageUrl = "https://m.media-amazon.com/images/I/41T9I0+yD1L._SY342_.jpg"
 categories = ["emoji"]
 
 [[products]]
 title = "実践 bashによるサイバーセキュリティ対策 ―セキュリティ技術者のためのシェルスクリプト活用術"
 id = "4873119057"
-imageUrl = "//m.media-amazon.com/images/I/71w-QL9btkL._SY342_.jpg"
+imageUrl = "https://m.media-amazon.com/images/I/71w-QL9btkL._SY342_.jpg"
 categories = ["Bash"]
 
 [[products]]
 title = "Apacheハンドブック"
 id = "4873111501"
-imageUrl = "//m.media-amazon.com/images/I/51TABRVHV3L._SY342_.jpg"
+imageUrl = "https://m.media-amazon.com/images/I/51TABRVHV3L._SY342_.jpg"
 categories = ["Apache"]
 
 [[products]]
 title = "nginx実践入門 (WEB+DB PRESS plus)"
 id = "B07JHJF3NQ"
-imageUrl = "//m.media-amazon.com/images/I/81Ki8sZg9UL._SY342_.jpg"
+imageUrl = "https://m.media-amazon.com/images/I/81Ki8sZg9UL._SY342_.jpg"
 categories = ["nginx"]
 
 [[products]]
 title = "Amazon eero 6+ - メッシュwifi ルーター | AX3000"
 id = "B0BP73KBC2"
-imageUrl = "//m.media-amazon.com/images/I/61QGwTYncEL._SX425_.jpg"
+imageUrl = "https://m.media-amazon.com/images/I/61QGwTYncEL._SX425_.jpg"
 categories = ["WiFi"]
 
 [[products]]
 title = "Amazon eero 7 - メッシュwifiルーター | Wi-Fi 7対応 | BE3400"
 id = "B0DN36NDPN"
-imageUrl = "//m.media-amazon.com/images/I/41g9T6v7CsL._SX425_.jpg"
+imageUrl = "https://m.media-amazon.com/images/I/41g9T6v7CsL._SX425_.jpg"
 categories = ["WiFi"]
 
 [[products]]
 title = "バッファロー WiFi ルーター無線LAN Wi-Fi 6 11ax / 11ac AX5400 4803+574Mbps"
 id = "B0CB8N3K8C"
-imageUrl = "//m.media-amazon.com/images/I/31hzBXC9WfL._AC_SX569_.jpg"
+imageUrl = "https://m.media-amazon.com/images/I/31hzBXC9WfL._AC_SX569_.jpg"
 categories = ["WiFi"]
 
 [[products]]
 title = "バッファロー WiFi ルーター 無線 LAN Wi-Fi 7 11be デュアルバンド 2882+688Mbps"
 id = "B0F5B69SKC"
-imageUrl = "//m.media-amazon.com/images/I/715PqYt8o4L._AC_SX569_.jpg"
+imageUrl = "https://m.media-amazon.com/images/I/715PqYt8o4L._AC_SX569_.jpg"
 categories = ["WiFi"]
 
 [[products]]
 title = "TP-Link WiFi7 ルーター メッシュwi-fi 無線lan メッシュWi-Fiシステム BE3600規格 2882Mbps(5GHz) + 688Mbps(2.4GHz) MLO Deco BE22 2-pack"
 id = "B0DTTSWTFG"
-imageUrl = "//m.media-amazon.com/images/I/41jF5guL1FL._AC_SY355_.jpg"
+imageUrl = "https://m.media-amazon.com/images/I/41jF5guL1FL._AC_SY355_.jpg"
 categories = ["Deco"]
 
 [[products]]
 title = "TP-Link メッシュwifi ルーター deco 無線LAN 2.5Gbps イーサネットポート ps5 対応5760Mbps (6GHz) + 4320Mbps (5GHz) + 688Mbps (2.4GHz) 最大wifi範囲538m² | 同時接続台数200台 Deco BE9300 2ユニット"
 id = "B0DL5WY1QT"
-imageUrl = "//m.media-amazon.com/images/I/51WR8Yd-VDL._AC_SY355_.jpg"
+imageUrl = "https://m.media-amazon.com/images/I/51WR8Yd-VDL._AC_SY355_.jpg"
 categories = ["Deco"]
 
 [[products]]
 title = "TP-Link WiFi 無線LANルーター Wi-Fi6 2402 + 574 Mbps HE160 メッシュWi-Fiシステム 3年保証 Deco X3000 1-pack"
 id = "B0DQ89CP44"
-imageUrl = "//m.media-amazon.com/images/I/31mKxKcRNVL._AC_SY355_.jpg"
+imageUrl = "https://m.media-amazon.com/images/I/31mKxKcRNVL._AC_SY355_.jpg"
 categories = ["Deco"]
 
 [[products]]
 title = "TP-Link WiFi ルーター 無線ルーター AX3000 IPv6対応 2402+574Mbps HE160 EasyMesh Archer AX3000V"
 id = "B0DDXYJG4W"
-imageUrl = "//m.media-amazon.com/images/I/6166-WHbn8L._AC_SY450_.jpg"
+imageUrl = "https://m.media-amazon.com/images/I/6166-WHbn8L._AC_SY450_.jpg"
 categories = ["Deco"]
 
 [[products]]
 title = "Astro × GitHub × Cloudflareで学ぶモダンWeb開発"
 id = "B0F7FH7BB6"
-imageUrl = "//m.media-amazon.com/images/I/61EBPZwn32L._SY342_.jpg"
+imageUrl = "https://m.media-amazon.com/images/I/61EBPZwn32L._SY342_.jpg"
 categories = ["Cloudflare"]
