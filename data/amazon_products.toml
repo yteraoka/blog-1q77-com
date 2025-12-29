@@ -669,3 +669,21 @@ title = "コンテナセキュリティ　コンテナ化されたアプリケ�
 id = "B0C337PM5C"
 imageUrl = "https://m.media-amazon.com/images/I/91s5A41hmUL._SY342_.jpg"
 categories = ["Docker", "Kubernetes", "security"]
+
+[[products]]
+title = "Fortinet FortiGate-30G ファイアウォール 小規模オフィス用 4ギガビットイーサネット RJ45ポート (FG-30G)"
+id = "B0DJBJMCWF"
+imageUrl = "https://m.media-amazon.com/images/I/51+ala4-8HL._AC_SX466_.jpg"
+categories = ["FortiGate"]
+
+[[products]]
+title = "Fortinet(フォーティネット) FG-60F バンドルバリエーション"
+id = "B07ZZMFWJ7"
+imageUrl = "https://m.media-amazon.com/images/I/41IHARXnbpS._AC_SX522_.jpg"
+categories = ["FortiGate"]
+
+[[products]]
+title = "Fluentd実践入門 ── 統合ログ基盤のためのデータ収集ツール WEB+DB PRESS plus"
+id = "B0BCZD3Q2Q"
+imageUrl = "https://m.media-amazon.com/images/I/81JIpYfyfrL._SY342_.jpg"
+categories = ["fluentd"]
