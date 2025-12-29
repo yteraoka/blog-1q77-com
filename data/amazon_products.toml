@@ -11,12 +11,6 @@ imageUrl = "https://m.media-amazon.com/images/I/61WvMIHMDcL._AC_SY300_SX300_QL70
 categories = ["DLNA"]
 
 [[products]]
-title = "SwitchBot スマートリモコン ハブミニ(Matter対応)"
-id = "B0DSPXKDP8"
-imageUrl = "https://m.media-amazon.com/images/I/61VOGq-R9nL._AC_SX522_.jpg"
-categories = ["misc"]
-
-[[products]]
 title = "AWSで実現するモダンアプリケーション入門"
 id = "B0BRPRQFMH"
 imageUrl = "https://m.media-amazon.com/images/I/51WI8nr0ziL._SY342_.jpg"
@@ -134,6 +128,18 @@ categories = ["tcpdump", "Network"]
 title = "パケットキャプチャの教科書"
 id = "B076CWFDB8"
 imageUrl = "https://m.media-amazon.com/images/I/91kJNtI559L._SY342_.jpg"
+categories = ["tcpdump", "Network"]
+
+[[products]]
+title = "ゼロからのTCP/IPプロトコルスタック自作入門 (Compass Booksシリーズ)"
+id = "B0FY1TCWDW"
+imageUrl = "https://m.media-amazon.com/images/I/81iAZk5HknL._SY342_.jpg"
+categories = ["tcpdump", "Network"]
+
+[[products]]
+title = "マスタリングTCP/IP　入門編（第6版）"
+id = "B0827QNDNT"
+imageUrl = "https://m.media-amazon.com/images/I/71poCkUqeRL._SY342_.jpg"
 categories = ["tcpdump", "Network"]
 
 [[products]]
@@ -423,3 +429,111 @@ title = "Astro × GitHub × Cloudflareで学ぶモダンWeb開発"
 id = "B0F7FH7BB6"
 imageUrl = "https://m.media-amazon.com/images/I/61EBPZwn32L._SY342_.jpg"
 categories = ["Cloudflare"]
+
+[[products]]
+title = "パナソニック コーヒーメーカー 全自動 ミル付き 沸騰浄水機能 デカフェ豆コース搭載 ブラック NC-A58-K"
+id = "B0DTKHNK9G"
+imageUrl = "https://m.media-amazon.com/images/I/61OZpnIXkQL._AC_SY679_.jpg"
+categories = ["未分類", "Uncategorized"]
+
+[[products]]
+title = "ポークオーディオ POLK AUDIO Monitor XTシリーズ フロアスタンディングスピーカー マットブラック MXT60（1本）"
+id = "B09BMX2DQN"
+imageUrl = "https://m.media-amazon.com/images/I/71q5udjRwnL._AC_SY679_.jpg"
+categories = ["未分類", "Uncategorized"]
+
+[[products]]
+title = "ソニー(SONY) サウンドバー HT-B600 BRAVIA Theatre Bar 6"
+id = "B0F6BW37BB"
+imageUrl = "https://m.media-amazon.com/images/I/51xdN-dQmFL._AC_SX466_.jpg"
+categories = ["未分類", "Uncategorized"]
+
+[[products]]
+title = "【New】Amazon Fire TV Stick 4K Select | 4Kの高画質ストリーミング | ストリーミングメディアプレイヤー"
+id = "B0CN415PTV"
+imageUrl = "https://m.media-amazon.com/images/I/61R1wQsmiWL._AC_SX522_.jpg"
+categories = ["未分類", "Uncategorized"]
+
+[[products]]
+title = "Claude CodeによるAI駆動開発入門"
+id = "B0G13D2JS4"
+imageUrl = "https://m.media-amazon.com/images/I/71lGGWE2CuL._SY342_.jpg"
+categories = ["未分類", "Uncategorized"]
+
+[[products]]
+title = "AIエージェント開発／運用入門 ［生成AI深掘りガイド］"
+id = "B0FJL96W2Z"
+imageUrl = "https://m.media-amazon.com/images/I/81VL3DHgK+L._SY342_.jpg"
+categories = ["未分類", "Uncategorized"]
+
+[[products]]
+title = "不浄を拭うひと （1） (本当にあった笑える話)"
+id = "B0819V93V9"
+imageUrl = "https://m.media-amazon.com/images/I/71F6zmzwP9L._SY342_.jpg"
+categories = ["未分類", "Uncategorized"]
+
+[[products]]
+title = "最期の火を灯す者　火葬場で働く僕の日常 (バンブーコミックス エッセイセレクション)"
+id = "B09GKK9CHQ"
+imageUrl = "https://m.media-amazon.com/images/I/81eDqd6etHL._SY342_.jpg"
+categories = ["未分類", "Uncategorized"]
+
+[[products]]
+title = "やさしいMCP入門"
+id = "B0FFGMH7V4"
+imageUrl = "https://m.media-amazon.com/images/I/61sKi1t0SQL._SY342_.jpg"
+categories = ["未分類", "Uncategorized"]
+
+[[products]]
+title = "SwitchBot スマートリモコン ハブミニ(Matter対応)"
+id = "B0DSPXKDP8"
+imageUrl = "https://m.media-amazon.com/images/I/61VOGq-R9nL._AC_SX522_.jpg"
+categories = ["未分類", "Uncategorized"]
+
+[[products]]
+title = "SwitchBot CO2センサー 二酸化炭素濃度計 温湿度計 アラーム"
+id = "B0DBLKNYPY"
+imageUrl = "https://m.media-amazon.com/images/I/71czGp0EbiL._AC_SX522_.jpg"
+categories = ["未分類", "Uncategorized"]
+
+[[products]]
+title = "Amazon Echo Spot（2024年発売） - スマートアラームクロック with Alexa、鮮やかなサウンド | ブラック"
+id = "B0C2S4K41G"
+imageUrl = "https://m.media-amazon.com/images/I/71AvF88EBPL._AC_SX569_.jpg"
+categories = ["未分類", "Uncategorized"]
+
+[[products]]
+title = "Amazon Kindle Paperwhite (16GB) 7インチディスプレイ、色調調節ライト、12週間持続バッテリー、広告なし、ブラック"
+id = "B0CFPL6CFY"
+imageUrl = "https://m.media-amazon.com/images/I/61SwWE+TevL._AC_SX522_.jpg"
+categories = ["未分類", "Uncategorized"]
+
+[[products]]
+title = "New Amazon Kindle Colorsoft | 16GBストレージ、防水、7インチカラーディスプレイ、色調調節ライト、最大8週間持続バッテリー、広告無し、ブラック (2025年発売)"
+id = "B0CX8MT2M2"
+imageUrl = "https://m.media-amazon.com/images/I/71bdl2anlcL._AC_SX522_.jpg"
+categories = ["未分類", "Uncategorized"]
+
+[[products]]
+title = "作って理解する仮想化技術 ── ハイパーバイザを実装しながら仕組みを学ぶ"
+id = "B0FMDJJ3XM"
+imageUrl = "https://m.media-amazon.com/images/I/81Znti8OE8L._SY342_.jpg"
+categories = ["未分類", "Uncategorized"]
+
+[[products]]
+title = "いちばんやさしい！ OS自作超入門　マルチタスクと仮想メモリーを実現！"
+id = "B0G4NYSWS1"
+imageUrl = "https://m.media-amazon.com/images/I/81EV+KAiy2L._SY342_.jpg"
+categories = ["未分類", "Uncategorized"]
+
+[[products]]
+title = "【Marantz】 マランツ MODEL M1 AMP アンプ Network Audio AMP ネットワークオーディオアンプ"
+id = "B0D41LWQKM"
+imageUrl = "https://m.media-amazon.com/images/I/619TI1p0FiL._AC_SX466_.jpg"
+categories = ["未分類", "Uncategorized"]
+
+[[products]]
+title = "Denon デノン DENONHOMEAMPK AMP アンプ Network Audio AMP ネットワークオーディオアンプ"
+id = "B0D7ZT8K2V"
+imageUrl = "https://m.media-amazon.com/images/I/51+2C1LaRzL._AC_SX466_.jpg"
+categories = ["未分類", "Uncategorized"]
