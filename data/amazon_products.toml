@@ -176,7 +176,13 @@ categories = ["SQL", "PostgreSQL"]
 title = "［改訂新版］SQL実践入門──高速でわかりやすいクエリの書き方 WEB+DB PRESS plus"
 id = "B0FV5N2SSF"
 imageUrl = "https://m.media-amazon.com/images/I/71wHmVlFr2L._SY342_.jpg"
-categories = ["SQL", "PostgreSQL"]
+categories = ["SQL", "PostgreSQL", "MySQL"]
+
+[[products]]
+title = "達人に学ぶSQL徹底指南書 第2版 初級者で終わりたくないあなたへ"
+id = "B07GB4CNKP"
+imageUrl = "https://m.media-amazon.com/images/I/91MT5VmpjTL._SY342_.jpg"
+categories = ["SQL", "PostgreSQL", "MySQL"]
 
 [[products]]
 title = "改訂新版 Go言語プログラミングエッセンス エンジニア選書"
@@ -537,3 +543,129 @@ title = "Denon デノン DENONHOMEAMPK AMP アンプ Network Audio AMP ネット
 id = "B0D7ZT8K2V"
 imageUrl = "https://m.media-amazon.com/images/I/51+2C1LaRzL._AC_SX466_.jpg"
 categories = ["未分類", "Uncategorized"]
+
+[[products]]
+title = "ゴリラのひとふき ドライヤー 大風量 速乾 軽量 時短 グレー GRD-2501 GY ドウシシャ"
+id = "B0FNM3QS27"
+imageUrl = "https://m.media-amazon.com/images/I/61HoESTvi2L._AC_SX466_.jpg"
+categories = ["未分類", "Uncategorized"]
+
+[[products]]
+title = "プラネックス ホテルでWiFi コンセント直挿型 無線LANルーター single band ホテル用 11n/g/b 300Mbps ちびファイ4 MZK-DP300N 小型"
+id = "B0BSDWCH2T"
+imageUrl = "https://m.media-amazon.com/images/I/418sN6DvzYL._AC_SX522_.jpg"
+categories = ["未分類", "Uncategorized", "WiFi"]
+
+[[products]]
+title = "ソニー(SONY)ワイヤレスノイズキャンセリングイヤホン WF-1000XM5"
+id = "B0CBKQZXT7"
+imageUrl = "https://m.media-amazon.com/images/I/41iw2zKsohL._AC_SX522_.jpg"
+categories = ["未分類", "Uncategorized"]
+
+[[products]]
+title = "ソニー IER-EX15C USB-C プラグ 有線 インイヤーヘッドホン"
+id = "B0FMLMGPN9"
+imageUrl = "https://m.media-amazon.com/images/I/51NS1EA4clL._AC_SY879_.jpg"
+categories = ["未分類", "Uncategorized"]
+
+[[products]]
+title = "ダイニチ (Dainichi) 加湿器 ハイブリッド式(木造和室8.5畳まで/プレハブ洋室14畳まで) RXCタイプ ショコラブラウン HD-RXC500C-T"
+id = "B0DCDCFPRH"
+imageUrl = "https://m.media-amazon.com/images/I/71wIRxvLvNL._AC_SX466_.jpg"
+categories = ["未分類", "Uncategorized"]
+
+[[products]]
+title = "Anker Nano Charging Station (6-in-1, 67W) (USBタップ 電源タップ AC差込口 2口 USB-C 2ポート USB-A 2ポート 延長コード 1.5m)"
+id = "B0C5JJDLTD"
+imageUrl = "https://m.media-amazon.com/images/I/61NceUIoMUL._AC_SY355_.jpg"
+categories = ["未分類", "Uncategorized"]
+
+[[products]]
+title = "CIO モバイルバッテリー コンセント一体型 ケーブル内蔵 3in1 タイプC 30W 8000mAh USB Type-C 急速充電 SMARTCOBY Ex03 SLIM PLUG ＆ CABLE"
+id = "B0DK7BFXWN"
+imageUrl = "https://m.media-amazon.com/images/I/81FW7XODOXL._AC_SX679_.jpg"
+categories = ["未分類", "Uncategorized"]
+
+[[products]]
+title = "CIO モバイルバッテリー PD Type-C 30W 薄型 軽量 [薄さ16mm] 10000mAh 3ポート USB-C USB-A 急速充電 パススルー SMARTCOBY Pro SLIM 35W (ブラック)"
+id = "B0CHVZHLZ1"
+imageUrl = "https://m.media-amazon.com/images/I/81m13XJkzLL._AC_SX679_.jpg"
+categories = ["未分類", "Uncategorized"]
+
+[[products]]
+title = "CIO モバイルバッテリー 薄型 軽量 小型 タイプC PD 20W [薄さ12mm 108g] 5000mAh 2ポート USB-C タイプC 急速充電 パススルー SMARTCOBY SLIM 20W (ブラック)"
+id = "B0CHVXW6FV"
+imageUrl = "https://m.media-amazon.com/images/I/71ZP4ubMDaL._AC_SX679_.jpg"
+categories = ["未分類", "Uncategorized"]
+
+[[products]]
+title = "CIO NovaPort TRIOⅡ 65W 急速充電器 PD [世界最小級 CIO独自技術 NovaIntelligence NovaEngine搭載] 3ポート USB-C×3 ACアダプター"
+id = "B0D53Z4WX3"
+imageUrl = "https://m.media-amazon.com/images/I/71Hjnp1qTkL._AC_SY355_.jpg"
+categories = ["未分類", "Uncategorized"]
+
+[[products]]
+title = "AWSコンテナ設計・構築[本格]入門 増補改訂版"
+id = "B0FSH7HM2C"
+imageUrl = "https://m.media-amazon.com/images/I/81ghyiCQ7mL._SY342_.jpg"
+categories = ["AWS"]
+
+[[products]]
+title = "AWSの薄い本６　IAMのマニアックな話 2025"
+id = "B0FR434ZNX"
+imageUrl = "https://m.media-amazon.com/images/I/71Rfl1tvgRL._SY342_.jpg"
+categories = ["AWS"]
+
+[[products]]
+title = "TECHNICAL MASTER はじめてのAWSモダンアプリ開発入門"
+id = "B0G1LTHVQD"
+imageUrl = "https://m.media-amazon.com/images/I/71gcoc4sSYL._SY342_.jpg"
+categories = ["AWS"]
+
+[[products]]
+title = "AWSクラウド設計完全ガイド"
+id = "B0F18K2WR5"
+imageUrl = "https://m.media-amazon.com/images/I/71MuhVTg6pL._SY342_.jpg"
+categories = ["AWS"]
+
+[[products]]
+title = "AWS運用入門 改訂第2版　押さえておきたいAWSの基本と運用ノウハウ"
+id = "B0F5Z1XKXY"
+imageUrl = "https://m.media-amazon.com/images/I/81VSYuzwgrL._SY342_.jpg"
+categories = ["AWS"]
+
+[[products]]
+title = "図解 Amazon Web Servicesの仕組みとサービスがたった1日でよくわかる"
+id = "B09MQ14XR1"
+imageUrl = "https://m.media-amazon.com/images/I/81x4hTJrBPL._SY342_.jpg"
+categories = ["AWS"]
+
+[[products]]
+title = "Amazon Bedrock 生成AIアプリ開発入門 ［AWS深掘りガイド］"
+id = "B0CY28Z13G"
+imageUrl = "https://m.media-amazon.com/images/I/71Y5AV5XlKL._SY342_.jpg"
+categories = ["AWS"]
+
+[[products]]
+title = "AWSの基本・仕組み・重要用語が全部わかる教科書 (見るだけ図解)"
+id = "B0B81PZY8H"
+imageUrl = "https://m.media-amazon.com/images/I/81A92hdJOcL._SY342_.jpg"
+categories = ["AWS"]
+
+[[products]]
+title = "図解即戦力　Amazon Web Servicesのしくみと技術が これ1冊でしっかりわかる教科書　［改訂2版］"
+id = "B0F2H486ZT"
+imageUrl = "https://m.media-amazon.com/images/I/81cucAfPZ5L._SY342_.jpg"
+categories = ["AWS"]
+
+[[products]]
+title = "Kubernetesで実践する Platform Engineering"
+id = "B0DRN42319"
+imageUrl = "https://m.media-amazon.com/images/I/91FeZhMmb9L._SY342_.jpg"
+categories = ["Kubernetes"]
+
+[[products]]
+title = "コンテナセキュリティ　コンテナ化されたアプリケーションを保護する要素技術"
+id = "B0C337PM5C"
+imageUrl = "https://m.media-amazon.com/images/I/91s5A41hmUL._SY342_.jpg"
+categories = ["Docker", "Kubernetes", "security"]
