@@ -1,0 +1,168 @@
+baseurl = "https://blog.1q77.com"
+theme = "hugo-theme-stack"
+title = "1q77"
+copyright = "Yoshinori Teraoka"
+DefaultContentLanguage = "ja"
+hasCJKLanguage = true
+
+[pagination]
+pagerSize = 6
+
+[languages.ja]
+locale = "ja-jp"
+label = "Japanese"
+title = "1Q77"
+weight = 1
+
+[services.disqus]
+shortname = "hugo-theme-stack"
+
+[services.googleAnalytics]
+id = "G-07K1ZG1PVD"
+
+[services.rss]
+limit = 30
+
+[permalinks]
+post = "/p/:slug/"
+page = "/:slug/"
+posts = "/:year/:month/:contentbasename/"
+
+[params]
+mainSections = [ "posts" ]
+featuredImageField = "image"
+rssFullContent = false
+amazonJpAffiliate = "ytera-22"
+
+  [params.footer]
+  since = 2_012
+
+  [params.dateFormat]
+  published   = ":date_full"
+  lastUpdated = ":date_full"
+
+  [params.sidebar]
+  subtitle = "備忘録"
+  avatar = "img/yteraoka.png"
+
+  [params.article]
+  math = false
+  toc = true
+  readingTime = false
+
+    [params.article.license]
+    enabled = false
+    default = "Licensed under CC BY-NC-SA 4.0"
+
+  [params.comments]
+  enabled = false
+
+[[params.widgets.homepage]]
+type = "search"
+
+[[params.widgets.homepage]]
+type = "archives"
+
+  [params.widgets.homepage.params]
+  limit = 5
+
+[[params.widgets.homepage]]
+type = "tag-cloud"
+
+  [params.widgets.homepage.params]
+  limit = 50
+
+[[params.widgets.page]]
+type = "toc"
+
+[params.opengraph.x]
+site = "yteraoka"
+card = "summary_large_image"
+
+[params.defaultImage.opengraph]
+enabled = true
+local = true
+src = "img/yteraoka.png"
+
+  [params.colorScheme]
+  toggle = true
+  default = "auto"
+
+[params.imageProcessing.cover]
+enabled = true
+
+[params.imageProcessing.content]
+enabled = true
+
+[menu]
+main = [ ]
+
+  [[menu.social]]
+  identifier = "github"
+  name = "GitHub"
+  url = "https://github.com/yteraoka/"
+
+    [menu.social.params]
+    icon = "brand-github"
+
+  [[menu.social]]
+  identifier = "x"
+  name = "X"
+  url = "https://x.com/yteraoka"
+
+    [menu.social.params]
+    icon = "brand-x"
+
+  [[menu.social]]
+  identifier = "qiita"
+  name = "Qiita"
+  url = "https://qiita.com/yteraoka"
+
+    [menu.social.params]
+    icon = "letter-q"
+
+  [[menu.social]]
+  identifier = "bluesky"
+  name = "Bluesky"
+  url = "https://bsky.app/profile/yteraoka.bsky.social"
+
+    [menu.social.params]
+    icon = "brand-bluesky"
+
+  [[menu.social]]
+  identifier = "linkedin"
+  name = "Linkedin"
+  url = "https://www.linkedin.com/in/fa5b66b7-9c77-4e1b-8b97-40ba4a5a2c13/"
+
+    [menu.social.params]
+    icon = "brand-linkedin"
+
+[related]
+includeNewer = true
+threshold = 60
+toLower = false
+
+  [[related.indices]]
+  name = "tags"
+  weight = 100
+
+  [[related.indices]]
+  name = "categories"
+  weight = 200
+
+[markup.goldmark.renderer]
+unsafe = true
+
+[markup.tableOfContents]
+endLevel = 4
+ordered = true
+startLevel = 2
+
+[markup.highlight]
+noClasses = false
+codeFences = true
+guessSyntax = true
+lineNoStart = 1
+lineNos = false
+lineNumbersInTable = true
+tabWidth = 4
