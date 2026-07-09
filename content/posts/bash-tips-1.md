@@ -11,7 +11,7 @@ tags: ['Bash']
 
 おお、これは便利！！（root で動かす shell script で rm -fr 使うのってすごくコワイ）
 
-```
+```bash
 $ cat test.sh
 #!/bin/sh
 set -u
@@ -22,15 +22,15 @@ $ ./test.sh
 ./test.sh: 4: ./test.sh: work_dri: parameter not set
 ```
 
-で、Bash をもっと深く知ろうと思い [入門bash 第3版](http://www.amazon.co.jp/gp/product/4873112540/ref=as_li_qf_sp_asin_tl?ie=UTF8&camp=247&creative=1211&creativeASIN=4873112540&linkCode=as2&tag=ytera-22)![](https://www.assoc-amazon.jp/e/ir?t=ytera-22&l=as2&o=9&a=4873112540)（[電子版](http://www.oreilly.co.jp/books/4873112540/)）を買ってパラパラ見てたら **「4.3.1 文字列演算子の構文」**に
+で、Bash をもっと深く知ろうと思い [入門bash 第3版](http://www.amazon.co.jp/gp/product/4873112540/ref=as_li_qf_sp_asin_tl?ie=UTF8&camp=247&creative=1211&creativeASIN=4873112540&linkCode=as2&tag=ytera-22) を買ってパラパラ見てたら **「4.3.1 文字列演算子の構文」**に
 
-```
+```bash
 ${variable:?message}
 ```
 
 というのが載ってました。 出来ることはほぼ `set -u` と変わらないのですが、
 
-```
+```bash
 $ cat test.sh
 #!/bin/sh
 set -u
@@ -43,7 +43,7 @@ $ ./test.sh
 
 「not set」だけじゃなくて「or null」と表示されてますね。そして、そこを任意のメッセージにすることもできます。
 
-```
+```bash
 $ cat test.sh
 #!/bin/sh
 set -u

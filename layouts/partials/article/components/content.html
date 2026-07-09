@@ -10,7 +10,7 @@
 </div>
 
 {{ $page_tags := .Params.tags }}
-{{ $products := where .Site.Data.amazon_products.products "categories" "intersect" $page_tags }}
+{{ $products := where hugo.Data.amazon_products.products "categories" "intersect" $page_tags }}
 {{ $products := shuffle $products }}
 {{ if $products }}
 <hr>

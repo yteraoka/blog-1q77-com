@@ -7,7 +7,7 @@ tags: ['Consul', 'Hashicorp', 'Nomad']
 
 口にするとマサカリならぬ船のホイールが飛んできそうですが、[話題](https://matthias-endler.de/2019/maybe-you-dont-need-kubernetes/)の [Hashicorp Nomad](https://www.nomadproject.io/) のクラスタをセットアップしてみました。下の図のような構成です。3台のサーバーで構築した Consul クラスタとこれまた3台のサーバーで Nomad のサーバークラスタを構築し、そこへ3台の Nomad クライアント(worker)を参加させます。公式の図を拝借したらこうなっていたのですが、Nomad サーバーとクライアントが特定のもの同士で紐づいているように見えますがそういうわけではなく、クライアントはクラスタに対して参加しています。[DigitalOcean](https://m.do.co/c/97e74a2e7336) に簡単に構築するための Terraform & Ansible を [https://github.com/yteraoka/nomad-cluster-do](https://github.com/yteraoka/nomad-cluster-do) に置いてあります。
 
-[![](http://158.101.138.193/wp-content/uploads/2019/04/nomad-reference-diagram.png)](http://158.101.138.193/wp-content/uploads/2019/04/nomad-reference-diagram.png)
+{{< figure src="nomad-reference-diagram.png" caption="Reference diagram" >}}
 
 Nomad は Kubernetes の Cluster IP みたいなものがなく、コンテナの公開するポート情報を [Consul](https://www.consul.io/) に登録し、その Consul の情報を元に動的に振り分け先を更新するロードバランサー（[Fabio](https://github.com/fabiolb/fabio) というのが Consul を直接参照できるらしいし、HAProxy は 1.8 から DNS を使った動的更新ができ、この DNS サーバーとして Consul も使えるらしい）を使ったり [consul-template](https://github.com/hashicorp/consul-template) で動的に [HAProxy](http://www.haproxy.org/) や [nginx](http://nginx.org/) の設定を更新することによってサービスを公開するようにします。これは昔 (Docker 1.11 以前) の Docker Swarm の構成に似ています (参考: [小さく始める Docker container の deploy](https://www.slideshare.net/yteraoka1/docker-container-deploy))。もちろん、そんな昔のやつより高機能です。ちゃんと指定したコンテナの数を維持してくれたり、ローリングアップデートの仕組みもありますし、DaemonSet みたいなものも、batch 実行にも対応しています。Job についてはまだ詳しく見れていないけれど batch が不要なら Nomad よりも [Docker Swarm mode](https://docs.docker.com/engine/swarm/swarm-mode/) のほうが構築はずっと楽です。Docker だけで構築できますし。
 
