@@ -717,3 +717,33 @@ title = "【 西川 】 からっと寝 敷くだけ簡単 寝具用除湿シー
 id = "B00BS1YHY0"
 imageUrl = "https://m.media-amazon.com/images/I/71vVF6OHZBL._AC_SL1500_.jpg"
 categories = ["未分類", "Uncategorized"]
+
+[[products]]
+title = "Amazon Bedrock AgentCore 実践入門　Strands Agentsで構築するAIエージェント［AWS深掘りガイド］"
+id = "4815641234"
+imageUrl = "https://m.media-amazon.com/images/I/81Eb-KuRVxL._SL1500_.jpg"
+categories = ["AWS"]
+
+[[products]]
+title = "Amazon Bedrock 生成AIアプリ開発入門 [AWS深掘りガイド]"
+id = "4815626448"
+imageUrl = "https://m.media-amazon.com/images/I/81ljke7m9lL._SL1500_.jpg"
+categories = ["AWS"]
+
+[[products]]
+title = "AIエージェント開発 / 運用入門 [生成AI深掘りガイド]"
+id = "4815636605"
+imageUrl = "https://m.media-amazon.com/images/I/81fBgB3mphL._SL1500_.jpg"
+categories = ["AWS"]
+
+[[products]]
+title = "MCPサーバー開発大全――独自サーバーの実装から自動テストの構築まで エンジニア選書"
+id = "B0G111HCSV"
+imageUrl = "https://m.media-amazon.com/images/I/81jt+ZbmcZL._SL1500_.jpg"
+categories = ["生成AI", "未分類", "Uncategorized"]
+
+[[products]]
+title = "LLMの原理、RAG・エージェント開発から読み解く　コンテキストエンジニアリング (エンジニア選書)"
+id = "4297154196"
+imageUrl = "https://m.media-amazon.com/images/I/81I7imCgNnL._SL1500_.jpg"
+categories = ["生成AI", "未分類", "Uncategorized"]
