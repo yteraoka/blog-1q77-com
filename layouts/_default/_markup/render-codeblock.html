@@ -1,6 +1,6 @@
 {{- $lang := .Type -}}
 {{- $code := .Inner -}}
-{{- $options := dict "lineNos" true "style" "github-dark" -}}
+{{- $options := dict "style" "github-dark" -}}
 {{- if $lang -}}
 {{- $highlighted := transform.Highlight $code $lang $options -}}
 {{- /* Replace language- with syntax- to avoid 1Password selector */ -}}
