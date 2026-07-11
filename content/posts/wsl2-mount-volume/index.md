@@ -3,7 +3,7 @@ title: "WSL 2 で外部ストレージをマウント"
 description: |
   Windows の WSL2 で外付けの HDD をマウントする方法
 date: 2023-09-21T23:08:28+09:00
-tags: [Windows, Linux, WSL2, XFS]
+tags: [Windows, Linux, WSL, XFS]
 draft: false
 image: cover.jpg
 author: "@yteraoka"
