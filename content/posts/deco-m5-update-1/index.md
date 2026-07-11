@@ -24,7 +24,8 @@ tags: ['WiFi', 'Deco']
 
 ### VPN
 
-IPv4 のインターネット接続タイプに「[L2TP](https://ja.wikipedia.org/wiki/Layer_2_Tunneling_Protocol)」、「PPTP」が追加されました [![](http://13.230.26.187/wp-content/uploads/2018/09/deco-m5-vpn-300x263.png)](http://158.101.138.193/wp-content/uploads/2018/09/deco-m5-vpn.png)
+IPv4 のインターネット接続タイプに「[L2TP](https://ja.wikipedia.org/wiki/Layer_2_Tunneling_Protocol)」、「PPTP」が追加されました
+<img src="deco-m5-vpn.png">
 
 ### WPS
 
