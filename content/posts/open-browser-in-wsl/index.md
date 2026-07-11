@@ -5,7 +5,7 @@ description: |
   認証に使う必要があるのは Windows 側なのでそのための設定を行う
 date: 2024-01-07T20:43:53+09:00
 draft: false
-tags: ["Windows", "WSL2"]
+tags: ["Windows", "WSL"]
 image: cover.png
 author: "@yteraoka"
 categories:

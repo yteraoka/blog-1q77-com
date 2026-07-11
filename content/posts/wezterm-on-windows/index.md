@@ -4,7 +4,7 @@ description: |
   WSL2 の Terminal としても使える WezTerm を試してみた
 date: 2023-08-12T20:07:01+09:00
 draft: false
-tags: ['Windows', 'Ubuntu', 'WSL2', 'WezTerm']
+tags: ['Windows', 'Ubuntu', 'WSL', 'WezTerm']
 image: cover.jpg
 author: "@yteraoka"
 categories:
