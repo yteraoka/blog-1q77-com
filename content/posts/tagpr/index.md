@@ -1,7 +1,7 @@
 ---
 title: "Tagpr で tag trigger の workflow が実行されなくてハマった話"
 description: |
-  Tagpr を使った自動化を構築しようとしたが、期待の動作をしなくて調査したが、ドキュメントの読み落としで時間を浪費した件
+  Tagpr を使った自動化を構築しようとしたが、期待の動作をしなくて調査した記録
 date: 2024-03-15T09:00:00+09:00
 tags: [GitHub]
 draft: false
